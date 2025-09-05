@@ -1,0 +1,65 @@
+# Windows Event Log Configuration for SCCM SQL Reporting Server
+# Monitors critical Windows, SQL Server, and SSRS events
+
+init_config:
+
+instances:
+  # System Event Log - Critical and Error events
+  - channels:
+      - path: System
+        type: windows_event_log
+        filters:
+          - query: '*[System[(Level=1 or Level=2)]]'  # Critical and Error events
+    tags:
+      - source:windows-system
+      - role:sccm-sql-reporting-server
+    
+  # Application Event Log - SQL Server related events
+  - channels:
+      - path: Application
+        type: windows_event_log
+        filters:
+          - query: '*[System[Provider[@Name="MSSQLSERVER"] and (Level=1 or Level=2 or Level=3)]]'  # SQL Server events
+    tags:
+      - source:sqlserver-application
+      - role:sccm-sql-reporting-server
+    
+  # Application Event Log - SQL Server Reporting Services events
+  - channels:
+      - path: Application
+        type: windows_event_log
+        filters:
+          - query: '*[System[Provider[@Name="Report Server"] and (Level=1 or Level=2 or Level=3)]]'  # SSRS events
+    tags:
+      - source:ssrs-application
+      - role:sccm-sql-reporting-server
+    
+  # Application Event Log - IIS related events
+  - channels:
+      - path: Application
+        type: windows_event_log
+        filters:
+          - query: '*[System[Provider[@Name="IIS-W3SVC-WP"] and (Level=1 or Level=2 or Level=3)]]'  # IIS Worker Process events
+    tags:
+      - source:iis-application
+      - role:sccm-sql-reporting-server
+    
+  # Security Event Log - Authentication events
+  - channels:
+      - path: Security
+        type: windows_event_log
+        filters:
+          - query: '*[System[(EventID=4625 or EventID=4648 or EventID=4771 or EventID=4776)]]'  # Failed logons
+    tags:
+      - source:windows-security
+      - role:sccm-sql-reporting-server
+    
+  # IIS specific event logs
+  - channels:
+      - path: Microsoft-Windows-IIS-W3SVC/Operational
+        type: windows_event_log
+        filters:
+          - query: '*[System[(Level=1 or Level=2 or Level=3)]]'  # Critical, Error, Warning
+    tags:
+      - source:iis-operational
+      - role:sccm-sql-reporting-server

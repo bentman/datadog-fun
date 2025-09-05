@@ -1,0 +1,23 @@
+# Windows Event Log monitoring for Management Point
+logs:
+  - type: windows_event
+    channel_path: System
+    source: windows.events
+    service: sccm-management-point
+    tags:
+      - sccm_role:management_point
+    filters:
+      - type: include_at_match
+        name: levels
+        pattern: critical|error|warning
+    
+  - type: windows_event
+    channel_path: Application
+    source: windows.events
+    service: sccm-management-point
+    tags:
+      - sccm_role:management_point
+    filters:
+      - type: include_at_match
+        name: source
+        pattern: SMS_MP|IIS|W3SVC

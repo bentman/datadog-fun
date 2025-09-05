@@ -1,0 +1,31 @@
+# Main Datadog configuration for SCCM Site Server
+api_key: YOUR_API_KEY_HERE
+site: datadoghq.com
+hostname: sccm-site-server
+
+tags:
+  - environment:production
+  - role:sccm-site-server
+  - location:azure
+
+# Process Agent Configuration
+process_config:
+  enabled: true
+
+# System probe configuration
+system_probe_config:
+  enabled: true
+
+# Logs configuration
+logs_enabled: true
+
+# APM configuration
+apm_config:
+  enabled: false
+
+# Performance monitoring thresholds
+process_config:
+  intervals:
+    container: 10
+    process: 10
+    process_discovery: 10

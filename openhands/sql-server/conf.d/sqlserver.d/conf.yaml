@@ -1,0 +1,106 @@
+# SQL Server Check Configuration for SCCM Database
+# Monitors SQL Server performance and SCCM database health
+
+init_config:
+
+instances:
+  # Main SQL Server instance monitoring
+  - host: localhost,1433
+    username: datadog_monitoring_user
+    password: YOUR_SQL_MONITORING_PASSWORD
+    connector: odbc
+    driver: ODBC Driver 17 for SQL Server
+    tags:
+      - role:sccm-sql-server
+      - database:sccm
+    
+    # Database Monitoring Configuration
+    dbm: true
+    query_metrics:
+      enabled: true
+      run_sync: false
+      collection_interval: 10
+    query_activity:
+      enabled: true
+      collection_interval: 10
+    
+    # Custom queries for SCCM-specific monitoring
+    custom_queries:
+      # SCCM Database Size Monitoring
+      - query: |
+          SELECT 
+            DB_NAME() as database_name,
+            SUM(CAST(FILEPROPERTY(name, 'SpaceUsed') AS bigint) * 8192.) as used_space_bytes,
+            SUM(size * 8192.) as allocated_space_bytes
+          FROM sys.database_files
+          WHERE type IN (0,1)
+        columns:
+          - name: database_name
+            type: tag
+          - name: used_space_bytes
+            type: gauge
+          - name: allocated_space_bytes
+            type: gauge
+        tags:
+          - query:sccm_database_size
+      
+      # SCCM Client Count
+      - query: |
+          SELECT COUNT(*) as client_count
+          FROM v_R_System
+          WHERE Client0 = 1 AND Obsolete0 = 0
+        columns:
+          - name: client_count
+            type: gauge
+        tags:
+          - query:sccm_client_count
+      
+      # SCCM Site Status
+      - query: |
+          SELECT 
+            SiteCode,
+            COUNT(*) as component_count,
+            SUM(CASE WHEN Status = 0 THEN 1 ELSE 0 END) as ok_components,
+            SUM(CASE WHEN Status = 1 THEN 1 ELSE 0 END) as warning_components,
+            SUM(CASE WHEN Status = 2 THEN 1 ELSE 0 END) as critical_components
+          FROM v_ComponentSummarizer
+          WHERE TallyInterval = 0
+          GROUP BY SiteCode
+        columns:
+          - name: sitecode
+            type: tag
+          - name: component_count
+            type: gauge
+          - name: ok_components
+            type: gauge
+          - name: warning_components
+            type: gauge
+          - name: critical_components
+            type: gauge
+        tags:
+          - query:sccm_site_status
+    
+    # Performance counters
+    include_task_scheduler_metrics: false
+    include_db_fragmentation_metrics: true
+    include_fci_metrics: false
+    
+    # Log collection
+    logs:
+      - type: file
+        path: C:\Program Files\Microsoft SQL Server\MSSQL15.MSSQLSERVER\MSSQL\Log\ERRORLOG
+        source: sqlserver
+        service: sqlserver
+        log_processing_rules:
+          - type: multi_line
+            name: new_log_start_with_date
+            pattern: \d{4}-\d{2}-\d{2}
+      
+      - type: file
+        path: C:\Program Files\Microsoft SQL Server\MSSQL15.MSSQLSERVER\MSSQL\Log\SQLAGENT.OUT
+        source: sqlserver
+        service: sqlserver-agent
+        log_processing_rules:
+          - type: multi_line
+            name: new_log_start_with_date
+            pattern: \d{4}-\d{2}-\d{2}

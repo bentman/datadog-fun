@@ -1,0 +1,106 @@
+# Recommended Monitoring Thresholds for SCCM Servers
+# These thresholds are based on industry best practices and typical SCCM environments
+
+# CPU Utilization Thresholds
+cpu_thresholds:
+  warning: 75    # CPU usage above 75%
+  critical: 85   # CPU usage above 85%
+  sustained_duration: 300  # 5 minutes
+
+# Memory Utilization Thresholds
+memory_thresholds:
+  warning: 80    # Memory usage above 80%
+  critical: 90   # Memory usage above 90%
+  sustained_duration: 300  # 5 minutes
+
+# Disk Space Thresholds
+disk_space_thresholds:
+  warning: 80    # Disk usage above 80%
+  critical: 90   # Disk usage above 90%
+  
+  # SCCM-specific disk thresholds
+  sccm_content_library:
+    warning: 85  # Content library above 85%
+    critical: 95 # Content library above 95%
+  
+  sccm_database:
+    warning: 75  # Database drive above 75%
+    critical: 85 # Database drive above 85%
+
+# Disk Performance Thresholds
+disk_performance_thresholds:
+  avg_disk_queue_length:
+    warning: 2.0   # Average disk queue length above 2
+    critical: 4.0  # Average disk queue length above 4
+  
+  disk_latency_ms:
+    warning: 20    # Disk latency above 20ms
+    critical: 50   # Disk latency above 50ms
+
+# Network Thresholds
+network_thresholds:
+  bandwidth_utilization:
+    warning: 70    # Network utilization above 70%
+    critical: 85   # Network utilization above 85%
+  
+  packet_loss:
+    warning: 1     # Packet loss above 1%
+    critical: 5    # Packet loss above 5%
+
+# SQL Server Specific Thresholds
+sql_server_thresholds:
+  buffer_cache_hit_ratio:
+    warning: 90    # Buffer cache hit ratio below 90%
+    critical: 85   # Buffer cache hit ratio below 85%
+  
+  page_life_expectancy:
+    warning: 300   # Page life expectancy below 300 seconds
+    critical: 180  # Page life expectancy below 180 seconds
+  
+  blocked_processes:
+    warning: 5     # More than 5 blocked processes
+    critical: 10   # More than 10 blocked processes
+  
+  database_size_growth:
+    warning: 80    # Database size above 80% of allocated space
+    critical: 90   # Database size above 90% of allocated space
+
+# IIS Specific Thresholds (Management Points, Distribution Points)
+iis_thresholds:
+  current_connections:
+    warning: 1000  # More than 1000 current connections
+    critical: 2000 # More than 2000 current connections
+  
+  requests_per_second:
+    warning: 100   # More than 100 requests per second
+    critical: 200  # More than 200 requests per second
+  
+  request_queue_length:
+    warning: 10    # Request queue length above 10
+    critical: 25   # Request queue length above 25
+
+# SCCM Service Availability
+service_availability:
+  critical_services:
+    - SMS_EXECUTIVE
+    - SMS_SITE_COMPONENT_MANAGER
+    - SMS_NOTIFICATION_SERVER
+    - W3SVC
+    - Winmgmt
+    - MSSQLSERVER
+    - SQLSERVERAGENT
+    - ReportServer
+  
+  service_restart_threshold:
+    warning: 2     # Service restarted more than 2 times in 24 hours
+    critical: 5    # Service restarted more than 5 times in 24 hours
+
+# Event Log Monitoring
+event_log_thresholds:
+  error_events_per_hour:
+    warning: 10    # More than 10 error events per hour
+    critical: 25   # More than 25 error events per hour
+  
+  critical_events_per_hour:
+    warning: 1     # More than 1 critical event per hour
+    critical: 5    # More than 5 critical events per hour

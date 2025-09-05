@@ -1,0 +1,11 @@
+# Management Point critical services
+init_config:
+
+instances:
+  - services:
+      - W3SVC
+      - IISADMIN
+      - WAS
+      - MSSQLSERVER
+    tags:
+      - sccm_role:management_point

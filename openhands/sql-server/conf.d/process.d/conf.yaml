@@ -1,0 +1,35 @@
+# Process Check Configuration for SCCM SQL Server
+# Monitors critical SQL Server processes
+
+init_config:
+
+instances:
+  # SQL Server Database Engine Process
+  - name: sqlservr
+    search_string: ['sqlservr.exe']
+    tags:
+      - process:sql-server-engine
+      - role:sccm-sql-server
+    thresholds:
+      critical: [1, 1]  # Exactly 1 process should be running
+      warning: [1, 1]
+    
+  # SQL Server Agent Process
+  - name: sqlagent
+    search_string: ['sqlagent.exe']
+    tags:
+      - process:sql-server-agent
+      - role:sccm-sql-server
+    thresholds:
+      critical: [1, 1]  # Exactly 1 process should be running
+      warning: [1, 1]
+    
+  # WMI Provider Host
+  - name: wmiprvse
+    search_string: ['wmiprvse.exe']
+    tags:
+      - process:wmi-provider
+      - role:sccm-sql-server
+    thresholds:
+      critical: [1, 20]  # At least 1, max 20 processes
+      warning: [1, 10]

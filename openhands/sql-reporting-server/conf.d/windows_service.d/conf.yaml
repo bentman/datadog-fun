@@ -1,0 +1,54 @@
+# Windows Service Check Configuration for SCCM SQL Reporting Server
+# Monitors critical SQL Server Reporting Services
+
+init_config:
+
+instances:
+  # SQL Server Reporting Services
+  - services:
+      - ReportServer
+    tags:
+      - service:sql-server-reporting-services
+      - role:sccm-sql-reporting-server
+    
+  # SQL Server Database Engine (if local)
+  - services:
+      - MSSQLSERVER
+    tags:
+      - service:sql-server-engine
+      - role:sccm-sql-reporting-server
+    
+  # SQL Server Agent (if local)
+  - services:
+      - SQLSERVERAGENT
+    tags:
+      - service:sql-server-agent
+      - role:sccm-sql-reporting-server
+    
+  # World Wide Web Publishing Service (IIS) - For Report Manager
+  - services:
+      - W3SVC
+    tags:
+      - service:iis
+      - role:sccm-sql-reporting-server
+    
+  # IIS Admin Service
+  - services:
+      - IISADMIN
+    tags:
+      - service:iis-admin
+      - role:sccm-sql-reporting-server
+    
+  # Windows Management Instrumentation
+  - services:
+      - Winmgmt
+    tags:
+      - service:wmi
+      - role:sccm-sql-reporting-server
+    
+  # Windows Remote Management
+  - services:
+      - WinRM
+    tags:
+      - service:winrm
+      - role:sccm-sql-reporting-server

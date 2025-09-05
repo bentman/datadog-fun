@@ -1,0 +1,75 @@
+# WMI Check Configuration for SCCM Distribution Point
+# Monitors system performance with emphasis on disk and network metrics
+
+init_config:
+
+instances:
+  # System Performance Metrics
+  - class: Win32_PerfRawData_PerfOS_System
+    metrics:
+      - [ProcessorQueueLength, system.proc.queue_length, gauge]
+      - [ContextSwitchesPersec, system.context_switches, gauge]
+    tags:
+      - role:sccm-distribution-point
+    
+  # Memory Performance
+  - class: Win32_PerfRawData_PerfOS_Memory
+    metrics:
+      - [AvailableBytes, system.mem.available, gauge]
+      - [CommittedBytes, system.mem.committed, gauge]
+      - [PoolNonpagedBytes, system.mem.pool_nonpaged, gauge]
+      - [PoolPagedBytes, system.mem.pool_paged, gauge]
+    tags:
+      - role:sccm-distribution-point
+    
+  # Processor Performance
+  - class: Win32_PerfRawData_PerfOS_Processor
+    metrics:
+      - [PercentProcessorTime, system.cpu.pct_processor_time, gauge]
+      - [PercentIdleTime, system.cpu.pct_idle_time, gauge]
+      - [PercentInterruptTime, system.cpu.pct_interrupt_time, gauge]
+    filters:
+      - Name: "_Total"
+    tags:
+      - role:sccm-distribution-point
+    
+  # Disk Performance - Critical for Distribution Points
+  - class: Win32_PerfRawData_PerfDisk_LogicalDisk
+    metrics:
+      - [PercentFreeSpace, system.disk.pct_free_space, gauge]
+      - [FreeMegabytes, system.disk.free_mb, gauge]
+      - [DiskReadsPersec, system.disk.reads_per_sec, gauge]
+      - [DiskWritesPersec, system.disk.writes_per_sec, gauge]
+      - [AvgDiskQueueLength, system.disk.avg_queue_length, gauge]
+      - [DiskReadBytesPerSec, system.disk.read_bytes_per_sec, gauge]
+      - [DiskWriteBytesPerSec, system.disk.write_bytes_per_sec, gauge]
+    tags:
+      - role:sccm-distribution-point
+    
+  # Network Performance - Critical for content distribution
+  - class: Win32_PerfRawData_Tcpip_NetworkInterface
+    metrics:
+      - [BytesReceivedPerSec, system.net.bytes_rcvd, gauge]
+      - [BytesSentPerSec, system.net.bytes_sent, gauge]
+      - [PacketsReceivedPerSec, system.net.packets_rcvd, gauge]
+      - [PacketsSentPerSec, system.net.packets_sent, gauge]
+      - [CurrentBandwidth, system.net.current_bandwidth, gauge]
+    filters:
+      - Name: "!isatap*"
+      - Name: "!Teredo*"
+      - Name: "!Loopback*"
+    tags:
+      - role:sccm-distribution-point
+    
+  # IIS Web Service Performance
+  - class: Win32_PerfRawData_W3SVC_WebService
+    metrics:
+      - [CurrentConnections, iis.current_connections, gauge]
+      - [TotalGetRequests, iis.total_get_requests, gauge]
+      - [BytesReceivedPerSec, iis.bytes_received_per_sec, gauge]
+      - [BytesSentPerSec, iis.bytes_sent_per_sec, gauge]
+      - [GetRequestsPerSec, iis.get_requests_per_sec, gauge]
+    filters:
+      - Name: "_Total"
+    tags:
+      - role:sccm-distribution-point

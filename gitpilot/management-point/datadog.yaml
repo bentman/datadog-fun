@@ -1,0 +1,17 @@
+# Main Datadog configuration for Management Point
+api_key: YOUR_API_KEY_HERE
+site: datadoghq.com
+hostname: sccm-mp-server
+
+tags:
+  - environment:production
+  - role:sccm-management-point
+  - location:azure
+
+process_config:
+  enabled: true
+
+system_probe_config:
+  enabled: true
+
+logs_enabled: true

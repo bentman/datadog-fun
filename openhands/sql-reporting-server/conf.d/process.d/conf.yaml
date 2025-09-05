@@ -1,0 +1,45 @@
+# Process Check Configuration for SCCM SQL Reporting Server
+# Monitors critical SSRS and related processes
+
+init_config:
+
+instances:
+  # SQL Server Reporting Services Process
+  - name: ReportingServicesService
+    search_string: ['ReportingServicesService.exe']
+    tags:
+      - process:ssrs-service
+      - role:sccm-sql-reporting-server
+    thresholds:
+      critical: [1, 1]  # Exactly 1 process should be running
+      warning: [1, 1]
+    
+  # IIS Worker Process - For Report Manager
+  - name: w3wp
+    search_string: ['w3wp.exe']
+    tags:
+      - process:iis-worker
+      - role:sccm-sql-reporting-server
+    thresholds:
+      critical: [1, 10]  # At least 1, max 10 processes
+      warning: [1, 5]
+    
+  # SQL Server Database Engine Process (if local)
+  - name: sqlservr
+    search_string: ['sqlservr.exe']
+    tags:
+      - process:sql-server-engine
+      - role:sccm-sql-reporting-server
+    thresholds:
+      critical: [0, 1]  # 0 or 1 process (may be remote)
+      warning: [0, 1]
+    
+  # WMI Provider Host
+  - name: wmiprvse
+    search_string: ['wmiprvse.exe']
+    tags:
+      - process:wmi-provider
+      - role:sccm-sql-reporting-server
+    thresholds:
+      critical: [1, 20]  # At least 1, max 20 processes
+      warning: [1, 10]

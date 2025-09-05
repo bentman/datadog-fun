@@ -1,0 +1,15 @@
+# Process monitoring for Site Server
+init_config:
+
+instances:
+  - name: sms_executive
+    search_string: ['SMSExec.exe']
+    exact_match: false
+    tags:
+      - sccm_component:sms_executive
+      
+  - name: component_manager
+    search_string: ['sitecomp.exe']
+    exact_match: false
+    tags:
+      - sccm_component:component_manager

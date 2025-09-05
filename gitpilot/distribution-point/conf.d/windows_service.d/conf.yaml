@@ -1,0 +1,10 @@
+# Distribution Point critical services
+init_config:
+
+instances:
+  - services:
+      - BITS
+      - W3SVC
+      - WinRM
+    tags:
+      - sccm_role:distribution_point

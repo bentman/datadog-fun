@@ -1,0 +1,14 @@
+# Main Datadog configuration for SQL Reporting Server
+api_key: YOUR_API_KEY_HERE
+site: datadoghq.com
+hostname: sccm-sql-reporting
+
+tags:
+  - environment:production
+  - role:sql-reporting-server
+  - location:azure
+
+process_config:
+  enabled: true
+
+logs_enabled: true

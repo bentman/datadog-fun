@@ -1,0 +1,61 @@
+# Windows Service Check Configuration for SCCM Distribution Point
+# Monitors critical services for Distribution Point functionality
+
+init_config:
+
+instances:
+  # World Wide Web Publishing Service (IIS) - Critical for DP
+  - services:
+      - W3SVC
+    tags:
+      - service:iis
+      - role:sccm-distribution-point
+    
+  # IIS Admin Service
+  - services:
+      - IISADMIN
+    tags:
+      - service:iis-admin
+      - role:sccm-distribution-point
+    
+  # Windows Management Instrumentation
+  - services:
+      - Winmgmt
+    tags:
+      - service:wmi
+      - role:sccm-distribution-point
+    
+  # Background Intelligent Transfer Service
+  - services:
+      - BITS
+    tags:
+      - service:bits
+      - role:sccm-distribution-point
+    
+  # Windows Remote Management
+  - services:
+      - WinRM
+    tags:
+      - service:winrm
+      - role:sccm-distribution-point
+    
+  # Windows Deployment Services (if PXE enabled)
+  - services:
+      - WDSServer
+    tags:
+      - service:wds-server
+      - role:sccm-distribution-point
+    
+  # TFTP Service (if PXE enabled)
+  - services:
+      - TFTPD
+    tags:
+      - service:tftp
+      - role:sccm-distribution-point
+    
+  # SMS Distribution Point Monitor
+  - services:
+      - SMS_DP_MONITOR
+    tags:
+      - service:sms-dp-monitor
+      - role:sccm-distribution-point

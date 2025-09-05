@@ -1,0 +1,79 @@
+# WMI Check Configuration for SCCM SQL Server
+# Monitors system performance with emphasis on SQL Server metrics
+
+init_config:
+
+instances:
+  # System Performance Metrics
+  - class: Win32_PerfRawData_PerfOS_System
+    metrics:
+      - [ProcessorQueueLength, system.proc.queue_length, gauge]
+      - [ContextSwitchesPersec, system.context_switches, gauge]
+    tags:
+      - role:sccm-sql-server
+    
+  # Memory Performance - Critical for SQL Server
+  - class: Win32_PerfRawData_PerfOS_Memory
+    metrics:
+      - [AvailableBytes, system.mem.available, gauge]
+      - [CommittedBytes, system.mem.committed, gauge]
+      - [PoolNonpagedBytes, system.mem.pool_nonpaged, gauge]
+      - [PoolPagedBytes, system.mem.pool_paged, gauge]
+      - [PageFaultsPersec, system.mem.page_faults_per_sec, gauge]
+    tags:
+      - role:sccm-sql-server
+    
+  # Processor Performance
+  - class: Win32_PerfRawData_PerfOS_Processor
+    metrics:
+      - [PercentProcessorTime, system.cpu.pct_processor_time, gauge]
+      - [PercentIdleTime, system.cpu.pct_idle_time, gauge]
+      - [PercentInterruptTime, system.cpu.pct_interrupt_time, gauge]
+    filters:
+      - Name: "_Total"
+    tags:
+      - role:sccm-sql-server
+    
+  # Disk Performance - Critical for SQL Server
+  - class: Win32_PerfRawData_PerfDisk_LogicalDisk
+    metrics:
+      - [PercentFreeSpace, system.disk.pct_free_space, gauge]
+      - [FreeMegabytes, system.disk.free_mb, gauge]
+      - [DiskReadsPersec, system.disk.reads_per_sec, gauge]
+      - [DiskWritesPersec, system.disk.writes_per_sec, gauge]
+      - [AvgDiskQueueLength, system.disk.avg_queue_length, gauge]
+      - [DiskReadBytesPerSec, system.disk.read_bytes_per_sec, gauge]
+      - [DiskWriteBytesPerSec, system.disk.write_bytes_per_sec, gauge]
+      - [AvgDiskSecPerRead, system.disk.avg_sec_per_read, gauge]
+      - [AvgDiskSecPerWrite, system.disk.avg_sec_per_write, gauge]
+    tags:
+      - role:sccm-sql-server
+    
+  # SQL Server Buffer Manager
+  - class: Win32_PerfRawData_MSSQLSERVER_SQLServerBufferManager
+    metrics:
+      - [BufferCacheHitRatio, sqlserver.buffer.cache_hit_ratio, gauge]
+      - [PageLifeExpectancy, sqlserver.buffer.page_life_expectancy, gauge]
+      - [LazyWritesPerSec, sqlserver.buffer.lazy_writes_per_sec, gauge]
+      - [CheckpointPagesPerSec, sqlserver.buffer.checkpoint_pages_per_sec, gauge]
+    tags:
+      - role:sccm-sql-server
+    
+  # SQL Server Memory Manager
+  - class: Win32_PerfRawData_MSSQLSERVER_SQLServerMemoryManager
+    metrics:
+      - [TotalServerMemoryKB, sqlserver.memory.total_server_memory, gauge]
+      - [TargetServerMemoryKB, sqlserver.memory.target_server_memory, gauge]
+      - [MemoryGrantsOutstanding, sqlserver.memory.grants_outstanding, gauge]
+      - [MemoryGrantsPending, sqlserver.memory.grants_pending, gauge]
+    tags:
+      - role:sccm-sql-server
+    
+  # SQL Server General Statistics
+  - class: Win32_PerfRawData_MSSQLSERVER_SQLServerGeneralStatistics
+    metrics:
+      - [UserConnections, sqlserver.stats.connections, gauge]
+      - [ProcessesBlocked, sqlserver.stats.processes_blocked, gauge]
+      - [TempTablesCreationRate, sqlserver.stats.temp_tables_creation_rate, gauge]
+    tags:
+      - role:sccm-sql-server

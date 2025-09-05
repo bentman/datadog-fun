@@ -1,0 +1,47 @@
+# Datadog Agent Configuration for SCCM Site Server
+# This configuration is optimized for monitoring SCCM Primary Site Servers
+
+# Basic Agent Configuration
+api_key: YOUR_DATADOG_API_KEY
+site: datadoghq.com
+hostname: YOUR_SCCM_SITE_SERVER_HOSTNAME
+tags:
+  - role:sccm-site-server
+  - environment:production
+  - datacenter:azure
+
+# Logging Configuration
+logs_enabled: true
+log_level: INFO
+
+# Process Agent Configuration
+process_config:
+  enabled: "true"
+
+# Network Performance Monitoring
+network_config:
+  enabled: true
+
+# System Probe Configuration
+system_probe_config:
+  enabled: true
+
+# APM Configuration (if needed for custom applications)
+apm_config:
+  enabled: false
+
+# Compliance Configuration
+compliance_config:
+  enabled: false
+
+# Remote Configuration
+remote_configuration:
+  enabled: false
+
+# Inventories Configuration
+inventories_config:
+  enabled: true
+
+# Additional Configuration
+check_runners: 4
+forwarder_timeout: 20

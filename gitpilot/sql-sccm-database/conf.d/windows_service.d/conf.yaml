@@ -1,0 +1,11 @@
+# SQL Server services monitoring
+init_config:
+
+instances:
+  - services:
+      - MSSQLSERVER
+      - SQLSERVERAGENT
+      - SQLBrowser
+      - SQLWriter
+    tags:
+      - sql_role:sccm_database

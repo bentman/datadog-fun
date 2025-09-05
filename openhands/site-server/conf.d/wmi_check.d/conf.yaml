@@ -1,0 +1,59 @@
+# WMI Check Configuration for SCCM Site Server
+# Monitors system performance metrics and SCCM-specific WMI classes
+
+init_config:
+
+instances:
+  # System Performance Metrics
+  - class: Win32_PerfRawData_PerfOS_System
+    metrics:
+      - [ProcessorQueueLength, system.proc.queue_length, gauge]
+      - [ContextSwitchesPersec, system.context_switches, gauge]
+    tags:
+      - role:sccm-site-server
+    
+  # Memory Performance
+  - class: Win32_PerfRawData_PerfOS_Memory
+    metrics:
+      - [AvailableBytes, system.mem.available, gauge]
+      - [CommittedBytes, system.mem.committed, gauge]
+      - [PoolNonpagedBytes, system.mem.pool_nonpaged, gauge]
+      - [PoolPagedBytes, system.mem.pool_paged, gauge]
+    tags:
+      - role:sccm-site-server
+    
+  # Processor Performance
+  - class: Win32_PerfRawData_PerfOS_Processor
+    metrics:
+      - [PercentProcessorTime, system.cpu.pct_processor_time, gauge]
+      - [PercentIdleTime, system.cpu.pct_idle_time, gauge]
+      - [PercentInterruptTime, system.cpu.pct_interrupt_time, gauge]
+    filters:
+      - Name: "_Total"
+    tags:
+      - role:sccm-site-server
+    
+  # Disk Performance
+  - class: Win32_PerfRawData_PerfDisk_LogicalDisk
+    metrics:
+      - [PercentFreeSpace, system.disk.pct_free_space, gauge]
+      - [FreeMegabytes, system.disk.free_mb, gauge]
+      - [DiskReadsPersec, system.disk.reads_per_sec, gauge]
+      - [DiskWritesPersec, system.disk.writes_per_sec, gauge]
+      - [AvgDiskQueueLength, system.disk.avg_queue_length, gauge]
+    tags:
+      - role:sccm-site-server
+    
+  # Network Performance
+  - class: Win32_PerfRawData_Tcpip_NetworkInterface
+    metrics:
+      - [BytesReceivedPerSec, system.net.bytes_rcvd, gauge]
+      - [BytesSentPerSec, system.net.bytes_sent, gauge]
+      - [PacketsReceivedPerSec, system.net.packets_rcvd, gauge]
+      - [PacketsSentPerSec, system.net.packets_sent, gauge]
+    filters:
+      - Name: "!isatap*"
+      - Name: "!Teredo*"
+      - Name: "!Loopback*"
+    tags:
+      - role:sccm-site-server

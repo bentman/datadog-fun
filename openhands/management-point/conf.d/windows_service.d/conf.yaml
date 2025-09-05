@@ -1,0 +1,54 @@
+# Windows Service Check Configuration for SCCM Management Point
+# Monitors critical services for Management Point functionality
+
+init_config:
+
+instances:
+  # World Wide Web Publishing Service (IIS) - Critical for MP
+  - services:
+      - W3SVC
+    tags:
+      - service:iis
+      - role:sccm-management-point
+    
+  # IIS Admin Service
+  - services:
+      - IISADMIN
+    tags:
+      - service:iis-admin
+      - role:sccm-management-point
+    
+  # Windows Management Instrumentation - Critical for client communication
+  - services:
+      - Winmgmt
+    tags:
+      - service:wmi
+      - role:sccm-management-point
+    
+  # Background Intelligent Transfer Service
+  - services:
+      - BITS
+    tags:
+      - service:bits
+      - role:sccm-management-point
+    
+  # Windows Remote Management
+  - services:
+      - WinRM
+    tags:
+      - service:winrm
+      - role:sccm-management-point
+    
+  # SMS MP Control Manager (if collocated with site server)
+  - services:
+      - SMS_MP_CONTROL_MANAGER
+    tags:
+      - service:sms-mp-control-manager
+      - role:sccm-management-point
+    
+  # HTTP SSL (if using HTTPS)
+  - services:
+      - HTTPFilter
+    tags:
+      - service:http-ssl
+      - role:sccm-management-point

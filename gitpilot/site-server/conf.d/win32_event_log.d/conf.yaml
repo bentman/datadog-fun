@@ -1,0 +1,33 @@
+# Windows Event Log monitoring for Site Server
+logs:
+  - type: windows_event
+    channel_path: System
+    source: windows.events
+    service: sccm-site-server
+    tags:
+      - sccm_role:site_server
+    filters:
+      - type: include_at_match
+        name: levels
+        pattern: critical|error|warning
+    
+  - type: windows_event
+    channel_path: Application
+    source: windows.events
+    service: sccm-site-server
+    tags:
+      - sccm_role:site_server
+    filters:
+      - type: include_at_match
+        name: source
+        pattern: SMS|ConfigMgr|SCCM
+      - type: include_at_match
+        name: levels
+        pattern: critical|error|warning
+    
+  - type: windows_event
+    channel_path: Microsoft-ConfigMgr/Operational
+    source: sccm.events
+    service: sccm-site-server
+    tags:
+      - sccm_role:site_server

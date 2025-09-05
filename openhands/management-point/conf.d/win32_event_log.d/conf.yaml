@@ -1,0 +1,65 @@
+# Windows Event Log Configuration for SCCM Management Point
+# Monitors critical Windows, IIS, and SCCM Management Point events
+
+init_config:
+
+instances:
+  # System Event Log - Critical and Error events
+  - channels:
+      - path: System
+        type: windows_event_log
+        filters:
+          - query: '*[System[(Level=1 or Level=2)]]'  # Critical and Error events
+    tags:
+      - source:windows-system
+      - role:sccm-management-point
+    
+  # Application Event Log - IIS related events
+  - channels:
+      - path: Application
+        type: windows_event_log
+        filters:
+          - query: '*[System[Provider[@Name="IIS-W3SVC-WP"] and (Level=1 or Level=2 or Level=3)]]'  # IIS Worker Process events
+    tags:
+      - source:iis-application
+      - role:sccm-management-point
+    
+  # Application Event Log - SCCM Management Point events
+  - channels:
+      - path: Application
+        type: windows_event_log
+        filters:
+          - query: '*[System[Provider[@Name="SMS Server"] and (Level=1 or Level=2 or Level=3)]]'  # SCCM events
+    tags:
+      - source:sccm-application
+      - role:sccm-management-point
+    
+  # Security Event Log - Authentication events
+  - channels:
+      - path: Security
+        type: windows_event_log
+        filters:
+          - query: '*[System[(EventID=4625 or EventID=4648 or EventID=4771 or EventID=4776)]]'  # Failed logons
+    tags:
+      - source:windows-security
+      - role:sccm-management-point
+    
+  # IIS specific event logs
+  - channels:
+      - path: Microsoft-Windows-IIS-W3SVC/Operational
+        type: windows_event_log
+        filters:
+          - query: '*[System[(Level=1 or Level=2 or Level=3)]]'  # Critical, Error, Warning
+    tags:
+      - source:iis-operational
+      - role:sccm-management-point
+    
+  # WMI Activity events
+  - channels:
+      - path: Microsoft-Windows-WMI-Activity/Operational
+        type: windows_event_log
+        filters:
+          - query: '*[System[(Level=1 or Level=2)]]'  # Critical and Error events
+    tags:
+      - source:wmi-activity
+      - role:sccm-management-point

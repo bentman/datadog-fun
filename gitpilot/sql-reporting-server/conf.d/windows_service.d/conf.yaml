@@ -1,0 +1,11 @@
+# SQL Reporting services monitoring
+init_config:
+
+instances:
+  - services:
+      - MSSQLSERVER
+      - SQLSERVERAGENT
+      - ReportServer
+      - SQLBrowser
+    tags:
+      - sql_role:reporting_server

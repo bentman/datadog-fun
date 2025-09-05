@@ -1,0 +1,61 @@
+# WMI Check Configuration for SCCM Management Point
+# Monitors system performance and IIS-specific metrics
+
+init_config:
+
+instances:
+  # System Performance Metrics
+  - class: Win32_PerfRawData_PerfOS_System
+    metrics:
+      - [ProcessorQueueLength, system.proc.queue_length, gauge]
+      - [ContextSwitchesPersec, system.context_switches, gauge]
+    tags:
+      - role:sccm-management-point
+    
+  # Memory Performance
+  - class: Win32_PerfRawData_PerfOS_Memory
+    metrics:
+      - [AvailableBytes, system.mem.available, gauge]
+      - [CommittedBytes, system.mem.committed, gauge]
+      - [PoolNonpagedBytes, system.mem.pool_nonpaged, gauge]
+      - [PoolPagedBytes, system.mem.pool_paged, gauge]
+    tags:
+      - role:sccm-management-point
+    
+  # Processor Performance
+  - class: Win32_PerfRawData_PerfOS_Processor
+    metrics:
+      - [PercentProcessorTime, system.cpu.pct_processor_time, gauge]
+      - [PercentIdleTime, system.cpu.pct_idle_time, gauge]
+      - [PercentInterruptTime, system.cpu.pct_interrupt_time, gauge]
+    filters:
+      - Name: "_Total"
+    tags:
+      - role:sccm-management-point
+    
+  # IIS Web Service Performance
+  - class: Win32_PerfRawData_W3SVC_WebService
+    metrics:
+      - [CurrentConnections, iis.current_connections, gauge]
+      - [TotalGetRequests, iis.total_get_requests, gauge]
+      - [TotalPostRequests, iis.total_post_requests, gauge]
+      - [BytesReceivedPerSec, iis.bytes_received_per_sec, gauge]
+      - [BytesSentPerSec, iis.bytes_sent_per_sec, gauge]
+      - [GetRequestsPerSec, iis.get_requests_per_sec, gauge]
+      - [PostRequestsPerSec, iis.post_requests_per_sec, gauge]
+    filters:
+      - Name: "_Total"
+    tags:
+      - role:sccm-management-point
+    
+  # ASP.NET Performance
+  - class: Win32_PerfRawData_ASPNET_ASPNETApplications
+    metrics:
+      - [RequestsPerSec, aspnet.requests_per_sec, gauge]
+      - [RequestsQueued, aspnet.requests_queued, gauge]
+      - [RequestsRejected, aspnet.requests_rejected, gauge]
+      - [RequestExecutionTime, aspnet.request_execution_time, gauge]
+    filters:
+      - Name: "__Total__"
+    tags:
+      - role:sccm-management-point

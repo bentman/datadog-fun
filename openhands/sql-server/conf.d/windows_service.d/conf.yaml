@@ -1,0 +1,54 @@
+# Windows Service Check Configuration for SCCM SQL Server
+# Monitors critical SQL Server services
+
+init_config:
+
+instances:
+  # SQL Server Database Engine
+  - services:
+      - MSSQLSERVER
+    tags:
+      - service:sql-server-engine
+      - role:sccm-sql-server
+    
+  # SQL Server Agent
+  - services:
+      - SQLSERVERAGENT
+    tags:
+      - service:sql-server-agent
+      - role:sccm-sql-server
+    
+  # SQL Server Browser (if multiple instances)
+  - services:
+      - SQLBrowser
+    tags:
+      - service:sql-server-browser
+      - role:sccm-sql-server
+    
+  # SQL Server VSS Writer
+  - services:
+      - SQLWriter
+    tags:
+      - service:sql-server-vss-writer
+      - role:sccm-sql-server
+    
+  # Windows Management Instrumentation
+  - services:
+      - Winmgmt
+    tags:
+      - service:wmi
+      - role:sccm-sql-server
+    
+  # Windows Remote Management
+  - services:
+      - WinRM
+    tags:
+      - service:winrm
+      - role:sccm-sql-server
+    
+  # Distributed Transaction Coordinator
+  - services:
+      - MSDTC
+    tags:
+      - service:msdtc
+      - role:sccm-sql-server

@@ -1,0 +1,60 @@
+# SQL Server monitoring configuration
+init_config:
+  custom_metrics:
+    - name: sqlserver.buffer.cache_hit_ratio
+      type: gauge
+    - name: sqlserver.stats.batch_requests
+      type: rate
+    - name: sqlserver.database.transactions
+      type: gauge
+    - name: sqlserver.locks.waits
+      type: rate
+
+instances:
+  - host: localhost,1433
+    username: datadog_monitor
+    password: YOUR_PASSWORD_HERE
+    database: CM_PS1  # Replace with your SCCM database name
+    
+    tags:
+      - sql_instance:sccm_primary
+      - database_type:sccm
+    
+    # Database-specific metrics
+    include_db_size: true
+    include_time_to_live: true
+    
+    # Performance counters
+    custom_queries:
+      - query: |
+          SELECT 
+            DB_NAME() as database_name,
+            SUM(size * 8 / 1024) as size_mb
+          FROM sys.master_files
+          WHERE database_id = DB_ID()
+          GROUP BY database_id
+        columns:
+          - name: database_name
+            type: tag
+          - name: size_mb
+            type: gauge
+        tags:
+          - query:database_size
+      
+      - query: |
+          SELECT 
+            wait_type,
+            waiting_tasks_count,
+            wait_time_ms
+          FROM sys.dm_os_wait_stats
+          WHERE wait_type NOT IN ('SLEEP_TASK', 'BROKER_TASK_STOP', 'SQLTRACE_BUFFER_FLUSH')
+          ORDER BY wait_time_ms DESC
+        columns:
+          - name: wait_type
+            type: tag
+          - name: waiting_tasks_count
+            type: gauge
+          - name: wait_time_ms
+            type: gauge
+        tags:
+          - query:wait_stats

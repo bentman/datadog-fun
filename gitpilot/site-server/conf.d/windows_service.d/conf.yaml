@@ -1,0 +1,14 @@
+# SCCM Site Server critical services monitoring
+init_config:
+
+instances:
+  - services:
+      - SMS_SITE_COMPONENT_MANAGER
+      - SMS_EXECUTIVE
+      - SMS_NOTIFICATION_SERVER
+      - SMS_SITE_SQL_BACKUP
+      - SMS_SITE_VSS_WRITER
+      - W3SVC
+      - IISADMIN
+    tags:
+      - sccm_role:site_server

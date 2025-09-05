@@ -1,0 +1,106 @@
+# SQL Server Check Configuration for SCCM Reporting Server
+# Monitors SQL Server Reporting Services database and performance
+
+init_config:
+
+instances:
+  # Main SQL Server instance monitoring for Reporting Services
+  - host: localhost,1433
+    username: datadog_monitoring_user
+    password: YOUR_SQL_MONITORING_PASSWORD
+    connector: odbc
+    driver: ODBC Driver 17 for SQL Server
+    tags:
+      - role:sccm-sql-reporting-server
+      - database:reportserver
+    
+    # Database Monitoring Configuration
+    dbm: true
+    query_metrics:
+      enabled: true
+      run_sync: false
+      collection_interval: 10
+    query_activity:
+      enabled: true
+      collection_interval: 10
+    
+    # Custom queries for SSRS-specific monitoring
+    custom_queries:
+      # ReportServer Database Size
+      - query: |
+          SELECT 
+            'ReportServer' as database_name,
+            SUM(CAST(FILEPROPERTY(name, 'SpaceUsed') AS bigint) * 8192.) as used_space_bytes,
+            SUM(size * 8192.) as allocated_space_bytes
+          FROM ReportServer.sys.database_files
+          WHERE type IN (0,1)
+        columns:
+          - name: database_name
+            type: tag
+          - name: used_space_bytes
+            type: gauge
+          - name: allocated_space_bytes
+            type: gauge
+        tags:
+          - query:reportserver_database_size
+      
+      # ReportServerTempDB Database Size
+      - query: |
+          SELECT 
+            'ReportServerTempDB' as database_name,
+            SUM(CAST(FILEPROPERTY(name, 'SpaceUsed') AS bigint) * 8192.) as used_space_bytes,
+            SUM(size * 8192.) as allocated_space_bytes
+          FROM ReportServerTempDB.sys.database_files
+          WHERE type IN (0,1)
+        columns:
+          - name: database_name
+            type: tag
+          - name: used_space_bytes
+            type: gauge
+          - name: allocated_space_bytes
+            type: gauge
+        tags:
+          - query:reportserver_tempdb_size
+      
+      # Report Execution Statistics
+      - query: |
+          SELECT 
+            COUNT(*) as total_reports,
+            SUM(CASE WHEN TimeEnd > DATEADD(hour, -1, GETDATE()) THEN 1 ELSE 0 END) as reports_last_hour,
+            AVG(DATEDIFF(ms, TimeStart, TimeEnd)) as avg_execution_time_ms
+          FROM ReportServer.dbo.ExecutionLog3
+          WHERE TimeStart > DATEADD(day, -1, GETDATE())
+        columns:
+          - name: total_reports
+            type: gauge
+          - name: reports_last_hour
+            type: gauge
+          - name: avg_execution_time_ms
+            type: gauge
+        tags:
+          - query:ssrs_execution_stats
+    
+    # Performance counters
+    include_task_scheduler_metrics: false
+    include_db_fragmentation_metrics: true
+    include_fci_metrics: false
+    
+    # Log collection
+    logs:
+      - type: file
+        path: C:\Program Files\Microsoft SQL Server\MSRS13.MSSQLSERVER\Reporting Services\LogFiles\ReportServerService*.log
+        source: ssrs
+        service: ssrs
+        log_processing_rules:
+          - type: multi_line
+            name: new_log_start_with_timestamp
+            pattern: \w+\s+\d{2}\s+\d{2}:\d{2}:\d{2}
+      
+      - type: file
+        path: C:\Program Files\Microsoft SQL Server\MSRS13.MSSQLSERVER\Reporting Services\LogFiles\ReportServerWebApp*.log
+        source: ssrs-webapp
+        service: ssrs-webapp
+        log_processing_rules:
+          - type: multi_line
+            name: new_log_start_with_timestamp
+            pattern: \w+\s+\d{2}\s+\d{2}:\d{2}:\d{2}

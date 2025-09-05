@@ -1,0 +1,26 @@
+# SQL Reporting Server monitoring configuration
+init_config:
+
+instances:
+  - host: localhost,1433
+    username: datadog_monitor
+    password: YOUR_PASSWORD_HERE
+    
+    tags:
+      - sql_instance:reporting
+      - server_type:ssrs
+    
+    include_db_size: true
+    include_time_to_live: true
+    
+    custom_queries:
+      - query: |
+          SELECT 
+            COUNT(*) as active_sessions
+          FROM sys.dm_exec_sessions
+          WHERE status = 'running'
+        columns:
+          - name: active_sessions
+            type: gauge
+        tags:
+          - query:active_sessions

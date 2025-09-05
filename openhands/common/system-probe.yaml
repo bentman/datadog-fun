@@ -1,0 +1,27 @@
+# System Probe Configuration for SCCM Servers
+# This configuration enables network performance monitoring and system-level metrics
+
+# System Probe Configuration
+system_probe_config:
+  enabled: true
+  debug_port: 0
+  sysprobe_socket: /opt/datadog-agent/run/sysprobe.sock
+  max_tracked_connections: 131072
+  max_closed_connections_buffered: 50000
+  closed_connection_flush_threshold: 5000
+  
+  # Network Performance Monitoring
+  network_config:
+    enabled: true
+    
+  # Service Monitoring
+  service_monitoring_config:
+    enabled: true
+    
+  # Runtime Security Monitoring (optional)
+  runtime_security_config:
+    enabled: false
+    
+  # Process Monitoring
+  process_config:
+    enabled: true

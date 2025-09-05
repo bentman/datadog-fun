@@ -1,0 +1,55 @@
+# Windows Event Log Configuration for SCCM Site Server
+# Monitors critical Windows and SCCM events
+
+init_config:
+
+instances:
+  # System Event Log - Critical and Error events
+  - channels:
+      - path: System
+        type: windows_event_log
+        filters:
+          - query: '*[System[(Level=1 or Level=2)]]'  # Critical and Error events
+    tags:
+      - source:windows-system
+      - role:sccm-site-server
+    
+  # Application Event Log - SCCM related events
+  - channels:
+      - path: Application
+        type: windows_event_log
+        filters:
+          - query: '*[System[Provider[@Name="SMS Server"] and (Level=1 or Level=2 or Level=3)]]'  # SCCM Critical, Error, Warning
+    tags:
+      - source:sccm-application
+      - role:sccm-site-server
+    
+  # Application Event Log - General application errors
+  - channels:
+      - path: Application
+        type: windows_event_log
+        filters:
+          - query: '*[System[(Level=1 or Level=2)]]'  # Critical and Error events
+    tags:
+      - source:windows-application
+      - role:sccm-site-server
+    
+  # Security Event Log - Authentication failures and security events
+  - channels:
+      - path: Security
+        type: windows_event_log
+        filters:
+          - query: '*[System[(EventID=4625 or EventID=4648 or EventID=4771 or EventID=4776)]]'  # Failed logons
+    tags:
+      - source:windows-security
+      - role:sccm-site-server
+    
+  # ConfigMgr specific event log (if available)
+  - channels:
+      - path: Microsoft-ConfigMgr/Operational
+        type: windows_event_log
+        filters:
+          - query: '*[System[(Level=1 or Level=2 or Level=3)]]'  # Critical, Error, Warning
+    tags:
+      - source:configmgr-operational
+      - role:sccm-site-server

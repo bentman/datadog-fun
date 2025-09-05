@@ -1,0 +1,15 @@
+# Main Datadog configuration for SQL Server (SCCM DB)
+api_key: YOUR_API_KEY_HERE
+site: datadoghq.com
+hostname: sccm-sql-server
+
+tags:
+  - environment:production
+  - role:sql-server
+  - database:sccm
+  - location:azure
+
+process_config:
+  enabled: true
+
+logs_enabled: true

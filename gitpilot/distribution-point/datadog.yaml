@@ -1,0 +1,14 @@
+# Main Datadog configuration for Distribution Point
+api_key: YOUR_API_KEY_HERE
+site: datadoghq.com
+hostname: sccm-dp-server
+
+tags:
+  - environment:production
+  - role:sccm-distribution-point
+  - location:azure
+
+process_config:
+  enabled: true
+
+logs_enabled: true

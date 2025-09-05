@@ -1,0 +1,54 @@
+# Windows Service Check Configuration for SCCM Site Server
+# Monitors critical SCCM services
+
+init_config:
+
+instances:
+  # SMS Executive Service - Core SCCM service
+  - services:
+      - SMS_EXECUTIVE
+    tags:
+      - service:sms-executive
+      - role:sccm-site-server
+    
+  # SMS Site Component Manager - Manages site components
+  - services:
+      - SMS_SITE_COMPONENT_MANAGER
+    tags:
+      - service:sms-site-component-manager
+      - role:sccm-site-server
+    
+  # SMS Notification Server - Client notification service
+  - services:
+      - SMS_NOTIFICATION_SERVER
+    tags:
+      - service:sms-notification-server
+      - role:sccm-site-server
+    
+  # World Wide Web Publishing Service (IIS)
+  - services:
+      - W3SVC
+    tags:
+      - service:iis
+      - role:sccm-site-server
+    
+  # Windows Management Instrumentation
+  - services:
+      - Winmgmt
+    tags:
+      - service:wmi
+      - role:sccm-site-server
+    
+  # Background Intelligent Transfer Service
+  - services:
+      - BITS
+    tags:
+      - service:bits
+      - role:sccm-site-server
+    
+  # Windows Remote Management
+  - services:
+      - WinRM
+    tags:
+      - service:winrm
+      - role:sccm-site-server

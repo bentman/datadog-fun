@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<datadog-widgets>
+  <description>SCCM System Health Widget Configurations</description>
+  
+  <!-- CPU Usage Widget -->
+  <widget id="cpu-usage-widget" type="query_value">
+    <title>SCCM Infrastructure CPU Usage</title>
+    <query>avg:system.cpu.pct_processor_time{role:sccm-*}</query>
+    <thresholds>
+      <critical operator=">" value="85" color="red"/>
+      <warning operator=">" value="75" color="yellow"/>
+      <ok operator="<=" value="75" color="green"/>
+    </thresholds>
+    <precision>1</precision>
+    <unit>%</unit>
+    <size>
+      <width>3</width>
+      <height>2</height>
+    </size>
+  </widget>
+  
+  <!-- Memory Usage Widget -->
+  <widget id="memory-usage-widget" type="query_value">
+    <title>SCCM Infrastructure Memory Usage</title>
+    <query>100 - avg:system.mem.pct_usable{role:sccm-*}</query>
+    <thresholds>
+      <critical operator=">" value="90" color="red"/>
+      <warning operator=">" value="80" color="yellow"/>
+      <ok operator="<=" value="80" color="green"/>
+    </thresholds>
+    <precision>1</precision>
+    <unit>%</unit>
+    <size>
+      <width>3</width>
+      <height>2</height>
+    </size>
+  </widget>
+  
+  <!-- Disk Space Widget -->
+  <widget id="disk-space-widget" type="query_value">
+    <title>SCCM Infrastructure Disk Free Space</title>
+    <query>avg:system.disk.pct_free_space{role:sccm-*}</query>
+    <thresholds>
+      <critical operator="<" value="10" color="red"/>
+      <warning operator="<" value="20" color="yellow"/>
+      <ok operator=">=" value="20" color="green"/>
+    </thresholds>
+    <precision>1</precision>
+    <unit>%</unit>
+    <size>
+      <width>3</width>
+      <height>2</height>
+    </size>
+  </widget>
+  
+  <!-- Service Status Widget -->
+  <widget id="service-status-widget" type="check_status">
+    <title>SCCM Service Status</title>
+    <check>windows_service.state</check>
+    <grouping>cluster</grouping>
+    <group_by>service,host</group_by>
+    <tags>role:sccm-*</tags>
+    <size>
+      <width>6</width>
+      <height>4</height>
+    </size>
+  </widget>
+  
+  <!-- Host Map Widget -->
+  <widget id="host-map-widget" type="hostmap">
+    <title>SCCM Infrastructure Host Map</title>
+    <fill_query>avg:system.cpu.pct_processor_time{role:sccm-*} by {host}</fill_query>
+    <node_type>host</node_type>
+    <group>role</group>
+    <scope>role:sccm-*</scope>
+    <palette>green_to_orange</palette>
+    <fill_min>0</fill_min>
+    <fill_max>100</fill_max>
+    <size>
+      <width>8</width>
+      <height>4</height>
+    </size>
+  </widget>
+  
+  <!-- CPU Timeline Widget -->
+  <widget id="cpu-timeline-widget" type="timeseries">
+    <title>CPU Usage by Server Role</title>
+    <queries>
+      <query metric="avg:system.cpu.pct_processor_time{role:sccm-site-server} by {host}" 
+             display="line" palette="dog_classic" label="Site Server"/>
+      <query metric="avg:system.cpu.pct_processor_time{role:sccm-management-point} by {host}" 
+             display="line" palette="cool" label="Management Point"/>
+      <query metric="avg:system.cpu.pct_processor_time{role:sccm-distribution-point} by {host}" 
+             display="line" palette="warm" label="Distribution Point"/>
+      <query metric="avg:system.cpu.pct_processor_time{role:sccm-sql-server} by {host}" 
+             display="line" palette="purple" label="SQL Server"/>
+    </queries>
+    <yaxis>
+      <min>0</min>
+      <max>100</max>
+    </yaxis>
+    <markers>
+      <marker value="75" type="warning" style="dashed"/>
+      <marker value="85" type="error" style="dashed"/>
+    </markers>
+    <size>
+      <width>6</width>
+      <height>3</height>
+    </size>
+  </widget>
+  
+  <!-- Memory Timeline Widget -->
+  <widget id="memory-timeline-widget" type="timeseries">
+    <title>Memory Usage by Server Role</title>
+    <queries>
+      <query metric="100 - avg:system.mem.pct_usable{role:sccm-site-server} by {host}" 
+             display="line" palette="dog_classic" label="Site Server"/>
+      <query metric="100 - avg:system.mem.pct_usable{role:sccm-management-point} by {host}" 
+             display="line" palette="cool" label="Management Point"/>
+      <query metric="100 - avg:system.mem.pct_usable{role:sccm-distribution-point} by {host}" 
+             display="line" palette="warm" label="Distribution Point"/>
+      <query metric="100 - avg:system.mem.pct_usable{role:sccm-sql-server} by {host}" 
+             display="line" palette="purple" label="SQL Server"/>
+    </queries>
+    <yaxis>
+      <min>0</min>
+      <max>100</max>
+    </yaxis>
+    <markers>
+      <marker value="80" type="warning" style="dashed"/>
+      <marker value="90" type="error" style="dashed"/>
+    </markers>
+    <size>
+      <width>6</width>
+      <height>3</height>
+    </size>
+  </widget>
+  
+  <!-- Top CPU Consumers Widget -->
+  <widget id="top-cpu-widget" type="toplist">
+    <title>Highest CPU Usage by Host</title>
+    <query>top(avg:system.cpu.pct_processor_time{role:sccm-*} by {host}, 10, 'max', 'desc')</query>
+    <thresholds>
+      <critical operator=">" value="85" color="red"/>
+      <warning operator=">" value="75" color="yellow"/>
+      <ok operator="<=" value="75" color="green"/>
+    </thresholds>
+    <size>
+      <width>6</width>
+      <height>3</height>
+    </size>
+  </widget>
+  
+  <!-- Lowest Disk Space Widget -->
+  <widget id="low-disk-widget" type="toplist">
+    <title>Lowest Disk Free Space by Host</title>
+    <query>top(avg:system.disk.pct_free_space{role:sccm-*} by {host}, 10, 'min', 'asc')</query>
+    <thresholds>
+      <critical operator="<" value="10" color="red"/>
+      <warning operator="<" value="20" color="yellow"/>
+      <ok operator=">=" value="20" color="green"/>
+    </thresholds>
+    <size>
+      <width>6</width>
+      <height>3</height>
+    </size>
+  </widget>
+  
+</datadog-widgets>

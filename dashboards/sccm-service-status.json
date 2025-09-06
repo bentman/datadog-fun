@@ -1,0 +1,237 @@
+{
+  "title": "SCCM Service Status Dashboard",
+  "description": "Comprehensive service monitoring dashboard for all SCCM server roles and critical Windows services",
+  "widgets": [
+    {
+      "id": 0,
+      "definition": {
+        "type": "note",
+        "content": "# SCCM Service Status Dashboard\n\nThis dashboard provides real-time monitoring of all critical SCCM services across your infrastructure:\n- Site Server services (SMS_EXECUTIVE, SMS_SITE_COMPONENT_MANAGER, etc.)\n- Management Point services (IIS, WMI, BITS)\n- Distribution Point services (IIS, WDS, TFTP)\n- SQL Server services (Database Engine, Agent, Reporting Services)\n- Supporting Windows services",
+        "background_color": "green",
+        "font_size": "14",
+        "text_align": "left",
+        "vertical_align": "center",
+        "show_tick": true,
+        "tick_pos": "50%",
+        "tick_edge": "bottom",
+        "has_padding": true
+      },
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "width": 12,
+        "height": 2
+      }
+    },
+    {
+      "id": 1,
+      "definition": {
+        "type": "check_status",
+        "title": "Site Server Services",
+        "title_size": "16",
+        "title_align": "left",
+        "check": "windows_service.state",
+        "grouping": "cluster",
+        "group_by": ["service", "host"],
+        "tags": ["role:sccm-site-server"]
+      },
+      "layout": {
+        "x": 0,
+        "y": 2,
+        "width": 6,
+        "height": 4
+      }
+    },
+    {
+      "id": 2,
+      "definition": {
+        "type": "check_status",
+        "title": "Management Point Services",
+        "title_size": "16",
+        "title_align": "left",
+        "check": "windows_service.state",
+        "grouping": "cluster",
+        "group_by": ["service", "host"],
+        "tags": ["role:sccm-management-point"]
+      },
+      "layout": {
+        "x": 6,
+        "y": 2,
+        "width": 6,
+        "height": 4
+      }
+    },
+    {
+      "id": 3,
+      "definition": {
+        "type": "check_status",
+        "title": "Distribution Point Services",
+        "title_size": "16",
+        "title_align": "left",
+        "check": "windows_service.state",
+        "grouping": "cluster",
+        "group_by": ["service", "host"],
+        "tags": ["role:sccm-distribution-point"]
+      },
+      "layout": {
+        "x": 0,
+        "y": 6,
+        "width": 6,
+        "height": 4
+      }
+    },
+    {
+      "id": 4,
+      "definition": {
+        "type": "check_status",
+        "title": "SQL Server Services",
+        "title_size": "16",
+        "title_align": "left",
+        "check": "windows_service.state",
+        "grouping": "cluster",
+        "group_by": ["service", "host"],
+        "tags": ["role:sccm-sql-server"]
+      },
+      "layout": {
+        "x": 6,
+        "y": 6,
+        "width": 6,
+        "height": 4
+      }
+    },
+    {
+      "id": 5,
+      "definition": {
+        "type": "query_table",
+        "requests": [
+          {
+            "q": "avg:windows_service.state{role:sccm-*} by {host,service}",
+            "aggregator": "last",
+            "conditional_formats": [
+              {
+                "comparator": "<",
+                "value": 1,
+                "palette": "red_on_white"
+              },
+              {
+                "comparator": ">=",
+                "value": 1,
+                "palette": "green_on_white"
+              }
+            ],
+            "limit": 50
+          }
+        ],
+        "title": "Service Status Summary",
+        "title_size": "16",
+        "title_align": "left"
+      },
+      "layout": {
+        "x": 0,
+        "y": 10,
+        "width": 12,
+        "height": 4
+      }
+    },
+    {
+      "id": 6,
+      "definition": {
+        "type": "timeseries",
+        "requests": [
+          {
+            "q": "sum:windows_service.state{role:sccm-site-server} by {service}",
+            "display_type": "line",
+            "style": {
+              "palette": "dog_classic",
+              "line_type": "solid",
+              "line_width": "normal"
+            }
+          }
+        ],
+        "title": "Site Server Service Availability",
+        "title_size": "16",
+        "title_align": "left",
+        "yaxis": {
+          "min": "0",
+          "max": "2"
+        }
+      },
+      "layout": {
+        "x": 0,
+        "y": 14,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 7,
+      "definition": {
+        "type": "timeseries",
+        "requests": [
+          {
+            "q": "sum:windows_service.state{role:sccm-sql-server} by {service}",
+            "display_type": "line",
+            "style": {
+              "palette": "purple",
+              "line_type": "solid",
+              "line_width": "normal"
+            }
+          }
+        ],
+        "title": "SQL Server Service Availability",
+        "title_size": "16",
+        "title_align": "left",
+        "yaxis": {
+          "min": "0",
+          "max": "2"
+        }
+      },
+      "layout": {
+        "x": 6,
+        "y": 14,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 8,
+      "definition": {
+        "type": "event_stream",
+        "query": "sources:windows_service tags:role:sccm-*",
+        "event_size": "s",
+        "title": "Recent Service Events",
+        "title_size": "16",
+        "title_align": "left"
+      },
+      "layout": {
+        "x": 0,
+        "y": 17,
+        "width": 12,
+        "height": 4
+      }
+    }
+  ],
+  "template_variables": [
+    {
+      "name": "role",
+      "default": "*",
+      "prefix": "role",
+      "available_values": [
+        "sccm-site-server",
+        "sccm-management-point",
+        "sccm-distribution-point",
+        "sccm-sql-server",
+        "sccm-sql-reporting-server"
+      ]
+    },
+    {
+      "name": "host",
+      "default": "*",
+      "prefix": "host"
+    }
+  ],
+  "layout_type": "ordered",
+  "is_read_only": false,
+  "notify_list": [],
+  "reflow_type": "fixed"
+}

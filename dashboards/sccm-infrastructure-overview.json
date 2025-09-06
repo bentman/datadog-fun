@@ -1,0 +1,831 @@
+{
+  "title": "SCCM Infrastructure Overview",
+  "description": "Comprehensive monitoring dashboard for SCCM infrastructure including Site Servers, Management Points, Distribution Points, and SQL Servers",
+  "widgets": [
+    {
+      "id": 0,
+      "definition": {
+        "type": "note",
+        "content": "# SCCM Infrastructure Health Overview\n\nThis dashboard provides a comprehensive view of your SCCM infrastructure health including:\n- System performance metrics (CPU, Memory, Disk)\n- SCCM service status and health\n- SQL Server performance and database health\n- Event log monitoring and alerts\n- Network performance and connectivity\n- IIS performance for Management and Distribution Points",
+        "background_color": "blue",
+        "font_size": "14",
+        "text_align": "left",
+        "vertical_align": "center",
+        "show_tick": true,
+        "tick_pos": "50%",
+        "tick_edge": "bottom",
+        "has_padding": true
+      },
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "width": 12,
+        "height": 2
+      }
+    },
+    {
+      "id": 1,
+      "definition": {
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "avg:system.cpu.pct_processor_time{role:sccm-*}",
+            "aggregator": "avg",
+            "conditional_formats": [
+              {
+                "comparator": ">",
+                "value": 85,
+                "palette": "red_on_white"
+              },
+              {
+                "comparator": ">",
+                "value": 75,
+                "palette": "yellow_on_white"
+              },
+              {
+                "comparator": "<=",
+                "value": 75,
+                "palette": "green_on_white"
+              }
+            ]
+          }
+        ],
+        "title": "Average CPU Usage (%)",
+        "title_size": "16",
+        "title_align": "left",
+        "precision": 1
+      },
+      "layout": {
+        "x": 0,
+        "y": 2,
+        "width": 3,
+        "height": 2
+      }
+    },
+    {
+      "id": 2,
+      "definition": {
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "100 - avg:system.mem.pct_usable{role:sccm-*}",
+            "aggregator": "avg",
+            "conditional_formats": [
+              {
+                "comparator": ">",
+                "value": 90,
+                "palette": "red_on_white"
+              },
+              {
+                "comparator": ">",
+                "value": 80,
+                "palette": "yellow_on_white"
+              },
+              {
+                "comparator": "<=",
+                "value": 80,
+                "palette": "green_on_white"
+              }
+            ]
+          }
+        ],
+        "title": "Average Memory Usage (%)",
+        "title_size": "16",
+        "title_align": "left",
+        "precision": 1
+      },
+      "layout": {
+        "x": 3,
+        "y": 2,
+        "width": 3,
+        "height": 2
+      }
+    },
+    {
+      "id": 3,
+      "definition": {
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "avg:system.disk.pct_free_space{role:sccm-*}",
+            "aggregator": "avg",
+            "conditional_formats": [
+              {
+                "comparator": "<",
+                "value": 10,
+                "palette": "red_on_white"
+              },
+              {
+                "comparator": "<",
+                "value": 20,
+                "palette": "yellow_on_white"
+              },
+              {
+                "comparator": ">=",
+                "value": 20,
+                "palette": "green_on_white"
+              }
+            ]
+          }
+        ],
+        "title": "Average Disk Free Space (%)",
+        "title_size": "16",
+        "title_align": "left",
+        "precision": 1
+      },
+      "layout": {
+        "x": 6,
+        "y": 2,
+        "width": 3,
+        "height": 2
+      }
+    },
+    {
+      "id": 4,
+      "definition": {
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "sum:datadog.agent.up{role:sccm-*}",
+            "aggregator": "last",
+            "conditional_formats": [
+              {
+                "comparator": "<",
+                "value": 1,
+                "palette": "red_on_white"
+              },
+              {
+                "comparator": ">=",
+                "value": 1,
+                "palette": "green_on_white"
+              }
+            ]
+          }
+        ],
+        "title": "SCCM Servers Online",
+        "title_size": "16",
+        "title_align": "left",
+        "precision": 0
+      },
+      "layout": {
+        "x": 9,
+        "y": 2,
+        "width": 3,
+        "height": 2
+      }
+    },
+    {
+      "id": 5,
+      "definition": {
+        "type": "timeseries",
+        "requests": [
+          {
+            "q": "avg:system.cpu.pct_processor_time{role:sccm-site-server} by {host}",
+            "display_type": "line",
+            "style": {
+              "palette": "dog_classic",
+              "line_type": "solid",
+              "line_width": "normal"
+            }
+          },
+          {
+            "q": "avg:system.cpu.pct_processor_time{role:sccm-management-point} by {host}",
+            "display_type": "line",
+            "style": {
+              "palette": "cool",
+              "line_type": "solid",
+              "line_width": "normal"
+            }
+          },
+          {
+            "q": "avg:system.cpu.pct_processor_time{role:sccm-distribution-point} by {host}",
+            "display_type": "line",
+            "style": {
+              "palette": "warm",
+              "line_type": "solid",
+              "line_width": "normal"
+            }
+          },
+          {
+            "q": "avg:system.cpu.pct_processor_time{role:sccm-sql-server} by {host}",
+            "display_type": "line",
+            "style": {
+              "palette": "purple",
+              "line_type": "solid",
+              "line_width": "normal"
+            }
+          }
+        ],
+        "title": "CPU Usage by Server Role",
+        "title_size": "16",
+        "title_align": "left",
+        "yaxis": {
+          "min": "0",
+          "max": "100"
+        },
+        "markers": [
+          {
+            "value": "y = 75",
+            "display_type": "warning dashed"
+          },
+          {
+            "value": "y = 85",
+            "display_type": "error dashed"
+          }
+        ]
+      },
+      "layout": {
+        "x": 0,
+        "y": 4,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 6,
+      "definition": {
+        "type": "timeseries",
+        "requests": [
+          {
+            "q": "100 - avg:system.mem.pct_usable{role:sccm-site-server} by {host}",
+            "display_type": "line",
+            "style": {
+              "palette": "dog_classic",
+              "line_type": "solid",
+              "line_width": "normal"
+            }
+          },
+          {
+            "q": "100 - avg:system.mem.pct_usable{role:sccm-management-point} by {host}",
+            "display_type": "line",
+            "style": {
+              "palette": "cool",
+              "line_type": "solid",
+              "line_width": "normal"
+            }
+          },
+          {
+            "q": "100 - avg:system.mem.pct_usable{role:sccm-distribution-point} by {host}",
+            "display_type": "line",
+            "style": {
+              "palette": "warm",
+              "line_type": "solid",
+              "line_width": "normal"
+            }
+          },
+          {
+            "q": "100 - avg:system.mem.pct_usable{role:sccm-sql-server} by {host}",
+            "display_type": "line",
+            "style": {
+              "palette": "purple",
+              "line_type": "solid",
+              "line_width": "normal"
+            }
+          }
+        ],
+        "title": "Memory Usage by Server Role",
+        "title_size": "16",
+        "title_align": "left",
+        "yaxis": {
+          "min": "0",
+          "max": "100"
+        },
+        "markers": [
+          {
+            "value": "y = 80",
+            "display_type": "warning dashed"
+          },
+          {
+            "value": "y = 90",
+            "display_type": "error dashed"
+          }
+        ]
+      },
+      "layout": {
+        "x": 6,
+        "y": 4,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 7,
+      "definition": {
+        "type": "check_status",
+        "title": "SCCM Service Status",
+        "title_size": "16",
+        "title_align": "left",
+        "check": "windows_service.state",
+        "grouping": "cluster",
+        "group_by": ["service", "host"],
+        "tags": ["role:sccm-*"]
+      },
+      "layout": {
+        "x": 0,
+        "y": 7,
+        "width": 4,
+        "height": 3
+      }
+    },
+    {
+      "id": 8,
+      "definition": {
+        "type": "hostmap",
+        "requests": {
+          "fill": {
+            "q": "avg:system.cpu.pct_processor_time{role:sccm-*} by {host}"
+          }
+        },
+        "title": "SCCM Infrastructure Host Map",
+        "title_size": "16",
+        "title_align": "left",
+        "node_type": "host",
+        "no_metric_hosts": true,
+        "no_group_hosts": true,
+        "group": ["role"],
+        "scope": ["role:sccm-*"],
+        "style": {
+          "palette": "green_to_orange",
+          "palette_flip": false,
+          "fill_min": "0",
+          "fill_max": "100"
+        }
+      },
+      "layout": {
+        "x": 4,
+        "y": 7,
+        "width": 8,
+        "height": 3
+      }
+    },
+    {
+      "id": 9,
+      "definition": {
+        "type": "timeseries",
+        "requests": [
+          {
+            "q": "avg:sqlserver.buffer.cache_hit_ratio{role:sccm-sql-server} by {host}",
+            "display_type": "line",
+            "style": {
+              "palette": "dog_classic",
+              "line_type": "solid",
+              "line_width": "normal"
+            }
+          }
+        ],
+        "title": "SQL Server Buffer Cache Hit Ratio",
+        "title_size": "16",
+        "title_align": "left",
+        "yaxis": {
+          "min": "80",
+          "max": "100"
+        },
+        "markers": [
+          {
+            "value": "y = 90",
+            "display_type": "warning dashed"
+          },
+          {
+            "value": "y = 85",
+            "display_type": "error dashed"
+          }
+        ]
+      },
+      "layout": {
+        "x": 0,
+        "y": 10,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 10,
+      "definition": {
+        "type": "timeseries",
+        "requests": [
+          {
+            "q": "avg:sqlserver.buffer.page_life_expectancy{role:sccm-sql-server} by {host}",
+            "display_type": "line",
+            "style": {
+              "palette": "dog_classic",
+              "line_type": "solid",
+              "line_width": "normal"
+            }
+          }
+        ],
+        "title": "SQL Server Page Life Expectancy",
+        "title_size": "16",
+        "title_align": "left",
+        "yaxis": {
+          "min": "0"
+        },
+        "markers": [
+          {
+            "value": "y = 300",
+            "display_type": "warning dashed"
+          },
+          {
+            "value": "y = 180",
+            "display_type": "error dashed"
+          }
+        ]
+      },
+      "layout": {
+        "x": 6,
+        "y": 10,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 11,
+      "definition": {
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "max:sccm.client_count{*}",
+            "aggregator": "last"
+          }
+        ],
+        "title": "Total SCCM Clients",
+        "title_size": "16",
+        "title_align": "left",
+        "precision": 0
+      },
+      "layout": {
+        "x": 0,
+        "y": 13,
+        "width": 3,
+        "height": 2
+      }
+    },
+    {
+      "id": 12,
+      "definition": {
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "sum:sccm.site_status.critical_components{*}",
+            "aggregator": "last",
+            "conditional_formats": [
+              {
+                "comparator": ">",
+                "value": 0,
+                "palette": "red_on_white"
+              },
+              {
+                "comparator": "<=",
+                "value": 0,
+                "palette": "green_on_white"
+              }
+            ]
+          }
+        ],
+        "title": "Critical SCCM Components",
+        "title_size": "16",
+        "title_align": "left",
+        "precision": 0
+      },
+      "layout": {
+        "x": 3,
+        "y": 13,
+        "width": 3,
+        "height": 2
+      }
+    },
+    {
+      "id": 13,
+      "definition": {
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "sum:sccm.site_status.warning_components{*}",
+            "aggregator": "last",
+            "conditional_formats": [
+              {
+                "comparator": ">",
+                "value": 5,
+                "palette": "red_on_white"
+              },
+              {
+                "comparator": ">",
+                "value": 0,
+                "palette": "yellow_on_white"
+              },
+              {
+                "comparator": "<=",
+                "value": 0,
+                "palette": "green_on_white"
+              }
+            ]
+          }
+        ],
+        "title": "Warning SCCM Components",
+        "title_size": "16",
+        "title_align": "left",
+        "precision": 0
+      },
+      "layout": {
+        "x": 6,
+        "y": 13,
+        "width": 3,
+        "height": 2
+      }
+    },
+    {
+      "id": 14,
+      "definition": {
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "avg:iis.current_connections{role:sccm-management-point}",
+            "aggregator": "avg"
+          }
+        ],
+        "title": "IIS Current Connections (MP)",
+        "title_size": "16",
+        "title_align": "left",
+        "precision": 0
+      },
+      "layout": {
+        "x": 9,
+        "y": 13,
+        "width": 3,
+        "height": 2
+      }
+    },
+    {
+      "id": 15,
+      "definition": {
+        "type": "timeseries",
+        "requests": [
+          {
+            "q": "sum:win32_event_log.events{role:sccm-*,level:error} by {role}.as_count()",
+            "display_type": "bars",
+            "style": {
+              "palette": "warm",
+              "line_type": "solid",
+              "line_width": "normal"
+            }
+          },
+          {
+            "q": "sum:win32_event_log.events{role:sccm-*,level:critical} by {role}.as_count()",
+            "display_type": "bars",
+            "style": {
+              "palette": "red",
+              "line_type": "solid",
+              "line_width": "normal"
+            }
+          }
+        ],
+        "title": "Windows Event Log Errors by Server Role",
+        "title_size": "16",
+        "title_align": "left",
+        "yaxis": {
+          "min": "0"
+        }
+      },
+      "layout": {
+        "x": 0,
+        "y": 15,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 16,
+      "definition": {
+        "type": "timeseries",
+        "requests": [
+          {
+            "q": "avg:system.disk.avg_queue_length{role:sccm-*} by {host}",
+            "display_type": "line",
+            "style": {
+              "palette": "dog_classic",
+              "line_type": "solid",
+              "line_width": "normal"
+            }
+          }
+        ],
+        "title": "Disk Queue Length by Host",
+        "title_size": "16",
+        "title_align": "left",
+        "yaxis": {
+          "min": "0"
+        },
+        "markers": [
+          {
+            "value": "y = 2",
+            "display_type": "warning dashed"
+          },
+          {
+            "value": "y = 4",
+            "display_type": "error dashed"
+          }
+        ]
+      },
+      "layout": {
+        "x": 6,
+        "y": 15,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 17,
+      "definition": {
+        "type": "log_stream",
+        "query": "source:(sccm OR sqlserver OR ssrs OR iis) status:(error OR critical)",
+        "columns": ["host", "service", "source", "message"],
+        "title": "Recent Critical Events",
+        "title_size": "16",
+        "title_align": "left",
+        "message_display": "expanded-md",
+        "sort": {
+          "column": "time",
+          "order": "desc"
+        }
+      },
+      "layout": {
+        "x": 0,
+        "y": 18,
+        "width": 12,
+        "height": 4
+      }
+    },
+    {
+      "id": 18,
+      "definition": {
+        "type": "timeseries",
+        "requests": [
+          {
+            "q": "avg:iis.requests_per_sec{role:sccm-management-point} by {host}",
+            "display_type": "line",
+            "style": {
+              "palette": "cool",
+              "line_type": "solid",
+              "line_width": "normal"
+            }
+          },
+          {
+            "q": "avg:iis.requests_per_sec{role:sccm-distribution-point} by {host}",
+            "display_type": "line",
+            "style": {
+              "palette": "warm",
+              "line_type": "solid",
+              "line_width": "normal"
+            }
+          }
+        ],
+        "title": "IIS Requests per Second (MP & DP)",
+        "title_size": "16",
+        "title_align": "left",
+        "yaxis": {
+          "min": "0"
+        },
+        "markers": [
+          {
+            "value": "y = 100",
+            "display_type": "warning dashed"
+          },
+          {
+            "value": "y = 200",
+            "display_type": "error dashed"
+          }
+        ]
+      },
+      "layout": {
+        "x": 0,
+        "y": 22,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 19,
+      "definition": {
+        "type": "timeseries",
+        "requests": [
+          {
+            "q": "avg:sqlserver.stats.connections{role:sccm-sql-server} by {host}",
+            "display_type": "line",
+            "style": {
+              "palette": "purple",
+              "line_type": "solid",
+              "line_width": "normal"
+            }
+          }
+        ],
+        "title": "SQL Server User Connections",
+        "title_size": "16",
+        "title_align": "left",
+        "yaxis": {
+          "min": "0"
+        }
+      },
+      "layout": {
+        "x": 6,
+        "y": 22,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 20,
+      "definition": {
+        "type": "toplist",
+        "requests": [
+          {
+            "q": "top(avg:system.disk.pct_free_space{role:sccm-*} by {host}, 10, 'min', 'asc')",
+            "conditional_formats": [
+              {
+                "comparator": "<",
+                "value": 10,
+                "palette": "red_on_white"
+              },
+              {
+                "comparator": "<",
+                "value": 20,
+                "palette": "yellow_on_white"
+              },
+              {
+                "comparator": ">=",
+                "value": 20,
+                "palette": "green_on_white"
+              }
+            ]
+          }
+        ],
+        "title": "Lowest Disk Free Space by Host",
+        "title_size": "16",
+        "title_align": "left"
+      },
+      "layout": {
+        "x": 0,
+        "y": 25,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 21,
+      "definition": {
+        "type": "toplist",
+        "requests": [
+          {
+            "q": "top(avg:system.cpu.pct_processor_time{role:sccm-*} by {host}, 10, 'max', 'desc')",
+            "conditional_formats": [
+              {
+                "comparator": ">",
+                "value": 85,
+                "palette": "red_on_white"
+              },
+              {
+                "comparator": ">",
+                "value": 75,
+                "palette": "yellow_on_white"
+              },
+              {
+                "comparator": "<=",
+                "value": 75,
+                "palette": "green_on_white"
+              }
+            ]
+          }
+        ],
+        "title": "Highest CPU Usage by Host",
+        "title_size": "16",
+        "title_align": "left"
+      },
+      "layout": {
+        "x": 6,
+        "y": 25,
+        "width": 6,
+        "height": 3
+      }
+    }
+  ],
+  "template_variables": [
+    {
+      "name": "role",
+      "default": "*",
+      "prefix": "role",
+      "available_values": [
+        "sccm-site-server",
+        "sccm-management-point",
+        "sccm-distribution-point",
+        "sccm-sql-server",
+        "sccm-sql-reporting-server"
+      ]
+    },
+    {
+      "name": "host",
+      "default": "*",
+      "prefix": "host"
+    }
+  ],
+  "layout_type": "ordered",
+  "is_read_only": false,
+  "notify_list": [],
+  "reflow_type": "fixed"
+}

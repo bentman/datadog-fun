@@ -1,0 +1,441 @@
+{
+  "title": "SCCM SQL Server Health Dashboard",
+  "description": "Detailed monitoring dashboard for SCCM SQL Server database performance and health metrics",
+  "widgets": [
+    {
+      "id": 0,
+      "definition": {
+        "type": "note",
+        "content": "# SCCM SQL Server Health Dashboard\n\nThis dashboard focuses on SQL Server performance metrics critical for SCCM database operations:\n- SQL Server performance counters\n- SCCM database health and size\n- Query performance and blocking\n- Memory and buffer management\n- Connection and session monitoring",
+        "background_color": "purple",
+        "font_size": "14",
+        "text_align": "left",
+        "vertical_align": "center",
+        "show_tick": true,
+        "tick_pos": "50%",
+        "tick_edge": "bottom",
+        "has_padding": true
+      },
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "width": 12,
+        "height": 2
+      }
+    },
+    {
+      "id": 1,
+      "definition": {
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "avg:sqlserver.buffer.cache_hit_ratio{role:sccm-sql-server}",
+            "aggregator": "avg",
+            "conditional_formats": [
+              {
+                "comparator": "<",
+                "value": 85,
+                "palette": "red_on_white"
+              },
+              {
+                "comparator": "<",
+                "value": 90,
+                "palette": "yellow_on_white"
+              },
+              {
+                "comparator": ">=",
+                "value": 90,
+                "palette": "green_on_white"
+              }
+            ]
+          }
+        ],
+        "title": "Buffer Cache Hit Ratio (%)",
+        "title_size": "16",
+        "title_align": "left",
+        "precision": 2
+      },
+      "layout": {
+        "x": 0,
+        "y": 2,
+        "width": 3,
+        "height": 2
+      }
+    },
+    {
+      "id": 2,
+      "definition": {
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "avg:sqlserver.buffer.page_life_expectancy{role:sccm-sql-server}",
+            "aggregator": "avg",
+            "conditional_formats": [
+              {
+                "comparator": "<",
+                "value": 180,
+                "palette": "red_on_white"
+              },
+              {
+                "comparator": "<",
+                "value": 300,
+                "palette": "yellow_on_white"
+              },
+              {
+                "comparator": ">=",
+                "value": 300,
+                "palette": "green_on_white"
+              }
+            ]
+          }
+        ],
+        "title": "Page Life Expectancy (sec)",
+        "title_size": "16",
+        "title_align": "left",
+        "precision": 0
+      },
+      "layout": {
+        "x": 3,
+        "y": 2,
+        "width": 3,
+        "height": 2
+      }
+    },
+    {
+      "id": 3,
+      "definition": {
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "avg:sqlserver.stats.processes_blocked{role:sccm-sql-server}",
+            "aggregator": "avg",
+            "conditional_formats": [
+              {
+                "comparator": ">",
+                "value": 10,
+                "palette": "red_on_white"
+              },
+              {
+                "comparator": ">",
+                "value": 5,
+                "palette": "yellow_on_white"
+              },
+              {
+                "comparator": "<=",
+                "value": 5,
+                "palette": "green_on_white"
+              }
+            ]
+          }
+        ],
+        "title": "Blocked Processes",
+        "title_size": "16",
+        "title_align": "left",
+        "precision": 0
+      },
+      "layout": {
+        "x": 6,
+        "y": 2,
+        "width": 3,
+        "height": 2
+      }
+    },
+    {
+      "id": 4,
+      "definition": {
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "avg:sqlserver.stats.connections{role:sccm-sql-server}",
+            "aggregator": "avg"
+          }
+        ],
+        "title": "User Connections",
+        "title_size": "16",
+        "title_align": "left",
+        "precision": 0
+      },
+      "layout": {
+        "x": 9,
+        "y": 2,
+        "width": 3,
+        "height": 2
+      }
+    },
+    {
+      "id": 5,
+      "definition": {
+        "type": "timeseries",
+        "requests": [
+          {
+            "q": "avg:sqlserver.buffer.cache_hit_ratio{role:sccm-sql-server} by {host}",
+            "display_type": "line",
+            "style": {
+              "palette": "dog_classic",
+              "line_type": "solid",
+              "line_width": "normal"
+            }
+          }
+        ],
+        "title": "SQL Server Buffer Cache Hit Ratio Over Time",
+        "title_size": "16",
+        "title_align": "left",
+        "yaxis": {
+          "min": "80",
+          "max": "100"
+        },
+        "markers": [
+          {
+            "value": "y = 90",
+            "display_type": "warning dashed"
+          },
+          {
+            "value": "y = 85",
+            "display_type": "error dashed"
+          }
+        ]
+      },
+      "layout": {
+        "x": 0,
+        "y": 4,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 6,
+      "definition": {
+        "type": "timeseries",
+        "requests": [
+          {
+            "q": "avg:sqlserver.memory.total_server_memory{role:sccm-sql-server} by {host}",
+            "display_type": "line",
+            "style": {
+              "palette": "cool",
+              "line_type": "solid",
+              "line_width": "normal"
+            }
+          },
+          {
+            "q": "avg:sqlserver.memory.target_server_memory{role:sccm-sql-server} by {host}",
+            "display_type": "line",
+            "style": {
+              "palette": "warm",
+              "line_type": "dashed",
+              "line_width": "normal"
+            }
+          }
+        ],
+        "title": "SQL Server Memory Usage (KB)",
+        "title_size": "16",
+        "title_align": "left",
+        "yaxis": {
+          "min": "0"
+        }
+      },
+      "layout": {
+        "x": 6,
+        "y": 4,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 7,
+      "definition": {
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "max:sccm.client_count{*}",
+            "aggregator": "last"
+          }
+        ],
+        "title": "Total SCCM Clients",
+        "title_size": "16",
+        "title_align": "left",
+        "precision": 0
+      },
+      "layout": {
+        "x": 0,
+        "y": 7,
+        "width": 3,
+        "height": 2
+      }
+    },
+    {
+      "id": 8,
+      "definition": {
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "avg:sccm.database_size.used_space_bytes{database_name:sccm}",
+            "aggregator": "last"
+          }
+        ],
+        "title": "SCCM Database Size (GB)",
+        "title_size": "16",
+        "title_align": "left",
+        "precision": 2,
+        "custom_unit": "GB"
+      },
+      "layout": {
+        "x": 3,
+        "y": 7,
+        "width": 3,
+        "height": 2
+      }
+    },
+    {
+      "id": 9,
+      "definition": {
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "sum:sccm.site_status.critical_components{*}",
+            "aggregator": "last",
+            "conditional_formats": [
+              {
+                "comparator": ">",
+                "value": 0,
+                "palette": "red_on_white"
+              },
+              {
+                "comparator": "<=",
+                "value": 0,
+                "palette": "green_on_white"
+              }
+            ]
+          }
+        ],
+        "title": "Critical Components",
+        "title_size": "16",
+        "title_align": "left",
+        "precision": 0
+      },
+      "layout": {
+        "x": 6,
+        "y": 7,
+        "width": 3,
+        "height": 2
+      }
+    },
+    {
+      "id": 10,
+      "definition": {
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "sum:sccm.site_status.warning_components{*}",
+            "aggregator": "last",
+            "conditional_formats": [
+              {
+                "comparator": ">",
+                "value": 5,
+                "palette": "red_on_white"
+              },
+              {
+                "comparator": ">",
+                "value": 0,
+                "palette": "yellow_on_white"
+              },
+              {
+                "comparator": "<=",
+                "value": 0,
+                "palette": "green_on_white"
+              }
+            ]
+          }
+        ],
+        "title": "Warning Components",
+        "title_size": "16",
+        "title_align": "left",
+        "precision": 0
+      },
+      "layout": {
+        "x": 9,
+        "y": 7,
+        "width": 3,
+        "height": 2
+      }
+    },
+    {
+      "id": 11,
+      "definition": {
+        "type": "timeseries",
+        "requests": [
+          {
+            "q": "avg:sqlserver.stats.processes_blocked{role:sccm-sql-server} by {host}",
+            "display_type": "bars",
+            "style": {
+              "palette": "warm",
+              "line_type": "solid",
+              "line_width": "normal"
+            }
+          }
+        ],
+        "title": "SQL Server Blocked Processes",
+        "title_size": "16",
+        "title_align": "left",
+        "yaxis": {
+          "min": "0"
+        },
+        "markers": [
+          {
+            "value": "y = 5",
+            "display_type": "warning dashed"
+          },
+          {
+            "value": "y = 10",
+            "display_type": "error dashed"
+          }
+        ]
+      },
+      "layout": {
+        "x": 0,
+        "y": 9,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 12,
+      "definition": {
+        "type": "timeseries",
+        "requests": [
+          {
+            "q": "avg:sqlserver.stats.connections{role:sccm-sql-server} by {host}",
+            "display_type": "line",
+            "style": {
+              "palette": "purple",
+              "line_type": "solid",
+              "line_width": "normal"
+            }
+          }
+        ],
+        "title": "SQL Server User Connections",
+        "title_size": "16",
+        "title_align": "left",
+        "yaxis": {
+          "min": "0"
+        }
+      },
+      "layout": {
+        "x": 6,
+        "y": 9,
+        "width": 6,
+        "height": 3
+      }
+    }
+  ],
+  "template_variables": [
+    {
+      "name": "host",
+      "default": "*",
+      "prefix": "host"
+    }
+  ],
+  "layout_type": "ordered",
+  "is_read_only": false,
+  "notify_list": [],
+  "reflow_type": "fixed"
+}

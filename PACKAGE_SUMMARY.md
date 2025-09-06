@@ -22,7 +22,8 @@ sccm-datadog-configs/
 │       ├── windows_service.d/conf.yaml         # SCCM services monitoring
 │       ├── win32_event_log.d/conf.yaml         # Windows/SCCM event logs
 │       ├── wmi_check.d/conf.yaml               # System performance via WMI
-│       └── process.d/conf.yaml                 # Critical process monitoring
+│       ├── process.d/conf.yaml                 # Critical process monitoring
+│       └── iis.d/conf.yaml                     # IIS-specific monitoring
 │
 ├── management-point/                            # SCCM Management Point
 │   ├── datadog.yaml                            # Main agent configuration
@@ -39,7 +40,8 @@ sccm-datadog-configs/
 │       ├── windows_service.d/conf.yaml         # IIS, WDS, DP services
 │       ├── win32_event_log.d/conf.yaml         # IIS/WDS/SCCM event logs
 │       ├── wmi_check.d/conf.yaml               # Storage/network focused metrics
-│       └── process.d/conf.yaml                 # IIS and WDS processes
+│       ├── process.d/conf.yaml                 # IIS and WDS processes
+│       └── iis.d/conf.yaml                     # IIS-specific monitoring
 │
 ├── sql-server/                                  # SCCM SQL Database Server
 │   ├── datadog.yaml                            # Main agent configuration (with DBM)
@@ -56,7 +58,8 @@ sccm-datadog-configs/
         ├── windows_service.d/conf.yaml         # SSRS and related services
         ├── win32_event_log.d/conf.yaml         # SSRS/IIS event logs
         ├── process.d/conf.yaml                 # SSRS processes
-        └── sqlserver.d/conf.yaml               # SSRS database monitoring
+        ├── sqlserver.d/conf.yaml               # SSRS database monitoring
+        └── iis.d/conf.yaml                     # IIS-specific monitoring
 ```
 
 ## Monitoring Coverage by Server Role

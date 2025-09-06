@@ -22,7 +22,8 @@ sccm-datadog-configs/
 │       ├── windows_service.d/
 │       ├── win32_event_log.d/
 │       ├── wmi_check.d/
-│       └── process.d/
+│       ├── process.d/
+│       └── iis.d/
 ├── management-point/               # Management Point server configuration
 │   ├── datadog.yaml
 │   └── conf.d/
@@ -156,24 +157,7 @@ The `common/recommended-thresholds.yaml` file contains industry-standard monitor
 - Windows Server monitoring standards
 - Azure infrastructure recommendations
 
-## Support and Troubleshooting
 
-### Common Issues
-- **Agent connectivity**: Verify outbound HTTPS (port 443) access
-- **SQL permissions**: Ensure monitoring user has proper database access
-- **WMI access**: Verify WMI service is running and accessible
-- **Event log access**: Confirm agent has permission to read event logs
-
-### Log Locations
-- **Datadog Agent**: `C:\ProgramData\Datadog\logs\`
-- **SCCM Logs**: `C:\Program Files\Microsoft Configuration Manager\Logs\`
-- **SQL Server Logs**: Available through SQL Server Management Studio
-- **Windows Event Logs**: Event Viewer
-
-### Performance Tuning
-- Adjust check intervals in configuration files
-- Modify `check_runners` in datadog.yaml for resource optimization
-- Disable unnecessary integrations for specific server roles
 
 ## Security Considerations
 
@@ -194,13 +178,24 @@ The `common/recommended-thresholds.yaml` file contains industry-standard monitor
 - Review SCCM version compatibility
 - Update configurations for new SCCM features
 
-## Version Compatibility
+## Support and Troubleshooting
 
-- **SCCM**: Current Branch (version 1902 or later)
-- **Windows Server**: 2016 or later
-- **SQL Server**: 2016 or later
-- **Datadog Agent**: 7.x series
-- **PowerShell**: 5.1 or later
+### Common Issues
+- **Agent connectivity**: Verify outbound HTTPS (port 443) access
+- **SQL permissions**: Ensure monitoring user has proper database access
+- **WMI access**: Verify WMI service is running and accessible
+- **Event log access**: Confirm agent has permission to read event logs
+
+### Log Locations
+- **Datadog Agent**: `C:\ProgramData\Datadog\logs\`
+- **SCCM Logs**: `C:\Program Files\Microsoft Configuration Manager\Logs\`
+- **SQL Server Logs**: Available through SQL Server Management Studio
+- **Windows Event Logs**: Event Viewer
+
+### Performance Tuning
+- Adjust check intervals in configuration files
+- Modify `check_runners` in datadog.yaml for resource optimization
+- Disable unnecessary integrations for specific server roles
 
 ## License and Support
 

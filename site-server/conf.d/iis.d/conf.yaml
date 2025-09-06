@@ -1,24 +1,24 @@
-# IIS Check Configuration for SCCM Management Point
-# Monitors IIS performance and SCCM-specific application pools
+# IIS Check Configuration for SCCM Site Server
+# Monitors IIS performance for SCCM administrative interfaces and services
 
 init_config:
 
 instances:
-  # Default Web Site monitoring
+  # Default Web Site monitoring for SCCM admin interfaces
   - host: localhost
     tags:
-      - role:sccm-management-point
+      - role:sccm-site-server
       - iis_site:default
     
-  # Monitor SCCM-specific application pools
+  # Monitor SCCM Site Server application pools
   - host: localhost
     tags:
-      - role:sccm-management-point
-      - component:sccm-app-pools
+      - role:sccm-site-server
+      - component:sccm-site-app-pools
     
-  # Additional IIS metrics collection
+  # Additional IIS metrics collection for site services
   - host: localhost
     include_wmi_metrics: true
     tags:
-      - role:sccm-management-point
+      - role:sccm-site-server
       - component:iis-wmi

@@ -199,9 +199,22 @@ The `common/recommended-thresholds.yaml` file contains industry-standard monitor
 
 ## License and Support
 
-This configuration package is provided as-is for monitoring SCCM environments. For Datadog-specific support, refer to official Datadog documentation and support channels.
+### License
 
-For SCCM-related questions, consult Microsoft documentation and community resources.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+### Support
+
+This SCCM Datadog monitoring package is provided as-is under the MIT License. While we strive to maintain and improve these configurations, please note:
+
+- **Community Support**: Issues and questions can be submitted via GitHub Issues
+- **Contributions**: Pull requests and improvements are welcome
+- **Datadog Support**: For Datadog Agent-specific issues, refer to [official Datadog documentation](https://docs.datadoghq.com/) and support channels
+- **SCCM Support**: For SCCM-related questions, consult [Microsoft documentation](https://docs.microsoft.com/en-us/mem/configmgr/) and community resources
+
+### Disclaimer
+
+This software is provided "as is", without warranty of any kind, express or implied. Users are responsible for testing configurations in non-production environments before deployment.
 
 ---
 

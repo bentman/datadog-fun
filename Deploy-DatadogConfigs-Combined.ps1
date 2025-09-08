@@ -47,7 +47,7 @@
 
 .NOTES
     Author: SCCM Datadog Deployment Script (Combined)
-    Version: 2.1
+    Version: 2.2
     Requires: PowerShell 5.1+, Administrative privileges on target servers
     
     Service Restart: Uses Stop-Service/Start-Service with status verification instead of Restart-Service

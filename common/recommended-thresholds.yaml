@@ -112,8 +112,10 @@ service_availability:
   sccm-management-point:
     critical_services:
       - W3SVC
-      - WMPNetworkSvc
+      - IISADMIN
       - Winmgmt
+      - BITS
+      - WinRM
   
   # Distribution Point Critical Services
   sccm-distribution-point:

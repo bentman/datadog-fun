@@ -79,18 +79,53 @@ iis_thresholds:
     warning: 10    # Request queue length above 10
     critical: 25   # Request queue length above 25
 
-# SCCM Service Availability
+# SCCM Service Availability by Server Role
 service_availability:
-  critical_services:
-    - SMS_EXECUTIVE
-    - SMS_SITE_COMPONENT_MANAGER
-    - SMS_NOTIFICATION_SERVER
-    - W3SVC
-    - Winmgmt
-    - MSSQLSERVER
-    - SQLSERVERAGENT
-    - ReportServer
+  # Site Server Critical Services
+  sccm-site-server:
+    critical_services:
+      - SMS_EXECUTIVE
+      - SMS_SITE_COMPONENT_MANAGER
+      - SMS_NOTIFICATION_SERVER
+      - W3SVC
+      - Winmgmt
   
+  # SQL Server Critical Services
+  sccm-sql-server:
+    critical_services:
+      - MSSQLSERVER
+      - SQLSERVERAGENT
+      - SQLBrowser
+      - SQLWriter
+      - Winmgmt
+  
+  # SQL Reporting Server Critical Services
+  sccm-sql-reporting-server:
+    critical_services:
+      - MSSQLSERVER
+      - SQLSERVERAGENT
+      - ReportServer
+      - W3SVC
+      - Winmgmt
+  
+  # Management Point Critical Services
+  sccm-management-point:
+    critical_services:
+      - W3SVC
+      - IISADMIN
+      - Winmgmt
+      - BITS
+      - WinRM
+  
+  # Distribution Point Critical Services (Cloud-based, no PXE/WDS)
+  sccm-distribution-point:
+    critical_services:
+      - W3SVC
+      - IISADMIN
+      - Winmgmt
+      - BITS
+  
+  # Common Service Restart Thresholds (applies to all roles)
   service_restart_threshold:
     warning: 2     # Service restarted more than 2 times in 24 hours
     critical: 5    # Service restarted more than 5 times in 24 hours

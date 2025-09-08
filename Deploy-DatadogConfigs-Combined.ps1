@@ -12,10 +12,10 @@
     configurations before deployment.
 
 .PARAMETER ConfigPath
-    Path to the local configuration repository. Defaults to script directory.
+    Path to the local configuration repository. If not specified, defaults to script directory.
 
 .PARAMETER ServerConfig
-    Path to JSON file containing server role mappings. Defaults to 'servers.json' in script directory.
+    Path to JSON file containing server role mappings. If not specified, defaults to 'servers.json' in script directory.
 
 .PARAMETER UseWindowsAuth
     Deploy Windows Authentication alternative configurations (.alt files) instead of standard configs. Default: $false
@@ -71,10 +71,10 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory=$false)]
-    [string]$ConfigPath = $PSScriptRoot,
+    [string]$ConfigPath,
     
     [Parameter(Mandatory=$false)]
-    [string]$ServerConfig = (Join-Path $PSScriptRoot "servers.json"),
+    [string]$ServerConfig,
     
     [Parameter(Mandatory=$false)]
     [switch]$UseWindowsAuth = $false,
@@ -88,6 +88,15 @@ param(
     [Parameter(Mandatory=$false)]
     [bool]$TestMode = $false
 )
+
+# Set default paths if not provided
+if (-not $ConfigPath) {
+    $ConfigPath = $PSScriptRoot
+}
+
+if (-not $ServerConfig) {
+    $ServerConfig = Join-Path $PSScriptRoot "servers.json"
+}
 
 # Ensure LOGS directory exists
 $LogsDir = Join-Path $PSScriptRoot "LOGS"

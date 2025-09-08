@@ -117,11 +117,13 @@ service_availability:
       - BITS
       - WinRM
   
-  # Distribution Point Critical Services
+  # Distribution Point Critical Services (Cloud-based, no PXE/WDS)
   sccm-distribution-point:
     critical_services:
       - W3SVC
+      - IISADMIN
       - Winmgmt
+      - BITS
   
   # Common Service Restart Thresholds (applies to all roles)
   service_restart_threshold:

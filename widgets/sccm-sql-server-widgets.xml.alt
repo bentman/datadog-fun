@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<datadog-widgets>
+  <description>SCCM SQL Server Monitoring Widget Configurations (Windows Authentication Alternative)</description>
+  
+  <!-- Buffer Cache Hit Ratio Widget (Windows Auth) -->
+  <widget id="buffer-cache-widget-winauth" type="query_value">
+    <title>SQL Server Buffer Cache Hit Ratio (Windows Auth)</title>
+    <query>avg:sqlserver.buffer.cache_hit_ratio{role:sccm-sql-server,auth:windows}</query>
+    <thresholds>
+      <critical operator="<" value="85" color="red"/>
+      <warning operator="<" value="90" color="yellow"/>
+      <ok operator=">=" value="90" color="green"/>
+    </thresholds>
+    <precision>2</precision>
+    <unit>%</unit>
+    <size>
+      <width>3</width>
+      <height>2</height>
+    </size>
+    <notes>Uses Windows Authentication - no service account required</notes>
+  </widget>
+  
+  <!-- Page Life Expectancy Widget (Windows Auth) -->
+  <widget id="page-life-widget-winauth" type="query_value">
+    <title>SQL Server Page Life Expectancy (Windows Auth)</title>
+    <query>avg:sqlserver.buffer.page_life_expectancy{role:sccm-sql-server,auth:windows}</query>
+    <thresholds>
+      <critical operator="<" value="180" color="red"/>
+      <warning operator="<" value="300" color="yellow"/>
+      <ok operator=">=" value="300" color="green"/>
+    </thresholds>
+    <precision>0</precision>
+    <unit>seconds</unit>
+    <size>
+      <width>3</width>
+      <height>2</height>
+    </size>
+    <notes>Uses Windows Authentication - simplified monitoring</notes>
+  </widget>
+  
+  <!-- Blocked Processes Widget (Windows Auth) -->
+  <widget id="blocked-processes-widget-winauth" type="query_value">
+    <title>SQL Server Blocked Processes (Windows Auth)</title>
+    <query>avg:sqlserver.stats.processes_blocked{role:sccm-sql-server,auth:windows}</query>
+    <thresholds>
+      <critical operator=">" value="10" color="red"/>
+      <warning operator=">" value="5" color="yellow"/>
+      <ok operator="<=" value="5" color="green"/>
+    </thresholds>
+    <precision>0</precision>
+    <unit>processes</unit>
+    <size>
+      <width>3</width>
+      <height>2</height>
+    </size>
+    <notes>Basic blocking detection without DBM</notes>
+  </widget>
+  
+  <!-- Active Connections Widget (Windows Auth) -->
+  <widget id="connections-widget-winauth" type="query_value">
+    <title>SQL Server Active Connections (Windows Auth)</title>
+    <query>avg:sqlserver.stats.connections{role:sccm-sql-server,auth:windows}</query>
+    <thresholds>
+      <critical operator=">" value="500" color="red"/>
+      <warning operator=">" value="300" color="yellow"/>
+      <ok operator="<=" value="300" color="green"/>
+    </thresholds>
+    <precision>0</precision>
+    <unit>connections</unit>
+    <size>
+      <width>3</width>
+      <height>2</height>
+    </size>
+    <notes>Connection monitoring with Windows Authentication</notes>
+  </widget>
+  
+  <!-- Multi-metric Time Series Widget (Windows Auth) -->
+  <widget id="sql-performance-timeseries-winauth" type="timeseries">
+    <title>SQL Server Performance Metrics (Windows Auth)</title>
+    <queries>
+      <query metric="avg:sqlserver.buffer.cache_hit_ratio{role:sccm-sql-server,auth:windows} by {host}"
+             display_type="line" 
+             color="blue"
+             legend="Buffer Cache Hit Ratio"/>
+      <query metric="avg:sqlserver.memory.total_server_memory{role:sccm-sql-server,auth:windows} by {host}"
+             display_type="line" 
+             color="green"
+             legend="Total Server Memory"/>
+      <query metric="avg:sqlserver.memory.target_server_memory{role:sccm-sql-server,auth:windows} by {host}"
+             display_type="line" 
+             color="orange"
+             legend="Target Server Memory"/>
+      <query metric="avg:sqlserver.stats.processes_blocked{role:sccm-sql-server,auth:windows} by {host}"
+             display_type="bars" 
+             color="red"
+             legend="Blocked Processes"/>
+      <query metric="avg:sqlserver.stats.connections{role:sccm-sql-server,auth:windows} by {host}"
+             display_type="line" 
+             color="purple"
+             legend="Active Connections"/>
+    </queries>
+    <size>
+      <width>12</width>
+      <height>4</height>
+    </size>
+    <notes>Comprehensive SQL Server monitoring using Windows Authentication</notes>
+  </widget>
+  
+  <!-- Configuration Notes Widget -->
+  <widget id="winauth-config-notes" type="note">
+    <title>Windows Authentication Configuration</title>
+    <content>
+      <![CDATA[
+      ## Windows Authentication SQL Server Monitoring
+      
+      This configuration uses Windows Authentication instead of SQL Server authentication:
+      
+      **Benefits:**
+      - No service account credentials required
+      - Complies with security policies restricting service accounts
+      - Uses existing Windows security context
+      
+      **Configuration:**
+      - connection_string: "Trusted_Connection=yes"
+      - No username/password fields
+      - DBM disabled for simplified permissions
+      - Essential performance counters maintained
+      
+      **Available Metrics:**
+      - Buffer cache performance
+      - Memory utilization  
+      - Connection statistics
+      - Blocking process detection
+      - Basic database health
+      
+      **Log Collection:**
+      - SQL Server error logs
+      - SQL Agent logs
+      - SSRS logs (for reporting server)
+      ]]>
+    </content>
+    <background_color>gray</background_color>
+    <size>
+      <width>12</width>
+      <height>3</height>
+    </size>
+  </widget>
+  
+</datadog-widgets>

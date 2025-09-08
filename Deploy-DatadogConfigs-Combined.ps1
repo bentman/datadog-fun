@@ -27,7 +27,7 @@
     Restart Datadog Agent service after deployment. Default: $true
 
 .PARAMETER TestMode
-    Performs validation without actual file deployment or service restart. Default: $false
+    Performs comprehensive validation including remote path testing, file enumeration, and service status checks without actual deployment or service restart. Default: $false
 
 .EXAMPLE
     .\Deploy-DatadogConfigs-Combined.ps1
@@ -39,7 +39,7 @@
 
 .EXAMPLE
     .\Deploy-DatadogConfigs-Combined.ps1 -ConfigPath "C:\SCCM-Configs" -TestMode
-    Validates deployment without copying files or restarting services.
+    Validates deployment by testing remote paths, enumerating files, and checking service status without making changes.
 
 .EXAMPLE
     .\Deploy-DatadogConfigs-Combined.ps1 -UseWindowsAuth -ServerConfig "production-servers.json" -BackupConfigs $false
@@ -47,8 +47,11 @@
 
 .NOTES
     Author: SCCM Datadog Deployment Script (Combined)
-    Version: 2.0
+    Version: 2.1
     Requires: PowerShell 5.1+, Administrative privileges on target servers
+    
+    Service Restart: Uses Stop-Service/Start-Service with status verification instead of Restart-Service
+    TestMode: Performs actual validation tests instead of just logging intended actions
     
     Server JSON Format:
     {
@@ -203,6 +206,19 @@ function Get-ConfigurationSource {
         
         # For SQL roles, we need to handle the alternative files
         if ($Role -eq "sql-server" -or $Role -eq "sql-reporting-server") {
+            $altConfigPath = Join-Path $sourcePath "conf.d\sqlserver.d\conf.yaml.alt"
+            
+            if ($TestMode) {
+                # In TestMode, validate the alternative config exists and return source path
+                if (Test-Path $altConfigPath) {
+                    Write-Log "TEST MODE: Windows Auth alternative config found: $altConfigPath" "INFO"
+                    Write-Log "TEST MODE: Would create temporary directory and replace conf.yaml with .alt version" "INFO"
+                } else {
+                    Write-Log "TEST MODE: Windows Auth alternative not found: $altConfigPath" "WARNING"
+                }
+                return $sourcePath
+            }
+            
             # Create a temporary directory with the alternative configuration
             $tempPath = Join-Path $env:TEMP "datadog-winauth-$Role-$(Get-Date -Format 'yyyyMMddHHmmss')"
             New-Item -Path $tempPath -ItemType Directory -Force | Out-Null
@@ -211,7 +227,6 @@ function Get-ConfigurationSource {
             Copy-Item -Path "$sourcePath\*" -Destination $tempPath -Recurse -Force
             
             # Replace the main SQL Server config with the alternative
-            $altConfigPath = Join-Path $sourcePath "conf.d\sqlserver.d\conf.yaml.alt"
             $targetConfigPath = Join-Path $tempPath "conf.d\sqlserver.d\conf.yaml"
             
             if (Test-Path $altConfigPath) {
@@ -239,20 +254,52 @@ function Deploy-ConfigurationFiles {
     )
     
     Write-Log "Deploying configuration from $SourcePath to $TargetServer"
+    $remotePath = "\\$TargetServer\$($TargetPath.Replace(':', '$'))"
+    
+    # Test connectivity (always test, even in TestMode)
+    if (-not (Test-Path $remotePath)) {
+        Write-Log "Cannot access remote path: $remotePath" "ERROR"
+        return $false
+    }
     
     if ($TestMode) {
-        Write-Log "TEST MODE: Would deploy to \\$TargetServer\$($TargetPath.Replace(':', '$'))" "INFO"
-        return $true
+        Write-Log "TEST MODE: Successfully validated remote path access: $remotePath" "INFO"
+        
+        # Test what files would be copied
+        try {
+            $sourceFiles = Get-ChildItem -Path $SourcePath -Recurse -File
+            Write-Log "TEST MODE: Would copy $($sourceFiles.Count) files from $SourcePath" "INFO"
+            
+            # Show sample of files that would be copied
+            $sampleFiles = $sourceFiles | Select-Object -First 5
+            foreach ($file in $sampleFiles) {
+                $relativePath = $file.FullName.Replace($SourcePath, "")
+                Write-Log "TEST MODE: Would copy: $relativePath" "INFO"
+            }
+            
+            if ($sourceFiles.Count -gt 5) {
+                Write-Log "TEST MODE: ... and $($sourceFiles.Count - 5) more files" "INFO"
+            }
+            
+            # Test backup directory creation if requested
+            if ($CreateBackup) {
+                $backupPath = Join-Path $remotePath "backup-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
+                Write-Log "TEST MODE: Would create backup at: $backupPath" "INFO"
+                
+                # Check existing configs that would be backed up
+                $existingConfigs = Get-ChildItem -Path $remotePath -Include "*.yaml", "conf.d" -Recurse -ErrorAction SilentlyContinue
+                Write-Log "TEST MODE: Would backup $($existingConfigs.Count) existing configuration files" "INFO"
+            }
+            
+            return $true
+        }
+        catch {
+            Write-Log "TEST MODE: Error during validation: $($_.Exception.Message)" "ERROR"
+            return $false
+        }
     }
     
     try {
-        $remotePath = "\\$TargetServer\$($TargetPath.Replace(':', '$'))"
-        
-        # Test connectivity
-        if (-not (Test-Path $remotePath)) {
-            Write-Log "Cannot access remote path: $remotePath" "ERROR"
-            return $false
-        }
         
         # Create backup if requested
         if ($CreateBackup) {
@@ -297,24 +344,78 @@ function Restart-DatadogAgent {
         [string]$TargetServer
     )
     
-    if ($TestMode) {
-        Write-Log "TEST MODE: Would restart Datadog Agent on $TargetServer" "INFO"
-        return $true
-    }
-    
     if (-not $RestartService) {
         Write-Log "Service restart disabled, skipping restart on $TargetServer" "INFO"
         return $true
     }
     
+    if ($TestMode) {
+        # In TestMode, actually test service status instead of just logging
+        try {
+            Write-Log "TEST MODE: Checking Datadog Agent service status on $TargetServer" "INFO"
+            $serviceStatus = Invoke-Command -ComputerName $TargetServer -ScriptBlock {
+                Get-Service -Name "DatadogAgent" -ErrorAction Stop
+            } -ErrorAction Stop
+            
+            Write-Log "TEST MODE: Datadog Agent service status on $TargetServer`: $($serviceStatus.Status)" "INFO"
+            Write-Log "TEST MODE: Would stop and start Datadog Agent service (current: $($serviceStatus.Status))" "INFO"
+            return $true
+        }
+        catch {
+            Write-Log "TEST MODE: Failed to check Datadog Agent service on $TargetServer`: $($_.Exception.Message)" "ERROR"
+            return $false
+        }
+    }
+    
     try {
-        Write-Log "Restarting Datadog Agent on $TargetServer"
+        Write-Log "Restarting Datadog Agent on $TargetServer (using stop/start method)"
+        
+        # Stop the service first
+        Write-Log "Stopping Datadog Agent on $TargetServer"
         Invoke-Command -ComputerName $TargetServer -ScriptBlock {
-            Restart-Service -Name "DatadogAgent" -Force
+            Stop-Service -Name "DatadogAgent" -Force -ErrorAction Stop
         } -ErrorAction Stop
         
-        Write-Log "Successfully restarted Datadog Agent on $TargetServer"
-        return $true
+        # Wait and verify service is stopped
+        $stopTimeout = 30
+        $stopTimer = 0
+        do {
+            Start-Sleep -Seconds 2
+            $stopTimer += 2
+            $serviceStatus = Invoke-Command -ComputerName $TargetServer -ScriptBlock {
+                (Get-Service -Name "DatadogAgent").Status
+            } -ErrorAction Stop
+            
+            if ($serviceStatus -eq 'Stopped') {
+                Write-Log "Datadog Agent successfully stopped on $TargetServer"
+                break
+            }
+            
+            if ($stopTimer -ge $stopTimeout) {
+                Write-Log "Timeout waiting for Datadog Agent to stop on $TargetServer" "WARNING"
+                break
+            }
+        } while ($serviceStatus -ne 'Stopped')
+        
+        # Start the service
+        Write-Log "Starting Datadog Agent on $TargetServer"
+        Invoke-Command -ComputerName $TargetServer -ScriptBlock {
+            Start-Service -Name "DatadogAgent" -ErrorAction Stop
+        } -ErrorAction Stop
+        
+        # Verify service started
+        Start-Sleep -Seconds 3
+        $finalStatus = Invoke-Command -ComputerName $TargetServer -ScriptBlock {
+            (Get-Service -Name "DatadogAgent").Status
+        } -ErrorAction Stop
+        
+        if ($finalStatus -eq 'Running') {
+            Write-Log "Successfully restarted Datadog Agent on $TargetServer (Status: $finalStatus)"
+            return $true
+        } else {
+            Write-Log "Datadog Agent restart completed but service status is: $finalStatus" "WARNING"
+            return $false
+        }
     }
     catch {
         Write-Log "Failed to restart Datadog Agent on $TargetServer`: $($_.Exception.Message)" "ERROR"

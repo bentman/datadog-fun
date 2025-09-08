@@ -77,12 +77,32 @@ Copy-Item "C:\ProgramData\Datadog\conf.d\sqlserver.d\conf.yaml" "C:\ProgramData\
 ```
 
 ### Step 2: Deploy Alternative Configuration
+
+#### Option A: Using Combined Deployment Script (Recommended)
+```powershell
+# Deploy Windows Authentication alternatives to all configured servers
+.\Deploy-DatadogConfigs-Combined.ps1 -UseWindowsAuth
+
+# Test deployment without making changes
+.\Deploy-DatadogConfigs-Combined.ps1 -UseWindowsAuth -TestMode $true
+
+# Deploy without creating backups
+.\Deploy-DatadogConfigs-Combined.ps1 -UseWindowsAuth -BackupConfigs $false
+```
+
+#### Option B: Manual Deployment
 ```powershell
 # Copy alternative configuration
 Copy-Item "sql-server\conf.d\sqlserver.d\conf.yaml.alt" "C:\ProgramData\Datadog\conf.d\sqlserver.d\conf.yaml"
 
 # For reporting server (if applicable)
 Copy-Item "sql-reporting-server\conf.d\sqlserver.d\conf.yaml.alt" "C:\ProgramData\Datadog\conf.d\sqlserver.d\conf.yaml"
+```
+
+#### Option C: Using Windows Auth Specific Script
+```powershell
+# Deploy using the Windows Authentication specific script
+.\Deploy-DatadogConfigs-WindowsAuth.ps1 -UseWindowsAuth $true
 ```
 
 ### Step 3: Configure Windows Permissions

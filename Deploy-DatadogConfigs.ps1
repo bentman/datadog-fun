@@ -70,33 +70,38 @@
 
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory=$false)]
+    [Parameter(Mandatory = $false)]
     [string]$ConfigPath,
     
-    [Parameter(Mandatory=$false)]
+    [Parameter(Mandatory = $false)]
     [string]$ServerConfig,
     
-    [Parameter(Mandatory=$false)]
+    [Parameter(Mandatory = $false)]
     [switch]$UseWindowsAuth = $false,
     
-    [Parameter(Mandatory=$false)]
+    [Parameter(Mandatory = $false)]
     [bool]$BackupConfigs = $true,
     
-    [Parameter(Mandatory=$false)]
+    [Parameter(Mandatory = $false)]
     [bool]$RestartService = $true,
     
-    [Parameter(Mandatory=$false)]
+    [Parameter(Mandatory = $false)]
     [bool]$TestMode = $false
 )
 
 # Set default paths if not provided
-if (-not $ConfigPath) {
-    $ConfigPath = $PSScriptRoot
-}
+if (-not $ConfigPath) { $ConfigPath = $PSScriptRoot }
 
-if (-not $ServerConfig) {
-    $ServerConfig = Join-Path $PSScriptRoot "servers.json"
-}
+if (-not $ServerConfig) { $ServerConfig = Join-Path $PSScriptRoot "servers.json" }
+
+# Set other switches as desired
+if (-not $UseWindowsAuth) { $UseWindowsAuth = $true }
+
+if (-not $BackupConfigs) { $UseWindowsAuth = $false }
+
+if (-not $RestartService) { $RestartService = $false }
+
+if (-not $TestMode) { $TestMode = $true }
 
 # Ensure LOGS directory exists
 $LogsDir = Join-Path $PSScriptRoot "LOGS"
@@ -107,45 +112,46 @@ if (-not (Test-Path $LogsDir)) {
 # Set log file based on deployment mode
 if ($UseWindowsAuth) {
     $LogFile = Join-Path $LogsDir "Datadog_DeployConfigsAltAuth-$(Get-Date -Format 'yyyyMMdd-HHmmss').log"
-} else {
+}
+else {
     $LogFile = Join-Path $LogsDir "Datadog_DeployConfigs-$(Get-Date -Format 'yyyyMMdd-HHmmss').log"
 }
 
 # Configuration mappings
 $RoleConfigurations = @{
-    "site-server" = @{
-        "ConfigDir" = "site-server"
-        "TargetPath" = "C:\ProgramData\Datadog"
-        "Description" = "SCCM Primary Site Server"
-        "RequiresRestart" = $true
+    "site-server"          = @{
+        "ConfigDir"         = "site-server"
+        "TargetPath"        = "C:\ProgramData\Datadog"
+        "Description"       = "SCCM Primary Site Server"
+        "RequiresRestart"   = $true
         "HasWindowsAuthAlt" = $false
     }
-    "management-point" = @{
-        "ConfigDir" = "management-point"
-        "TargetPath" = "C:\ProgramData\Datadog"
-        "Description" = "SCCM Management Point"
-        "RequiresRestart" = $true
+    "management-point"     = @{
+        "ConfigDir"         = "management-point"
+        "TargetPath"        = "C:\ProgramData\Datadog"
+        "Description"       = "SCCM Management Point"
+        "RequiresRestart"   = $true
         "HasWindowsAuthAlt" = $false
     }
-    "distribution-point" = @{
-        "ConfigDir" = "distribution-point"
-        "TargetPath" = "C:\ProgramData\Datadog"
-        "Description" = "SCCM Distribution Point"
-        "RequiresRestart" = $true
+    "distribution-point"   = @{
+        "ConfigDir"         = "distribution-point"
+        "TargetPath"        = "C:\ProgramData\Datadog"
+        "Description"       = "SCCM Distribution Point"
+        "RequiresRestart"   = $true
         "HasWindowsAuthAlt" = $false
     }
-    "sql-server" = @{
-        "ConfigDir" = "sql-server"
-        "TargetPath" = "C:\ProgramData\Datadog"
-        "Description" = "SCCM SQL Database Server"
-        "RequiresRestart" = $true
+    "sql-server"           = @{
+        "ConfigDir"         = "sql-server"
+        "TargetPath"        = "C:\ProgramData\Datadog"
+        "Description"       = "SCCM SQL Database Server"
+        "RequiresRestart"   = $true
         "HasWindowsAuthAlt" = $true
     }
     "sql-reporting-server" = @{
-        "ConfigDir" = "sql-reporting-server"
-        "TargetPath" = "C:\ProgramData\Datadog"
-        "Description" = "SQL Reporting Services Server"
-        "RequiresRestart" = $true
+        "ConfigDir"         = "sql-reporting-server"
+        "TargetPath"        = "C:\ProgramData\Datadog"
+        "Description"       = "SQL Reporting Services Server"
+        "RequiresRestart"   = $true
         "HasWindowsAuthAlt" = $true
     }
 }
@@ -222,7 +228,8 @@ function Get-ConfigurationSource {
                 if (Test-Path $altConfigPath) {
                     Write-Log "TEST MODE: Windows Auth alternative config found: $altConfigPath" "INFO"
                     Write-Log "TEST MODE: Would create temporary directory and replace conf.yaml with .alt version" "INFO"
-                } else {
+                }
+                else {
                     Write-Log "TEST MODE: Windows Auth alternative not found: $altConfigPath" "WARNING"
                 }
                 return $sourcePath
@@ -233,28 +240,30 @@ function Get-ConfigurationSource {
             New-Item -Path $tempPath -ItemType Directory -Force | Out-Null
             
             # Copy all files from source
-            Copy-Item -Path "$sourcePath\*" -Destination $tempPath -Recurse -Force
+            Copy-Item -Path "$sourcePath\*" -Destination $tempPath -Recurse -Verbose -Force
             
             # Replace the main SQL Server config with the alternative
             $targetConfigPath = Join-Path $tempPath "conf.d\sqlserver.d\conf.yaml"
             
             if (Test-Path $altConfigPath) {
-                Copy-Item -Path $altConfigPath -Destination $targetConfigPath -Force
+                Copy-Item -Path $altConfigPath -Destination $targetConfigPath -Verbose -Force
                 Write-Log "Replaced SQL Server config with Windows Auth alternative"
-            } else {
+            }
+            else {
                 Write-Log "Windows Auth alternative not found: $altConfigPath" "WARNING"
             }
             
             return $tempPath
         }
-    } elseif ($UseWindowsAuth -and -not $RoleConfigurations[$Role].HasWindowsAuthAlt) {
+    }
+    elseif ($UseWindowsAuth -and -not $RoleConfigurations[$Role].HasWindowsAuthAlt) {
         Write-Log "Windows Authentication requested but no alternative available for role: $Role" "WARNING"
     }
     
     return $sourcePath
 }
 
-function Deploy-ConfigurationFiles {
+function Update-ConfigurationFiles {
     param(
         [string]$SourcePath,
         [string]$TargetServer,
@@ -329,8 +338,9 @@ function Deploy-ConfigurationFiles {
                         New-Item -Path $backupTargetDir -ItemType Directory -Force | Out-Null
                     }
                     
-                    Copy-Item -Path $config.FullName -Destination $backupTarget -Force
-                } catch {
+                    Copy-Item -Path $config.FullName -Destination $backupTarget -Verbose -Force
+                }
+                catch {
                     Write-Log "Warning: Could not backup $($config.FullName): $($_.Exception.Message)" "WARNING"
                 }
             }
@@ -338,7 +348,7 @@ function Deploy-ConfigurationFiles {
         }
         
         # Copy new configurations
-        Copy-Item -Path "$SourcePath\*" -Destination $remotePath -Recurse -Force
+        Copy-Item -Path "$SourcePath\*" -Destination $remotePath -Recurse -Verbose -Force
         Write-Log "Successfully deployed configuration to $TargetServer"
         return $true
     }
@@ -421,7 +431,8 @@ function Restart-DatadogAgent {
         if ($finalStatus -eq 'Running') {
             Write-Log "Successfully restarted Datadog Agent on $TargetServer (Status: $finalStatus)"
             return $true
-        } else {
+        }
+        else {
             Write-Log "Datadog Agent restart completed but service status is: $finalStatus" "WARNING"
             return $false
         }
@@ -447,7 +458,8 @@ function Show-PostDeploymentInfo {
         Write-Log "2. Import alternative dashboard and widgets to Datadog"
         Write-Log "3. Check Agent logs for authentication issues"
         Write-Log "4. Review troubleshooting guide if needed"
-    } else {
+    }
+    else {
         Write-Log ""
         Write-Log "Standard Configuration Deployment Complete"
         Write-Log "Next Steps:"
@@ -459,122 +471,119 @@ function Show-PostDeploymentInfo {
 }
 
 # Main execution
-function Main {
-    $deploymentMode = if ($UseWindowsAuth) { "Windows Authentication Alternative" } else { "Standard" }
+$deploymentMode = if ($UseWindowsAuth) { "Windows Authentication Alternative" } else { "Standard" }
     
-    Write-Log "Starting SCCM Datadog Configuration Deployment ($deploymentMode Mode)"
-    Write-Log "Configuration Path: $ConfigPath"
-    Write-Log "Server Config: $ServerConfig"
-    Write-Log "Windows Authentication Mode: $UseWindowsAuth"
-    Write-Log "Backup Configs: $BackupConfigs"
-    Write-Log "Restart Service: $RestartService"
-    Write-Log "Test Mode: $TestMode"
-    Write-Log "Log File: $LogFile"
+Write-Log "Starting SCCM Datadog Configuration Deployment ($deploymentMode Mode)"
+Write-Log "Configuration Path: $ConfigPath"
+Write-Log "Server Config: $ServerConfig"
+Write-Log "Windows Authentication Mode: $UseWindowsAuth"
+Write-Log "Backup Configs: $BackupConfigs"
+Write-Log "Restart Service: $RestartService"
+Write-Log "Test Mode: $TestMode"
+Write-Log "Log File: $LogFile"
     
-    if (-not (Test-Prerequisites)) {
-        Write-Log "Prerequisites check failed. Exiting." "ERROR"
-        exit 1
+if (-not (Test-Prerequisites)) {
+    Write-Log "Prerequisites check failed. Exiting." "ERROR"
+    exit 1
+}
+    
+$servers = Get-ServerConfiguration
+if (-not $servers) {
+    Write-Log "Failed to load server configuration. Exiting." "ERROR"
+    exit 1
+}
+    
+$deploymentResults = @{}
+$totalServers = 0
+$successfulDeployments = 0
+$tempDirectories = @()
+    
+foreach ($role in $servers.PSObject.Properties.Name) {
+    if (-not $RoleConfigurations.ContainsKey($role)) {
+        Write-Log "Unknown role: $role" "WARNING"
+        continue
     }
-    
-    $servers = Get-ServerConfiguration
-    if (-not $servers) {
-        Write-Log "Failed to load server configuration. Exiting." "ERROR"
-        exit 1
-    }
-    
-    $deploymentResults = @{}
-    $totalServers = 0
-    $successfulDeployments = 0
-    $tempDirectories = @()
-    
-    foreach ($role in $servers.PSObject.Properties.Name) {
-        if (-not $RoleConfigurations.ContainsKey($role)) {
-            Write-Log "Unknown role: $role" "WARNING"
-            continue
-        }
         
-        $roleConfig = $RoleConfigurations[$role]
-        $serverList = $servers.$role
+    $roleConfig = $RoleConfigurations[$role]
+    $serverList = $servers.$role
         
-        if (-not $serverList -or $serverList.Count -eq 0) {
-            Write-Log "No servers defined for role: $role" "WARNING"
-            continue
-        }
+    if (-not $serverList -or $serverList.Count -eq 0) {
+        Write-Log "No servers defined for role: $role" "WARNING"
+        continue
+    }
         
-        Write-Log "Processing role: $role - $($roleConfig.Description) ($($serverList.Count) servers)"
+    Write-Log "Processing role: $role - $($roleConfig.Description) ($($serverList.Count) servers)"
         
-        foreach ($server in $serverList) {
-            $totalServers++
-            Write-Log "Deploying to $server (Role: $role)"
+    foreach ($server in $serverList) {
+        $totalServers++
+        Write-Log "Deploying to $server (Role: $role)"
             
-            $sourcePath = Get-ConfigurationSource -Role $role -ConfigDir $roleConfig.ConfigDir
+        $sourcePath = Get-ConfigurationSource -Role $role -ConfigDir $roleConfig.ConfigDir
             
-            # Track temp directories for cleanup
-            if ($sourcePath.StartsWith($env:TEMP)) {
-                $tempDirectories += $sourcePath
-            }
-            
-            $deploySuccess = Deploy-ConfigurationFiles -SourcePath $sourcePath -TargetServer $server -TargetPath $roleConfig.TargetPath -CreateBackup $BackupConfigs
-            
-            if ($deploySuccess -and $roleConfig.RequiresRestart) {
-                $restartSuccess = Restart-DatadogAgent -TargetServer $server
-                $deploySuccess = $deploySuccess -and $restartSuccess
-            }
-            
-            if ($deploySuccess) {
-                $successfulDeployments++
-                Write-Log "Successfully deployed to $server" "SUCCESS"
-            } else {
-                Write-Log "Failed to deploy to $server" "ERROR"
-            }
-            
-            $deploymentResults[$server] = @{
-                "Role" = $role
-                "Success" = $deploySuccess
-                "Description" = $roleConfig.Description
-            }
+        # Track temp directories for cleanup
+        if ($sourcePath.StartsWith($env:TEMP)) {
+            $tempDirectories += $sourcePath
         }
-    }
-    
-    # Clean up temporary directories
-    foreach ($tempDir in $tempDirectories) {
-        if (Test-Path $tempDir) {
-            Remove-Item -Path $tempDir -Recurse -Force -ErrorAction SilentlyContinue
-            Write-Log "Cleaned up temporary directory: $tempDir"
+            
+        $deploySuccess = Update-ConfigurationFiles -SourcePath $sourcePath -TargetServer $server -TargetPath $roleConfig.TargetPath -CreateBackup $BackupConfigs
+            
+        if ($deploySuccess -and $roleConfig.RequiresRestart) {
+            $restartSuccess = Restart-DatadogAgent -TargetServer $server
+            $deploySuccess = $deploySuccess -and $restartSuccess
         }
-    }
-    
-    # Show post-deployment information
-    Show-PostDeploymentInfo
-    
-    # Summary
-    Write-Log ""
-    Write-Log "=== DEPLOYMENT SUMMARY ==="
-    Write-Log "Deployment Mode: $deploymentMode"
-    Write-Log "Total Servers: $totalServers"
-    Write-Log "Successful Deployments: $successfulDeployments"
-    Write-Log "Failed Deployments: $($totalServers - $successfulDeployments)"
-    
-    # Detailed results
-    Write-Log ""
-    Write-Log "=== DETAILED RESULTS ==="
-    foreach ($server in $deploymentResults.Keys | Sort-Object) {
-        $result = $deploymentResults[$server]
-        $status = if ($result.Success) { "SUCCESS" } else { "FAILED" }
-        Write-Log "$server [$($result.Role)] - $($result.Description): $status"
-    }
-    
-    Write-Log ""
-    Write-Log "Deployment log saved to: $LogFile"
-    
-    if ($successfulDeployments -eq $totalServers) {
-        Write-Log "All deployments completed successfully!" "SUCCESS"
-        exit 0
-    } else {
-        Write-Log "Some deployments failed. Check logs for details." "WARNING"
-        exit 1
+            
+        if ($deploySuccess) {
+            $successfulDeployments++
+            Write-Log "Successfully deployed to $server" "SUCCESS"
+        }
+        else {
+            Write-Log "Failed to deploy to $server" "ERROR"
+        }
+            
+        $deploymentResults[$server] = @{
+            "Role"        = $role
+            "Success"     = $deploySuccess
+            "Description" = $roleConfig.Description
+        }
     }
 }
-
-# Execute main function
-Main
+    
+# Clean up temporary directories
+foreach ($tempDir in $tempDirectories) {
+    if (Test-Path $tempDir) {
+        Remove-Item -Path $tempDir -Recurse -Force -ErrorAction SilentlyContinue
+        Write-Log "Cleaned up temporary directory: $tempDir"
+    }
+}
+    
+# Show post-deployment information
+Show-PostDeploymentInfo
+    
+# Summary
+Write-Log ""
+Write-Log "=== DEPLOYMENT SUMMARY ==="
+Write-Log "Deployment Mode: $deploymentMode"
+Write-Log "Total Servers: $totalServers"
+Write-Log "Successful Deployments: $successfulDeployments"
+Write-Log "Failed Deployments: $($totalServers - $successfulDeployments)"
+    
+# Detailed results
+Write-Log ""
+Write-Log "=== DETAILED RESULTS ==="
+foreach ($server in $deploymentResults.Keys | Sort-Object) {
+    $result = $deploymentResults[$server]
+    $status = if ($result.Success) { "SUCCESS" } else { "FAILED" }
+    Write-Log "$server [$($result.Role)] - $($result.Description): $status"
+}
+    
+Write-Log ""
+Write-Log "Deployment log saved to: $LogFile"
+    
+if ($successfulDeployments -eq $totalServers) {
+    Write-Log "All deployments completed successfully!" "SUCCESS"
+    exit 0
+}
+else {
+    Write-Log "Some deployments failed. Check logs for details." "WARNING"
+    exit 1
+}

@@ -2,15 +2,29 @@
 
 ## Package Overview
 
-This comprehensive monitoring package provides Datadog configurations for all SCCM server roles running in Azure environments. The package includes role-specific configurations, monitoring thresholds, and detailed installation instructions.
+This comprehensive monitoring package provides Datadog configurations for all SCCM server roles running in Azure environments. The package includes role-specific configurations, monitoring thresholds, detailed installation instructions, and **Windows Authentication alternatives** for environments with service account policy restrictions.
+
+## 🔐 Windows Authentication Alternatives
+
+**Important**: This package includes Windows Authentication alternative configurations (`.alt` files) that eliminate the need for SQL Server service accounts, using Windows Authentication (`Trusted_Connection=yes`) instead of username/password authentication.
+
+**Alternative Files Available:**
+- `sql-server/conf.d/sqlserver.d/conf.yaml.alt` - SQL Server Windows Auth config
+- `sql-reporting-server/conf.d/sqlserver.d/conf.yaml.alt` - SSRS Windows Auth config
+- `dashboards/sccm-sql-server-health.json.alt` - Alternative dashboard
+- `widgets/sccm-sql-server-widgets.xml.alt` - Alternative widgets
 
 ## Complete File Structure
 
 ```
 sccm-datadog-configs/
-├── README.md                                    # Package overview and quick start
-├── INSTALLATION_GUIDE.md                       # Detailed installation instructions
+├── README.md                                    # Package overview and quick start guide
+├── DEPLOYMENT_README.md                         # Comprehensive deployment & installation guide
 ├── PACKAGE_SUMMARY.md                          # This summary file
+│
+├── Deploy-DatadogConfigs-Combined.ps1          # Unified deployment script
+├── servers.json                                # Server role configuration template
+├── LOGS/                                       # Deployment logs directory
 │
 ├── common/                                      # Shared configuration files
 │   ├── system-probe.yaml                       # Network performance monitoring config
@@ -48,139 +62,307 @@ sccm-datadog-configs/
 │   └── conf.d/
 │       ├── windows_service.d/conf.yaml         # SQL Server services
 │       ├── win32_event_log.d/conf.yaml         # SQL Server event logs
-│       ├── wmi_check.d/conf.yaml               # SQL performance counters
+│       ├── wmi_check.d/conf.yaml               # SQL Server performance counters
 │       ├── process.d/conf.yaml                 # SQL Server processes
-│       └── sqlserver.d/conf.yaml               # SQL Server + SCCM queries
+│       └── sqlserver.d/
+│           ├── conf.yaml                       # Standard SQL Server config
+│           └── conf.yaml.alt                   # 🔐 Windows Auth alternative
 │
-└── sql-reporting-server/                        # SQL Reporting Services
-    ├── datadog.yaml                            # Main agent configuration (with DBM)
-    └── conf.d/
-        ├── windows_service.d/conf.yaml         # SSRS and related services
-        ├── win32_event_log.d/conf.yaml         # SSRS/IIS event logs
-        ├── process.d/conf.yaml                 # SSRS processes
-        ├── sqlserver.d/conf.yaml               # SSRS database monitoring
-        └── iis.d/conf.yaml                     # IIS-specific monitoring
+├── sql-reporting-server/                        # SQL Reporting Services Server
+│   ├── datadog.yaml                            # Main agent configuration
+│   └── conf.d/
+│       ├── windows_service.d/conf.yaml         # SSRS services
+│       ├── win32_event_log.d/conf.yaml         # SSRS event logs
+│       ├── wmi_check.d/conf.yaml               # System performance
+│       ├── process.d/conf.yaml                 # SSRS processes
+│       └── sqlserver.d/
+│           ├── conf.yaml                       # Standard SSRS config
+│           └── conf.yaml.alt                   # 🔐 Windows Auth alternative
+│
+├── dashboards/                                  # Datadog dashboard configurations
+│   ├── sccm-overview-dashboard.json            # Main SCCM monitoring dashboard
+│   ├── sccm-sql-server-health.json             # SQL Server health dashboard
+│   └── sccm-sql-server-health.json.alt         # 🔐 Windows Auth dashboard alternative
+│
+└── widgets/                                     # Datadog widget configurations
+    ├── sccm-performance-widgets.xml             # System performance widgets
+    ├── sccm-service-widgets.xml                 # Service monitoring widgets
+    └── sccm-sql-server-widgets.xml.alt          # 🔐 Windows Auth SQL widgets alternative
 ```
 
-## Monitoring Coverage by Server Role
+## Server Role Configurations
 
-### Site Server Monitoring
-- **Services**: SMS_EXECUTIVE, SMS_SITE_COMPONENT_MANAGER, SMS_NOTIFICATION_SERVER, IIS, WMI, BITS, WinRM
-- **Processes**: smsexec.exe, w3wp.exe, wmiprvse.exe
-- **Event Logs**: System errors, SCCM application events, Security authentication failures
-- **Performance**: CPU, Memory, Disk, Network, System queues
+### Site Server Configuration
+**Purpose**: Primary SCCM site server monitoring
+**Key Components**:
+- SCCM-specific services (SMS_EXECUTIVE, SMS_SITE_COMPONENT_MANAGER, SMS_NOTIFICATION_SERVER)
+- IIS monitoring for SCCM web services and administration console
+- Windows Event Log monitoring for SCCM and system events
+- System performance metrics (CPU, memory, disk, network)
+- Critical process monitoring for SCCM components
+- Component status monitoring
 
-### Management Point Monitoring
-- **Services**: IIS (W3SVC, IISADMIN), WMI, BITS, WinRM, SMS_MP_CONTROL_MANAGER
-- **Processes**: IIS worker processes, WMI providers, IIS admin
-- **Event Logs**: IIS operational logs, WMI activity, SCCM events, Security events
-- **Performance**: System metrics + IIS connections, requests, ASP.NET performance
+**Monitored Services**:
+- SMS_EXECUTIVE
+- SMS_SITE_COMPONENT_MANAGER  
+- SMS_NOTIFICATION_SERVER
+- W3SVC (IIS)
+- IISADMIN
 
-### Distribution Point Monitoring
-- **Services**: IIS, WMI, BITS, WinRM, WDS (if PXE), TFTP, SMS_DP_MONITOR
-- **Processes**: IIS workers, WMI providers, WDS server
-- **Event Logs**: IIS logs, WDS operational logs, SCCM events
-- **Performance**: System metrics + enhanced disk/network monitoring for content distribution
+### Management Point Configuration
+**Purpose**: SCCM Management Point server monitoring
+**Key Components**:
+- Management Point services and IIS monitoring
+- Client communication and certificate monitoring
+- IIS performance metrics and connection tracking
+- System performance monitoring
+- Security event monitoring
 
-### SQL Server Monitoring
-- **Services**: MSSQLSERVER, SQLSERVERAGENT, SQLBrowser, SQLWriter, WMI, WinRM, MSDTC
-- **Processes**: sqlservr.exe, sqlagent.exe, WMI providers
-- **Event Logs**: SQL Server engine logs, SQL Agent logs, SCCM database events
-- **Performance**: System metrics + SQL buffer manager, memory manager, general statistics
-- **Custom Queries**: SCCM client count, site status, database size monitoring
+**Monitored Services**:
+- W3SVC (IIS)
+- IISADMIN
+- SMS_EXECUTIVE (if co-located)
+- Certificate Services (if applicable)
 
-### SQL Reporting Server Monitoring
-- **Services**: ReportServer, MSSQLSERVER (if local), SQLSERVERAGENT, IIS, WMI, WinRM
-- **Processes**: ReportingServicesService.exe, IIS workers, SQL processes
-- **Event Logs**: SSRS logs, IIS logs, SQL Server logs
-- **Performance**: System + SQL metrics
-- **Custom Queries**: Report execution statistics, ReportServer database monitoring
+### Distribution Point Configuration
+**Purpose**: SCCM Distribution Point server monitoring
+**Key Components**:
+- Distribution Point services and content library monitoring
+- IIS monitoring for content distribution
+- WDS monitoring (if PXE-enabled)
+- Storage and network utilization tracking
+- Content distribution performance
+
+**Monitored Services**:
+- W3SVC (IIS)
+- IISADMIN
+- WDSServer (if PXE enabled)
+- SMS_EXECUTIVE (if co-located)
+
+### SQL Server Configuration
+
+#### Standard SQL Server Configuration
+**Purpose**: SCCM SQL Database server monitoring with service account authentication
+**Key Components**:
+- Database performance monitoring with Database Monitoring (DBM) enabled
+- SCCM-specific database queries and custom metrics
+- SQL Server service monitoring and health checks
+- Transaction log monitoring and backup status
+- Advanced performance counters and wait statistics
+
+**Authentication**: SQL Server authentication with dedicated service account
+**Configuration File**: `sql-server/conf.d/sqlserver.d/conf.yaml`
+
+**Monitored Services**:
+- MSSQLSERVER
+- SQLSERVERAGENT
+- SQL Server Browser (if applicable)
+
+#### 🔐 Windows Authentication Alternative
+**Purpose**: Essential SQL Server monitoring using Windows Authentication for policy-restricted environments
+**Key Components**:
+- Essential SQL Server performance monitoring using Windows Authentication
+- Simplified SCCM database queries with basic permissions
+- Core SQL Server service monitoring
+- Basic performance counters accessible with Windows Authentication
+- **No service account credentials required**
+
+**Authentication**: Windows Authentication (`Trusted_Connection=yes`)
+**Configuration File**: `sql-server/conf.d/sqlserver.d/conf.yaml.alt`
+**Special Tags**: `auth:windows` for identification
+
+**Key Differences from Standard**:
+- Database Monitoring (DBM) disabled to reduce permission requirements
+- Simplified custom queries using basic SQL permissions
+- Essential performance counters only
+- Uses Windows Authentication instead of SQL Server authentication
+
+### SQL Reporting Server Configuration
+
+#### Standard SSRS Configuration
+**Purpose**: SQL Server Reporting Services monitoring with service account authentication
+**Key Components**:
+- SSRS service monitoring and report execution metrics
+- Database connectivity monitoring for ReportServer databases
+- Report performance and execution tracking
+- Service health and availability monitoring
+
+**Authentication**: SQL Server authentication with dedicated service account
+**Configuration File**: `sql-reporting-server/conf.d/sqlserver.d/conf.yaml`
+
+**Monitored Services**:
+- ReportServer
+- SQL Server Reporting Services Web Service
+- SQL Server Reporting Services Windows Service
+
+#### 🔐 Windows Authentication Alternative
+**Purpose**: Essential SSRS monitoring using Windows Authentication for policy-restricted environments
+**Key Components**:
+- Essential SSRS monitoring using Windows Authentication
+- Basic database connectivity checks for ReportServer databases
+- Core service health monitoring
+- **No service account credentials required**
+
+**Authentication**: Windows Authentication (`Trusted_Connection=yes`)
+**Configuration File**: `sql-reporting-server/conf.d/sqlserver.d/conf.yaml.alt`
+**Special Tags**: `auth:windows` for identification
+
+## Deployment Methods
+
+### Automated Deployment (Recommended)
+
+#### Standard Deployment
+```powershell
+# Deploy standard configurations with SQL service accounts
+.\Deploy-DatadogConfigs-Combined.ps1
+
+# Test deployment first
+.\Deploy-DatadogConfigs-Combined.ps1 -TestMode $true
+```
+
+#### Windows Authentication Deployment
+```powershell
+# Deploy Windows Authentication alternatives (no service accounts)
+.\Deploy-DatadogConfigs-Combined.ps1 -UseWindowsAuth
+
+# Test Windows Auth deployment first
+.\Deploy-DatadogConfigs-Combined.ps1 -UseWindowsAuth -TestMode $true
+```
+
+### Manual Deployment
+Step-by-step manual installation for environments requiring individual server configuration. See DEPLOYMENT_README.md for detailed instructions.
 
 ## Key Features
 
-### System Performance Monitoring
-- **CPU Utilization**: Warning 75%, Critical 85%
-- **Memory Usage**: Warning 80%, Critical 90%
-- **Disk Space**: Warning 80%, Critical 90%
-- **Disk Performance**: Queue length and latency monitoring
-- **Network Performance**: Bandwidth utilization and packet monitoring
+### Monitoring Capabilities
+- **System Performance**: CPU, RAM, disk space, network metrics with industry-standard thresholds
+- **Service Monitoring**: Critical SCCM services with automatic restart detection
+- **SQL Server Health**: Database performance, SCCM-specific queries, transaction monitoring
+- **Event Log Monitoring**: Critical system, application, and security events
+- **Process Monitoring**: Critical SCCM and system processes
+- **IIS Monitoring**: Web service performance and availability (where applicable)
 
-### SCCM-Specific Monitoring
-- **Service Health**: All critical SCCM services with automatic restart detection
-- **Client Metrics**: Active client count and health status
-- **Site Component Status**: Real-time component health monitoring
-- **Content Distribution**: Distribution point health and content status
-- **Database Health**: SCCM database performance and growth monitoring
+### Authentication Options
+- **Standard**: SQL Server authentication with service accounts
+- **Windows Authentication**: Policy-compliant alternative using Windows Authentication
+- **Flexible Deployment**: Single script supports both authentication methods
 
-### SQL Server Health Monitoring
-- **Performance Counters**: Buffer cache hit ratio, page life expectancy, blocked processes
-- **Database Monitoring**: Size, growth, fragmentation, and performance
-- **Query Performance**: Slow query detection and analysis
-- **Connection Monitoring**: User connections and blocking sessions
+### Advanced Features
+- **Database Monitoring (DBM)**: Advanced SQL Server monitoring (standard configuration)
+- **Custom Queries**: SCCM-specific database queries for detailed insights
+- **Performance Counters**: Comprehensive Windows and SQL Server performance metrics
+- **Log Collection**: Centralized log collection and analysis
+- **Dashboard Integration**: Pre-built dashboards and widgets
 
-### Windows Event Log Monitoring
-- **System Events**: Critical and error events from System log
-- **Application Events**: SCCM, SQL Server, IIS, and SSRS events
-- **Security Events**: Authentication failures and security violations
-- **Operational Logs**: Service-specific operational event logs
+## Monitoring Thresholds
 
-### Network Performance Monitoring
-- **Connection Tracking**: Network connections and performance
-- **Service Dependencies**: Inter-service communication monitoring
-- **Bandwidth Utilization**: Network interface performance
-- **Packet Analysis**: Packet loss and network errors
+### System Performance
+- **CPU Usage**: Warning at 80%, Critical at 90%
+- **Memory Usage**: Warning at 85%, Critical at 95%
+- **Disk Space**: Warning at 80% full, Critical at 90% full
+- **Network Utilization**: Warning at 80%, Critical at 90%
 
-## Deployment Recommendations
+### SCCM Services
+- **Service Status**: Critical alert if any monitored service stops
+- **Component Status**: Warning for components in warning state, Critical for failed components
+- **Response Time**: Warning at 5 seconds, Critical at 10 seconds
 
-### Pre-Deployment
-1. Review `common/recommended-thresholds.yaml` for environment-specific adjustments
-2. Create dedicated SQL monitoring accounts with appropriate permissions
-3. Verify network connectivity to Datadog endpoints
-4. Test configurations in non-production environment
+### SQL Server (Both Standard and Windows Auth)
+- **Connection Count**: Warning at 80% of max connections, Critical at 95%
+- **Database Size**: Warning at 80% of allocated space, Critical at 90%
+- **Transaction Log**: Warning at 70% full, Critical at 85% full
+- **Buffer Cache Hit Ratio**: Warning below 90%, Critical below 85%
+- **Page Life Expectancy**: Warning below 300 seconds, Critical below 180 seconds
 
-### Deployment Order
-1. **SQL Server** - Deploy database monitoring first
-2. **Site Server** - Core SCCM infrastructure
-3. **Management Points** - Client communication infrastructure
-4. **Distribution Points** - Content distribution infrastructure
-5. **SQL Reporting Server** - Reporting infrastructure
+### IIS (Management Point and Distribution Point)
+- **Response Time**: Warning at 2 seconds, Critical at 5 seconds
+- **Request Queue Length**: Warning at 10, Critical at 25
+- **Worker Process Health**: Critical if any worker process fails
 
-### Post-Deployment
-1. Verify all integrations are reporting metrics
-2. Create Datadog dashboards for SCCM overview
-3. Configure alerting based on recommended thresholds
-4. Set up notification channels for critical alerts
+## Security Considerations
 
-## Customization Options
+### Standard Configuration
+- Dedicated service accounts with minimal required permissions
+- Encrypted credential storage recommendations
+- Regular credential rotation procedures
+- Network segmentation for database access
 
-### Threshold Adjustments
-- Modify thresholds in individual configuration files
-- Adjust check intervals for performance optimization
-- Enable/disable specific integrations based on requirements
+### Windows Authentication Alternative
+- **Benefits**: No stored credentials, uses existing Windows security infrastructure
+- **Compliance**: Suitable for environments with service account policy restrictions
+- **Security**: Leverages Windows Authentication and existing security policies
+- **Monitoring**: Special `auth:windows` tags for identification and tracking
 
-### Additional Monitoring
-- Add custom WMI classes for specific metrics
-- Include additional Windows event log channels
-- Extend SQL queries for custom SCCM metrics
-- Add application-specific monitoring for custom SCCM extensions
+## Prerequisites
 
-### Performance Tuning
-- Adjust `check_runners` in datadog.yaml for resource optimization
-- Modify collection intervals for high-frequency metrics
-- Disable unnecessary integrations for specific server roles
+### Common Requirements
+- Windows Server 2016 or later
+- PowerShell 5.1 or later
+- Datadog Agent 7.x
+- Administrator privileges on target servers
+- Network connectivity to Datadog endpoints
 
-## Support and Maintenance
+### Standard Configuration Additional Requirements
+- SQL Server 2016 or later with SQL Server authentication enabled
+- Dedicated service account with appropriate SQL Server permissions
+- ODBC Driver 18 for SQL Server
 
-### Regular Maintenance Tasks
-- **Weekly**: Review alert notifications and adjust thresholds
-- **Monthly**: Check for Datadog Agent updates and integration improvements
-- **Quarterly**: Review monitoring coverage and add new metrics as needed
-- **Annually**: Conduct comprehensive monitoring strategy review
+### Windows Authentication Additional Requirements
+- SQL Server 2016 or later with Windows Authentication enabled
+- Datadog Agent service account with SQL Server Windows Authentication access
+- Service account with "Log on as a service" right
+- ODBC Driver 18 for SQL Server
 
-### Troubleshooting Resources
-- Detailed troubleshooting section in INSTALLATION_GUIDE.md
-- Log locations and analysis procedures
-- Common issue resolution steps
-- Performance optimization guidelines
+## Support and Documentation
 
-This package provides enterprise-grade monitoring for SCCM environments with comprehensive coverage of all critical components and services.
+### Primary Documentation
+- **README.md**: Package overview and quick start guide
+- **DEPLOYMENT_README.md**: Comprehensive deployment and installation instructions
+- **PACKAGE_SUMMARY.md**: This detailed package summary
+
+### Deployment Resources
+- **Deploy-DatadogConfigs-Combined.ps1**: Unified deployment script with both authentication modes
+- **servers.json**: Server role configuration template
+- **LOGS/**: Deployment logs with mode-specific naming
+
+### Alternative Configuration Resources
+- **Windows Auth Configs**: `.alt` files for SQL Server and SSRS monitoring
+- **Alternative Dashboards**: Windows Auth specific dashboard configurations
+- **Alternative Widgets**: Windows Auth specific widget configurations
+
+## Maintenance and Updates
+
+### Regular Maintenance
+- Monitor deployment logs for errors or warnings
+- Review metrics collection to ensure data flow
+- Update configurations as SCCM environment changes
+- Test backup and restore procedures
+- Review and update monitoring thresholds
+
+### Security Maintenance
+- **Standard Config**: Regular credential rotation and permission audits
+- **Windows Auth Config**: Service account permission reviews and access audits
+- **Both**: Regular security updates and monitoring infrastructure reviews
+
+## Version Compatibility
+
+### SCCM Versions
+- SCCM Current Branch (version 1902 or later recommended)
+- SCCM Technical Preview (latest branch)
+
+### SQL Server Versions
+- SQL Server 2016 (minimum)
+- SQL Server 2017
+- SQL Server 2019
+- SQL Server 2022
+
+### Windows Server Versions
+- Windows Server 2016
+- Windows Server 2019
+- Windows Server 2022
+
+### Datadog Agent Versions
+- Datadog Agent 7.30 or later (recommended)
+- ODBC Driver 18 for SQL Server (required for SQL monitoring)
+
+This comprehensive monitoring package provides complete visibility into SCCM infrastructure while offering flexible authentication options to meet various organizational security policies and requirements.

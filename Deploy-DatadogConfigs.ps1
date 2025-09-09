@@ -359,86 +359,51 @@ function Update-ConfigurationFiles {
 
 function Restart-DatadogAgent {
     param( [string]$TargetServer )
+
     if (-not $RestartService) {
         Write-Log "Service restart disabled, skipping restart on $TargetServer" "INFO"
         return $true
     }
-    if ($TestMode) {
-        # In TestMode, actually test service status instead of just logging
-        try {
-            Write-Log "TEST MODE: Checking Datadog Agent service status on $TargetServer" "INFO"
-            $serviceStatus = Invoke-Command -ComputerName $TargetServer -ScriptBlock {
-                Get-Service -Name $using:DatadogServiceName -ErrorAction Stop
-            } -ErrorAction Stop
-            Write-Log "TEST MODE: Datadog Agent service status on $TargetServer`: $($serviceStatus.Status)" "INFO"
-            Write-Log "TEST MODE: Would stop and start Datadog Agent service (current: $($serviceStatus.Status))" "INFO"
-            # Test if service can be controlled
-            if ($serviceStatus.Status -eq 'Running') {
-                Write-Log "TEST MODE: Service is running and ready for restart" "INFO"
-            }
-            elseif ($serviceStatus.Status -eq 'Stopped') {
-                Write-Log "TEST MODE: Service is stopped and would need to be started" "INFO"
-            }
-            else { Write-Log "TEST MODE: Service is in $($serviceStatus.Status) state" "WARNING" }
-            return $true
-        }
-        catch {
-            Write-Log "TEST MODE: Failed to check Datadog Agent service on $TargetServer`: $($_.Exception.Message)" "ERROR"
-            return $false
-        }
-    }
+
+    $agentExePath = "C:\Program Files\Datadog\Datadog Agent\bin\agent.exe"
+
     try {
-        Write-Log "Restarting Datadog Agent on $TargetServer (using stop/start method)"
-        # Stop the service first
-        Write-Log "Stopping Datadog Agent on $TargetServer"
+        Write-Log "Getting Datadog service statuses on $TargetServer before restart" "INFO"
+        $servicesBefore = Get-Service -ComputerName $TargetServer | Where-Object { $_.Name -like "datadog*" }
+        foreach ($svc in $servicesBefore) {
+            Write-Log "$($svc.Name): $($svc.Status)" "INFO"
+        }
+
+        Write-Log "Restarting Datadog Agent on $TargetServer using agent.exe CLI" "INFO"
         Invoke-Command -ComputerName $TargetServer -ScriptBlock {
-            Stop-Service -Name $using:DatadogServiceName -Force -ErrorAction Stop
+            & "$using:agentExePath" restart-service
         } -ErrorAction Stop
-        # Wait and verify service is stopped
-        $stopTimeout = 30
+
+        # Wait for primary service to stop and start
+        $stopTimeout = 60
         $stopTimer = 0
         do {
             Start-Sleep -Seconds 2
             $stopTimer += 2
-            $serviceStatus = Invoke-Command -ComputerName $TargetServer -ScriptBlock {
-                (Get-Service -Name $using:DatadogServiceName).Status
-            }
+            $serviceStatus = Get-Service -ComputerName $TargetServer -Name $DatadogServiceName
             if ($stopTimer -ge $stopTimeout) {
-                Write-Log "Timeout waiting for service to stop on $TargetServer" "ERROR"
+                Write-Log "Timeout waiting for $DatadogServiceName to restart on $TargetServer" "ERROR"
                 return $false
             }
-        } while ($serviceStatus -ne 'Stopped')
-        Write-Log "Datadog Agent stopped successfully on $TargetServer (took $stopTimer seconds)"
-        # Start the service
-        Write-Log "Starting Datadog Agent on $TargetServer"
-        Invoke-Command -ComputerName $TargetServer -ScriptBlock {
-            Start-Service -Name $using:DatadogServiceName -ErrorAction Stop
-        } -ErrorAction Stop
-        # Wait and verify service is running
-        $startTimeout = 60
-        $startTimer = 0
-        do {
-            Start-Sleep -Seconds 3
-            $startTimer += 3
-            $finalStatus = Invoke-Command -ComputerName $TargetServer -ScriptBlock {
-                (Get-Service -Name $using:DatadogServiceName).Status
-            }
-            if ($startTimer -ge $startTimeout) {
-                Write-Log "Timeout waiting for service to start on $TargetServer" "ERROR"
-                return $false
-            }
-        } while ($finalStatus -ne 'Running')
-        if ($finalStatus -eq 'Running') {
-            Write-Log "Datadog Agent restarted successfully on $TargetServer (took $startTimer seconds)" "SUCCESS"
-            return $true
+        } while ($serviceStatus.Status -ne 'Running')
+
+        Write-Log "$DatadogServiceName restarted successfully on $TargetServer (took $stopTimer seconds)" "SUCCESS"
+
+        Write-Log "Getting Datadog service statuses on $TargetServer after restart" "INFO"
+        $servicesAfter = Get-Service -ComputerName $TargetServer | Where-Object { $_.Name -like "datadog*" }
+        foreach ($svc in $servicesAfter) {
+            Write-Log "$($svc.Name): $($svc.Status)" "INFO"
         }
-        else {
-            Write-Log "Datadog Agent failed to start properly on $TargetServer. Final status: $finalStatus" "ERROR"
-            return $false
-        }
+
+        return $true
     }
     catch {
-        Write-Log "Failed to restart Datadog Agent on $TargetServer`: $($_.Exception.Message)" "ERROR"
+        Write-Log "Failed to restart Datadog Agent on $($TargetServer): $($_.Exception.Message)" "ERROR"
         return $false
     }
 }

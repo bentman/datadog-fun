@@ -272,11 +272,20 @@ function Repair-YamlIndentationContent {
     #>
     param(
         [Parameter(Mandatory = $true)]
+        [AllowEmptyCollection()]
         [string[]]$Lines
     )
     
     $repairedLines = @()
     $hasChanges = $false
+    
+    # Handle empty input
+    if ($null -eq $Lines -or $Lines.Count -eq 0) {
+        return @{
+            Lines = @()
+            HasChanges = $false
+        }
+    }
     
     foreach ($line in $Lines) {
         $originalLine = $line
@@ -333,6 +342,17 @@ function Repair-YamlFile {
         
         # Read original content
         $originalContent = Get-Content -Path $FilePath -Encoding UTF8
+        
+        # Handle empty files
+        if ($null -eq $originalContent) {
+            Write-LogMessage "File is empty, skipping: $FilePath" -Level Info
+            return
+        }
+        
+        # Ensure we have an array of strings
+        if ($originalContent -is [string]) {
+            $originalContent = @($originalContent)
+        }
         
         # Validate original syntax if requested
         if ($Validate) {
@@ -421,17 +441,18 @@ function Start-YamlRepair {
     }
     
     # Find YAML files
-    $findParams = @{
-        Path = $Path
-        Include = $YamlExtensions
-        File = $true
-    }
+    $yamlFiles = @()
     
     if ($Recurse) {
-        $findParams.Recurse = $true
+        # When recursing, we can use Include parameter
+        $yamlFiles = Get-ChildItem -Path $Path -Include $YamlExtensions -File -Recurse
+    } else {
+        # When not recursing, we need to search for each extension separately
+        foreach ($extension in $YamlExtensions) {
+            $pattern = Join-Path $Path $extension
+            $yamlFiles += Get-ChildItem -Path $pattern -File -ErrorAction SilentlyContinue
+        }
     }
-    
-    $yamlFiles = Get-ChildItem @findParams
     
     if ($yamlFiles.Count -eq 0) {
         Write-LogMessage "No YAML files found in: $Path" -Level Warning

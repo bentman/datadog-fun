@@ -365,6 +365,57 @@ function Restart-DatadogAgent {
         return $true
     }
 
+    if ($TestMode) {
+        # In TestMode, check service status and validate agent.exe exists without making changes
+        try {
+            Write-Log "TEST MODE: Checking Datadog Agent service status on $TargetServer" "INFO"
+            $servicesBefore = Get-Service -ComputerName $TargetServer | Where-Object { $_.Name -like "datadog*" }
+            foreach ($svc in $servicesBefore) {
+                Write-Log "TEST MODE: $($svc.Name): $($svc.Status)" "INFO"
+            }
+            
+            # Test if agent.exe exists on target server
+            $agentExePath = "C:\Program Files\Datadog\Datadog Agent\bin\agent.exe"
+            $agentExists = Invoke-Command -ComputerName $TargetServer -ScriptBlock {
+                Test-Path "$using:agentExePath"
+            } -ErrorAction Stop
+            
+            if ($agentExists) {
+                Write-Log "TEST MODE: Datadog agent.exe found at expected path on $TargetServer" "INFO"
+                Write-Log "TEST MODE: Would restart Datadog Agent using agent.exe CLI" "INFO"
+            }
+            else {
+                Write-Log "TEST MODE: Datadog agent.exe not found at expected path on $TargetServer" "WARNING"
+                Write-Log "TEST MODE: Would fall back to PowerShell service restart method" "INFO"
+            }
+            
+            # Test if primary service can be controlled
+            $primaryService = $servicesBefore | Where-Object { $_.Name -eq $DatadogServiceName }
+            if ($primaryService) {
+                Write-Log "TEST MODE: Primary service $DatadogServiceName status: $($primaryService.Status)" "INFO"
+                if ($primaryService.Status -eq 'Running') {
+                    Write-Log "TEST MODE: Service is running and ready for restart" "INFO"
+                }
+                elseif ($primaryService.Status -eq 'Stopped') {
+                    Write-Log "TEST MODE: Service is stopped and would need to be started" "INFO"
+                }
+                else {
+                    Write-Log "TEST MODE: Service is in $($primaryService.Status) state" "WARNING"
+                }
+            }
+            else {
+                Write-Log "TEST MODE: Primary service $DatadogServiceName not found" "ERROR"
+                return $false
+            }
+            
+            return $true
+        }
+        catch {
+            Write-Log "TEST MODE: Failed to check Datadog Agent service on $TargetServer: $($_.Exception.Message)" "ERROR"
+            return $false
+        }
+    }
+
     $agentExePath = "C:\Program Files\Datadog\Datadog Agent\bin\agent.exe"
 
     try {

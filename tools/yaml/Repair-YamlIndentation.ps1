@@ -273,17 +273,26 @@ function Repair-YamlIndentationContent {
     param(
         [Parameter(Mandatory = $true)]
         [AllowEmptyCollection()]
-        [string[]]$Lines
+        $Lines
     )
     
     $repairedLines = @()
     $hasChanges = $false
+    
+
     
     # Handle empty input
     if ($null -eq $Lines -or $Lines.Count -eq 0) {
         return @{
             Lines = @()
             HasChanges = $false
+        }
+    }
+    
+    # Check for problematic elements
+    for ($i = 0; $i -lt $Lines.Count; $i++) {
+        if ($null -eq $Lines[$i]) {
+            $Lines[$i] = ""
         }
     }
     
@@ -343,9 +352,17 @@ function Repair-YamlFile {
         # Read original content
         $originalContent = Get-Content -Path $FilePath -Encoding UTF8
         
-        # Handle empty files
-        if ($null -eq $originalContent) {
-            Write-LogMessage "File is empty, skipping: $FilePath" -Level Info
+
+        
+        # Handle empty files or null content
+        if ($null -eq $originalContent -or $originalContent.Count -eq 0) {
+            Write-LogMessage "File is empty or null, skipping: $FilePath" -Level Info
+            return
+        }
+        
+        # Handle empty string content
+        if ($originalContent -is [string] -and [string]::IsNullOrWhiteSpace($originalContent)) {
+            Write-LogMessage "File contains only whitespace, skipping: $FilePath" -Level Info
             return
         }
         
@@ -353,6 +370,25 @@ function Repair-YamlFile {
         if ($originalContent -is [string]) {
             $originalContent = @($originalContent)
         }
+        
+        # Final validation before passing to function
+        if ($originalContent.Count -eq 0) {
+            Write-LogMessage "Content array is empty after processing, skipping: $FilePath" -Level Info
+            return
+        }
+        
+        # Convert any null elements to empty strings and ensure all elements are strings
+        $cleanedContent = @()
+        foreach ($line in $originalContent) {
+            if ($null -eq $line) {
+                $cleanedContent += ""
+            } else {
+                $cleanedContent += [string]$line
+            }
+        }
+        $originalContent = $cleanedContent
+        
+
         
         # Validate original syntax if requested
         if ($Validate) {

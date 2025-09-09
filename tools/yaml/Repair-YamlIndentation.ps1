@@ -305,9 +305,15 @@ function Repair-YamlIndentationContent {
             $hasChanges = $true
         }
         
-        # Skip empty lines and comments - preserve as-is
-        if ([string]::IsNullOrWhiteSpace($line.Trim()) -or $line.Trim().StartsWith('#')) {
-            $repairedLines += $originalLine
+        # Skip empty lines - preserve as-is
+        if ([string]::IsNullOrWhiteSpace($line.Trim())) {
+            $repairedLines += $line
+            continue
+        }
+        
+        # Handle comments - convert tabs but preserve content and relative indentation
+        if ($line.Trim().StartsWith('#')) {
+            $repairedLines += $line
             continue
         }
         

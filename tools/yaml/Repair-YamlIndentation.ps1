@@ -272,11 +272,29 @@ function Repair-YamlIndentationContent {
     #>
     param(
         [Parameter(Mandatory = $true)]
-        [string[]]$Lines
+        [AllowEmptyCollection()]
+        $Lines
     )
     
     $repairedLines = @()
     $hasChanges = $false
+    
+
+    
+    # Handle empty input
+    if ($null -eq $Lines -or $Lines.Count -eq 0) {
+        return @{
+            Lines = @()
+            HasChanges = $false
+        }
+    }
+    
+    # Check for problematic elements
+    for ($i = 0; $i -lt $Lines.Count; $i++) {
+        if ($null -eq $Lines[$i]) {
+            $Lines[$i] = ""
+        }
+    }
     
     foreach ($line in $Lines) {
         $originalLine = $line
@@ -287,9 +305,15 @@ function Repair-YamlIndentationContent {
             $hasChanges = $true
         }
         
-        # Skip empty lines and comments - preserve as-is
-        if ([string]::IsNullOrWhiteSpace($line.Trim()) -or $line.Trim().StartsWith('#')) {
-            $repairedLines += $originalLine
+        # Skip empty lines - preserve as-is
+        if ([string]::IsNullOrWhiteSpace($line.Trim())) {
+            $repairedLines += $line
+            continue
+        }
+        
+        # Handle comments - convert tabs but preserve content and relative indentation
+        if ($line.Trim().StartsWith('#')) {
+            $repairedLines += $line
             continue
         }
         
@@ -333,6 +357,44 @@ function Repair-YamlFile {
         
         # Read original content
         $originalContent = Get-Content -Path $FilePath -Encoding UTF8
+        
+
+        
+        # Handle empty files or null content
+        if ($null -eq $originalContent -or $originalContent.Count -eq 0) {
+            Write-LogMessage "File is empty or null, skipping: $FilePath" -Level Info
+            return
+        }
+        
+        # Handle empty string content
+        if ($originalContent -is [string] -and [string]::IsNullOrWhiteSpace($originalContent)) {
+            Write-LogMessage "File contains only whitespace, skipping: $FilePath" -Level Info
+            return
+        }
+        
+        # Ensure we have an array of strings
+        if ($originalContent -is [string]) {
+            $originalContent = @($originalContent)
+        }
+        
+        # Final validation before passing to function
+        if ($originalContent.Count -eq 0) {
+            Write-LogMessage "Content array is empty after processing, skipping: $FilePath" -Level Info
+            return
+        }
+        
+        # Convert any null elements to empty strings and ensure all elements are strings
+        $cleanedContent = @()
+        foreach ($line in $originalContent) {
+            if ($null -eq $line) {
+                $cleanedContent += ""
+            } else {
+                $cleanedContent += [string]$line
+            }
+        }
+        $originalContent = $cleanedContent
+        
+
         
         # Validate original syntax if requested
         if ($Validate) {
@@ -421,17 +483,18 @@ function Start-YamlRepair {
     }
     
     # Find YAML files
-    $findParams = @{
-        Path = $Path
-        Include = $YamlExtensions
-        File = $true
-    }
+    $yamlFiles = @()
     
     if ($Recurse) {
-        $findParams.Recurse = $true
+        # When recursing, we can use Include parameter
+        $yamlFiles = Get-ChildItem -Path $Path -Include $YamlExtensions -File -Recurse
+    } else {
+        # When not recursing, we need to search for each extension separately
+        foreach ($extension in $YamlExtensions) {
+            $pattern = Join-Path $Path $extension
+            $yamlFiles += Get-ChildItem -Path $pattern -File -ErrorAction SilentlyContinue
+        }
     }
-    
-    $yamlFiles = Get-ChildItem @findParams
     
     if ($yamlFiles.Count -eq 0) {
         Write-LogMessage "No YAML files found in: $Path" -Level Warning

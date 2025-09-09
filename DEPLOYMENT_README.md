@@ -61,7 +61,7 @@ This guide provides comprehensive instructions for deploying and installing Data
 
 ### Method 1: Automated Deployment (Recommended)
 
-Use the unified `Deploy-DatadogConfigs-Combined.ps1` script for streamlined deployment across all servers.
+Use the unified `Deploy-DatadogConfigs.ps1` script for streamlined deployment across all servers.
 
 ### Method 2: Manual Installation
 
@@ -82,38 +82,38 @@ Step-by-step manual installation for environments requiring individual server co
    #### Standard Deployment (with SQL Server service accounts)
    ```powershell
    # Test deployment first (recommended)
-   .\Deploy-DatadogConfigs-Combined.ps1 -TestMode $true
+   .\Deploy-DatadogConfigs.ps1 -TestMode $true
 
    # Deploy configurations
-   .\Deploy-DatadogConfigs-Combined.ps1
+   .\Deploy-DatadogConfigs.ps1
    ```
 
    #### Windows Authentication Deployment (no service accounts required)
    ```powershell
    # Test Windows Auth deployment first
-   .\Deploy-DatadogConfigs-Combined.ps1 -UseWindowsAuth -TestMode $true
+   .\Deploy-DatadogConfigs.ps1 -UseWindowsAuth -TestMode $true
 
    # Deploy Windows Auth configurations
-   .\Deploy-DatadogConfigs-Combined.ps1 -UseWindowsAuth
+   .\Deploy-DatadogConfigs.ps1 -UseWindowsAuth
    ```
 
 ### Advanced Deployment Options
 
 ```powershell
 # Deploy with custom server configuration file
-.\Deploy-DatadogConfigs-Combined.ps1 -ServerConfig "production-servers.json"
+.\Deploy-DatadogConfigs.ps1 -ServerConfig "production-servers.json"
 
 # Deploy without creating backups
-.\Deploy-DatadogConfigs-Combined.ps1 -BackupConfigs $false
+.\Deploy-DatadogConfigs.ps1 -BackupConfigs $false
 
 # Deploy without restarting Datadog Agent service
-.\Deploy-DatadogConfigs-Combined.ps1 -RestartService $false
+.\Deploy-DatadogConfigs.ps1 -RestartService $false
 
 # Deploy from custom configuration path
-.\Deploy-DatadogConfigs-Combined.ps1 -ConfigPath "C:\Custom\Configs"
+.\Deploy-DatadogConfigs.ps1 -ConfigPath "C:\Custom\Configs"
 
 # Windows Auth deployment with custom options
-.\Deploy-DatadogConfigs-Combined.ps1 -UseWindowsAuth -BackupConfigs $false -TestMode $true
+.\Deploy-DatadogConfigs.ps1 -UseWindowsAuth -BackupConfigs $false -TestMode $true
 ```
 
 ### Server Configuration File (servers.json)

@@ -1,156 +1,116 @@
 <#
 .SYNOPSIS
-    Deploys SCCM Datadog monitoring configurations to target servers with support for both standard and Windows Authentication alternatives.
+    Deploys Datadog monitoring configurations to SCCM servers with support for Windows Authentication alternatives.
 
 .DESCRIPTION
-    This script distributes role-specific Datadog Agent configurations to SCCM servers with unified functionality
-    for both standard and Windows Authentication deployments. It handles file deployment, service restarts,
-    backup creation, and comprehensive logging.
-    
-    The script copies configuration files from the local repository structure to the
-    appropriate Datadog Agent directories on target servers, backing up existing
-    configurations before deployment.
+    This script automates the deployment of Datadog monitoring configurations to SCCM infrastructure servers.
+    It supports both standard SQL Server authentication and Windows Authentication alternatives for environments
+    with service account policy restrictions.
 
 .PARAMETER ConfigPath
-    Path to the local configuration repository. If not specified, defaults to script directory.
+    Path to the configuration files directory. Defaults to script root directory.
 
 .PARAMETER ServerConfig
-    Path to JSON file containing server role mappings. If not specified, defaults to 'servers.json' in script directory.
+    Path to the servers.json configuration file. Defaults to servers.json in script root.
 
 .PARAMETER UseWindowsAuth
-    Deploy Windows Authentication alternative configurations (.alt files) instead of standard configs. Default: $false
+    Use Windows Authentication alternatives for SQL Server connections instead of service accounts.
 
 .PARAMETER BackupConfigs
-    Creates backup of existing configurations before deployment. Default: $true
+    Create backup of existing configurations before deployment. Default is $true.
 
 .PARAMETER RestartService
-    Restart Datadog Agent service after deployment. Default: $true
+    Restart Datadog Agent service after configuration deployment. Default is $true.
 
 .PARAMETER TestMode
-    Performs comprehensive validation including remote path testing, file enumeration, and service status checks without actual deployment or service restart. Default: $false
+    Run in test mode - validate configurations and connectivity without making changes. Default is $false.
 
 .EXAMPLE
-    .\Deploy-DatadogConfigs-Combined.ps1
-    Deploys standard configurations using default settings and servers.json file.
+    .\Deploy-DatadogConfigs.ps1
+    Standard deployment with service accounts, creates backups, and restarts services.
 
 .EXAMPLE
-    .\Deploy-DatadogConfigs-Combined.ps1 -UseWindowsAuth
-    Deploys Windows Authentication alternative configurations.
+    .\Deploy-DatadogConfigs.ps1 -UseWindowsAuth -TestMode $true
+    Test Windows Authentication deployment without making changes.
 
 .EXAMPLE
-    .\Deploy-DatadogConfigs-Combined.ps1 -ConfigPath "C:\SCCM-Configs" -TestMode
-    Validates deployment by testing remote paths, enumerating files, and checking service status without making changes.
+    .\Deploy-DatadogConfigs.ps1 -BackupConfigs $false -RestartService $false
+    Deploy without creating backups or restarting services.
 
 .EXAMPLE
-    .\Deploy-DatadogConfigs-Combined.ps1 -UseWindowsAuth -ServerConfig "production-servers.json" -BackupConfigs $false
-    Deploys Windows Auth configs using custom server list without creating backups.
+    .\Deploy-DatadogConfigs.ps1 -UseWindowsAuth
+    Deploy using Windows Authentication alternatives for SQL Server connections.
 
 .NOTES
-    Author: SCCM Datadog Deployment Script (Combined)
-    Version: 2.2
-    Requires: PowerShell 5.1+, Administrative privileges on target servers
-    
-    Service Restart: Uses Stop-Service/Start-Service with status verification instead of Restart-Service
-    TestMode: Performs actual validation tests instead of just logging intended actions
-    
-    Server JSON Format:
-    {
-        "site-server": ["server1.domain.com", "server2.domain.com"],
-        "management-point": ["mp1.domain.com", "mp2.domain.com"],
-        "distribution-point": ["dp1.domain.com", "dp2.domain.com"],
-        "sql-server": ["sql1.domain.com"],
-        "sql-reporting-server": ["ssrs1.domain.com"]
-    }
-    
-    Windows Authentication Requirements:
-    - SQL Server must have Windows Authentication enabled
-    - Datadog Agent service account must have SQL Server access
+    - Script must be run as Administrator
     - Agent service account must have log file read permissions
+    - For Windows Authentication, Datadog Agent service account needs SQL Server access
 #>
 
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory = $false)]
-    [string]$ConfigPath,
+    [Parameter(Mandatory = $false)] [string]$ConfigPath,
     
-    [Parameter(Mandatory = $false)]
-    [string]$ServerConfig,
+    [Parameter(Mandatory = $false)] [string]$ServerConfig,
     
-    [Parameter(Mandatory = $false)]
-    [switch]$UseWindowsAuth = $false,
+    [Parameter(Mandatory = $false)] [switch]$UseWindowsAuth = $false,
     
-    [Parameter(Mandatory = $false)]
-    [bool]$BackupConfigs = $true,
+    [Parameter(Mandatory = $false)] [bool]$BackupConfigs = $true,
     
-    [Parameter(Mandatory = $false)]
-    [bool]$RestartService = $true,
+    [Parameter(Mandatory = $false)] [bool]$RestartService = $true,
     
-    [Parameter(Mandatory = $false)]
-    [bool]$TestMode = $false
+    [Parameter(Mandatory = $false)] [bool]$TestMode = $false
 )
 
 # Set default paths if not provided
 if (-not $ConfigPath) { $ConfigPath = $PSScriptRoot }
-
 if (-not $ServerConfig) { $ServerConfig = Join-Path $PSScriptRoot "servers.json" }
 
-# Set other switches as desired
-if (-not $UseWindowsAuth) { $UseWindowsAuth = $true }
-
-if (-not $BackupConfigs) { $UseWindowsAuth = $false }
-
-if (-not $RestartService) { $RestartService = $false }
-
-if (-not $TestMode) { $TestMode = $true }
-
-# Ensure LOGS directory exists
-$LogsDir = Join-Path $PSScriptRoot "LOGS"
-if (-not (Test-Path $LogsDir)) {
-    New-Item -Path $LogsDir -ItemType Directory -Force | Out-Null
-}
+# Ensure _LOGS directory exists
+$LogsDir = Join-Path $PSScriptRoot "_LOGS"
+if (-not (Test-Path $LogsDir)) { New-Item -Path $LogsDir -ItemType Directory -Force | Out-Null }
 
 # Set log file based on deployment mode
-if ($UseWindowsAuth) {
-    $LogFile = Join-Path $LogsDir "Datadog_DeployConfigsAltAuth-$(Get-Date -Format 'yyyyMMdd-HHmmss').log"
-}
-else {
-    $LogFile = Join-Path $LogsDir "Datadog_DeployConfigs-$(Get-Date -Format 'yyyyMMdd-HHmmss').log"
-}
+if ($UseWindowsAuth) { $LogFile = Join-Path $LogsDir "Datadog_DeployConfigsAltAuth-$(Get-Date -Format 'yyyyMMdd-HHmmss').log" }
+else { $LogFile = Join-Path $LogsDir "Datadog_DeployConfigs-$(Get-Date -Format 'yyyyMMdd-HHmmss').log" }
+
+# Default Datadog Windows service name (default service name used by the agent)
+$DatadogServiceName = "DatadogAgent"
 
 # Configuration mappings
 $RoleConfigurations = @{
     "site-server"          = @{
+        "Description"       = "SCCM Primary Site Server"
         "ConfigDir"         = "site-server"
         "TargetPath"        = "C:\ProgramData\Datadog"
-        "Description"       = "SCCM Primary Site Server"
         "RequiresRestart"   = $true
         "HasWindowsAuthAlt" = $false
     }
     "management-point"     = @{
+        "Description"       = "SCCM Management Point Server"
         "ConfigDir"         = "management-point"
         "TargetPath"        = "C:\ProgramData\Datadog"
-        "Description"       = "SCCM Management Point"
         "RequiresRestart"   = $true
         "HasWindowsAuthAlt" = $false
     }
     "distribution-point"   = @{
+        "Description"       = "SCCM Distribution Point Server"
         "ConfigDir"         = "distribution-point"
         "TargetPath"        = "C:\ProgramData\Datadog"
-        "Description"       = "SCCM Distribution Point"
         "RequiresRestart"   = $true
         "HasWindowsAuthAlt" = $false
     }
     "sql-server"           = @{
+        "Description"       = "SCCM SQL Database Server"
         "ConfigDir"         = "sql-server"
         "TargetPath"        = "C:\ProgramData\Datadog"
-        "Description"       = "SCCM SQL Database Server"
         "RequiresRestart"   = $true
         "HasWindowsAuthAlt" = $true
     }
     "sql-reporting-server" = @{
+        "Description"       = "SQL Reporting Services Server"
         "ConfigDir"         = "sql-reporting-server"
         "TargetPath"        = "C:\ProgramData\Datadog"
-        "Description"       = "SQL Reporting Services Server"
         "RequiresRestart"   = $true
         "HasWindowsAuthAlt" = $true
     }
@@ -163,15 +123,20 @@ function Write-Log {
     )
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     $logMessage = "[$timestamp] [$Level] $Message"
-    Write-Host $logMessage
-    
+    # Color coding for console output
+    switch ($Level) {
+        "ERROR" { Write-Host $logMessage -ForegroundColor Red }
+        "WARNING" { Write-Host $logMessage -ForegroundColor Yellow }
+        "SUCCESS" { Write-Host $logMessage -ForegroundColor Green }
+        "INFO" { Write-Host $logMessage -ForegroundColor White }
+        default { Write-Host $logMessage }
+    }
     # Write to log file
     Add-Content -Path $LogFile -Value $logMessage
 }
 
 function Test-Prerequisites {
     Write-Log "Checking prerequisites..."
-    
     # Check if running as administrator
     $currentUser = [Security.Principal.WindowsIdentity]::GetCurrent()
     $principal = New-Object Security.Principal.WindowsPrincipal($currentUser)
@@ -179,27 +144,51 @@ function Test-Prerequisites {
         Write-Log "Script must be run as Administrator" "ERROR"
         return $false
     }
-    
     # Check if configuration path exists
     if (-not (Test-Path $ConfigPath)) {
         Write-Log "Configuration path not found: $ConfigPath" "ERROR"
         return $false
     }
-    
     # Check if server configuration file exists
     if (-not (Test-Path $ServerConfig)) {
         Write-Log "Server configuration file not found: $ServerConfig" "ERROR"
         return $false
     }
-    
+    # Validate PowerShell version
+    if ($PSVersionTable.PSVersion.Major -lt 5) {
+        Write-Log "PowerShell 5.1 or later is required. Current version: $($PSVersionTable.PSVersion)" "ERROR"
+        return $false
+    }
+    # Test WinRM connectivity if not in TestMode
+    if (-not $TestMode) {
+        try {
+            $null = Get-WSManInstance -ResourceURI winrm/config/listener -SelectorSet @{Address = "*"; Transport = "HTTP" } -ErrorAction Stop
+            Write-Log "WinRM connectivity verified"
+        }
+        catch { Write-Log "WinRM may not be properly configured for remote deployment: $($_.Exception.Message)" "WARNING" }
+    }
     Write-Log "Prerequisites check passed"
     return $true
 }
 
 function Get-ServerConfiguration {
     try {
-        $servers = Get-Content $ServerConfig | ConvertFrom-Json
+        $servers = Get-Content -Raw -Path $ServerConfig | ConvertFrom-Json
         Write-Log "Loaded server configuration from $ServerConfig"
+        # Validate server configuration structure
+        $totalServers = 0
+        foreach ($role in $servers.PSObject.Properties.Name) {
+            $serverList = $servers.$role
+            if ($serverList -and $serverList.Count -gt 0) {
+                $totalServers += $serverList.Count
+                Write-Log "Found $($serverList.Count) servers for role: $role"
+            }
+        }
+        if ($totalServers -eq 0) {
+            Write-Log "No servers found in configuration file" "ERROR"
+            return $null
+        }
+        Write-Log "Total servers to process: $totalServers"
         return $servers
     }
     catch {
@@ -213,53 +202,59 @@ function Get-ConfigurationSource {
         [string]$Role,
         [string]$ConfigDir
     )
-    
     $sourcePath = Join-Path $ConfigPath $ConfigDir
-    
-    if ($UseWindowsAuth -and $RoleConfigurations[$Role].HasWindowsAuthAlt) {
+    # Validate source path exists
+    if (-not (Test-Path $sourcePath)) {
+        Write-Log "Configuration source path not found: $sourcePath" "ERROR"
+        return $null
+    }
+    if ($UseWindowsAuth -and $RoleConfigurations[$Role]['HasWindowsAuthAlt']) {
         Write-Log "Using Windows Authentication alternative configuration for $Role"
-        
         # For SQL roles, we need to handle the alternative files
         if ($Role -eq "sql-server" -or $Role -eq "sql-reporting-server") {
             $altConfigPath = Join-Path $sourcePath "conf.d\sqlserver.d\conf.yaml.alt"
-            
             if ($TestMode) {
                 # In TestMode, validate the alternative config exists and return source path
                 if (Test-Path $altConfigPath) {
                     Write-Log "TEST MODE: Windows Auth alternative config found: $altConfigPath" "INFO"
                     Write-Log "TEST MODE: Would create temporary directory and replace conf.yaml with .alt version" "INFO"
+                    # Validate alternative config syntax
+                    try {
+                        $altContent = Get-Content $altConfigPath -Raw
+                        if ($altContent -match "Trusted_Connection\s*:\s*yes") {
+                            Write-Log "TEST MODE: Alternative config contains Windows Authentication settings" "INFO"
+                        }
+                        else { Write-Log "TEST MODE: Alternative config may not contain proper Windows Authentication settings" "WARNING" }
+                    }
+                    catch { Write-Log "TEST MODE: Could not validate alternative config syntax: $($_.Exception.Message)" "WARNING" }
                 }
                 else {
-                    Write-Log "TEST MODE: Windows Auth alternative not found: $altConfigPath" "WARNING"
+                    Write-Log "TEST MODE: Windows Auth alternative not found: $altConfigPath" "ERROR"
+                    return $null
                 }
                 return $sourcePath
             }
-            
             # Create a temporary directory with the alternative configuration
             $tempPath = Join-Path $env:TEMP "datadog-winauth-$Role-$(Get-Date -Format 'yyyyMMddHHmmss')"
             New-Item -Path $tempPath -ItemType Directory -Force | Out-Null
-            
             # Copy all files from source
             Copy-Item -Path "$sourcePath\*" -Destination $tempPath -Recurse -Verbose -Force
-            
             # Replace the main SQL Server config with the alternative
             $targetConfigPath = Join-Path $tempPath "conf.d\sqlserver.d\conf.yaml"
-            
             if (Test-Path $altConfigPath) {
                 Copy-Item -Path $altConfigPath -Destination $targetConfigPath -Verbose -Force
                 Write-Log "Replaced SQL Server config with Windows Auth alternative"
             }
-            else {
-                Write-Log "Windows Auth alternative not found: $altConfigPath" "WARNING"
+            else { 
+                Write-Log "Windows Auth alternative not found: $altConfigPath" "ERROR"
+                return $null
             }
-            
             return $tempPath
         }
     }
-    elseif ($UseWindowsAuth -and -not $RoleConfigurations[$Role].HasWindowsAuthAlt) {
+    elseif ($UseWindowsAuth -and -not $RoleConfigurations[$Role]['HasWindowsAuthAlt']) {
         Write-Log "Windows Authentication requested but no alternative available for role: $Role" "WARNING"
     }
-    
     return $sourcePath
 }
 
@@ -270,45 +265,53 @@ function Update-ConfigurationFiles {
         [string]$TargetPath,
         [bool]$CreateBackup = $true
     )
-    
     Write-Log "Deploying configuration from $SourcePath to $TargetServer"
     $remotePath = "\\$TargetServer\$($TargetPath.Replace(':', '$'))"
-    
     # Test connectivity (always test, even in TestMode)
     if (-not (Test-Path $remotePath)) {
         Write-Log "Cannot access remote path: $remotePath" "ERROR"
+        # Enhanced connectivity troubleshooting
+        try {
+            $pingResult = Test-Connection -ComputerName $TargetServer -Count 1 -Quiet
+            if (-not $pingResult) {
+                Write-Log "Server $TargetServer is not reachable via ping" "ERROR"
+            }
+            else { Write-Log "Server $TargetServer is reachable but administrative share may not be accessible" "ERROR" }
+        }
+        catch {
+            Write-Log "Network connectivity test failed for $TargetServer`: $($_.Exception.Message)" "ERROR"
+        }
         return $false
     }
-    
     if ($TestMode) {
         Write-Log "TEST MODE: Successfully validated remote path access: $remotePath" "INFO"
-        
         # Test what files would be copied
         try {
             $sourceFiles = Get-ChildItem -Path $SourcePath -Recurse -File
             Write-Log "TEST MODE: Would copy $($sourceFiles.Count) files from $SourcePath" "INFO"
-            
             # Show sample of files that would be copied
             $sampleFiles = $sourceFiles | Select-Object -First 5
             foreach ($file in $sampleFiles) {
                 $relativePath = $file.FullName.Replace($SourcePath, "")
                 Write-Log "TEST MODE: Would copy: $relativePath" "INFO"
             }
-            
             if ($sourceFiles.Count -gt 5) {
                 Write-Log "TEST MODE: ... and $($sourceFiles.Count - 5) more files" "INFO"
             }
-            
             # Test backup directory creation if requested
             if ($CreateBackup) {
                 $backupPath = Join-Path $remotePath "backup-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
                 Write-Log "TEST MODE: Would create backup at: $backupPath" "INFO"
-                
                 # Check existing configs that would be backed up
-                $existingConfigs = Get-ChildItem -Path $remotePath -Include "*.yaml", "conf.d" -Recurse -ErrorAction SilentlyContinue
+                $existingConfigs = Get-ChildItem -Path $remotePath -Recurse -File -ErrorAction SilentlyContinue | 
+                Where-Object { $_.Extension -eq ".yaml" -or $_.Directory.Name -eq "conf.d" }
                 Write-Log "TEST MODE: Would backup $($existingConfigs.Count) existing configuration files" "INFO"
             }
-            
+            # Validate configuration files syntax
+            $yamlFiles = $sourceFiles | Where-Object { $_.Extension -eq ".yaml" }
+            foreach ($yamlFile in $yamlFiles) {
+                Write-Log "TEST MODE: Would deploy YAML config: $($yamlFile.Name)" "INFO"
+            }
             return $true
         }
         catch {
@@ -316,40 +319,36 @@ function Update-ConfigurationFiles {
             return $false
         }
     }
-    
     try {
-        
         # Create backup if requested
         if ($CreateBackup) {
             $backupPath = Join-Path $remotePath "backup-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
             if (-not (Test-Path $backupPath)) {
                 New-Item -Path $backupPath -ItemType Directory -Force | Out-Null
+                Write-Log "Created backup directory: $backupPath"
             }
-            
             # Backup existing configurations
-            $existingConfigs = Get-ChildItem -Path $remotePath -Include "*.yaml", "conf.d" -Recurse -ErrorAction SilentlyContinue
+            $existingConfigs = Get-ChildItem -Path $remotePath -Recurse -File -ErrorAction SilentlyContinue |
+            Where-Object { $_.Extension -eq ".yaml" -or $_.Directory.Name -eq "conf.d" }
+            $backupCount = 0
             foreach ($config in $existingConfigs) {
                 try {
                     $relativePath = $config.FullName.Replace($remotePath, "").TrimStart('\')
                     $backupTarget = Join-Path $backupPath $relativePath
                     $backupTargetDir = Split-Path $backupTarget -Parent
-                    
                     if (-not (Test-Path $backupTargetDir)) {
                         New-Item -Path $backupTargetDir -ItemType Directory -Force | Out-Null
                     }
-                    
                     Copy-Item -Path $config.FullName -Destination $backupTarget -Verbose -Force
+                    $backupCount++
                 }
-                catch {
-                    Write-Log "Warning: Could not backup $($config.FullName): $($_.Exception.Message)" "WARNING"
-                }
+                catch { Write-Log "Warning: Could not backup $($config.FullName): $($_.Exception.Message)" "WARNING" }
             }
-            Write-Log "Created backup at $backupPath"
+            Write-Log "Created backup of $backupCount files at $backupPath"
         }
-        
         # Copy new configurations
         Copy-Item -Path "$SourcePath\*" -Destination $remotePath -Recurse -Verbose -Force
-        Write-Log "Successfully deployed configuration to $TargetServer"
+        Write-Log "Successfully deployed configuration to $TargetServer" "SUCCESS"
         return $true
     }
     catch {
@@ -359,25 +358,28 @@ function Update-ConfigurationFiles {
 }
 
 function Restart-DatadogAgent {
-    param(
-        [string]$TargetServer
-    )
-    
+    param( [string]$TargetServer )
     if (-not $RestartService) {
         Write-Log "Service restart disabled, skipping restart on $TargetServer" "INFO"
         return $true
     }
-    
     if ($TestMode) {
         # In TestMode, actually test service status instead of just logging
         try {
             Write-Log "TEST MODE: Checking Datadog Agent service status on $TargetServer" "INFO"
             $serviceStatus = Invoke-Command -ComputerName $TargetServer -ScriptBlock {
-                Get-Service -Name "DatadogAgent" -ErrorAction Stop
+                Get-Service -Name $using:DatadogServiceName -ErrorAction Stop
             } -ErrorAction Stop
-            
             Write-Log "TEST MODE: Datadog Agent service status on $TargetServer`: $($serviceStatus.Status)" "INFO"
             Write-Log "TEST MODE: Would stop and start Datadog Agent service (current: $($serviceStatus.Status))" "INFO"
+            # Test if service can be controlled
+            if ($serviceStatus.Status -eq 'Running') {
+                Write-Log "TEST MODE: Service is running and ready for restart" "INFO"
+            }
+            elseif ($serviceStatus.Status -eq 'Stopped') {
+                Write-Log "TEST MODE: Service is stopped and would need to be started" "INFO"
+            }
+            else { Write-Log "TEST MODE: Service is in $($serviceStatus.Status) state" "WARNING" }
             return $true
         }
         catch {
@@ -385,16 +387,13 @@ function Restart-DatadogAgent {
             return $false
         }
     }
-    
     try {
         Write-Log "Restarting Datadog Agent on $TargetServer (using stop/start method)"
-        
         # Stop the service first
         Write-Log "Stopping Datadog Agent on $TargetServer"
         Invoke-Command -ComputerName $TargetServer -ScriptBlock {
-            Stop-Service -Name "DatadogAgent" -Force -ErrorAction Stop
+            Stop-Service -Name $using:DatadogServiceName -Force -ErrorAction Stop
         } -ErrorAction Stop
-        
         # Wait and verify service is stopped
         $stopTimeout = 30
         $stopTimer = 0
@@ -402,38 +401,39 @@ function Restart-DatadogAgent {
             Start-Sleep -Seconds 2
             $stopTimer += 2
             $serviceStatus = Invoke-Command -ComputerName $TargetServer -ScriptBlock {
-                (Get-Service -Name "DatadogAgent").Status
-            } -ErrorAction Stop
-            
-            if ($serviceStatus -eq 'Stopped') {
-                Write-Log "Datadog Agent successfully stopped on $TargetServer"
-                break
+                (Get-Service -Name $using:DatadogServiceName).Status
             }
-            
             if ($stopTimer -ge $stopTimeout) {
-                Write-Log "Timeout waiting for Datadog Agent to stop on $TargetServer" "WARNING"
-                break
+                Write-Log "Timeout waiting for service to stop on $TargetServer" "ERROR"
+                return $false
             }
         } while ($serviceStatus -ne 'Stopped')
-        
+        Write-Log "Datadog Agent stopped successfully on $TargetServer (took $stopTimer seconds)"
         # Start the service
         Write-Log "Starting Datadog Agent on $TargetServer"
         Invoke-Command -ComputerName $TargetServer -ScriptBlock {
-            Start-Service -Name "DatadogAgent" -ErrorAction Stop
+            Start-Service -Name $using:DatadogServiceName -ErrorAction Stop
         } -ErrorAction Stop
-        
-        # Verify service started
-        Start-Sleep -Seconds 3
-        $finalStatus = Invoke-Command -ComputerName $TargetServer -ScriptBlock {
-            (Get-Service -Name "DatadogAgent").Status
-        } -ErrorAction Stop
-        
+        # Wait and verify service is running
+        $startTimeout = 60
+        $startTimer = 0
+        do {
+            Start-Sleep -Seconds 3
+            $startTimer += 3
+            $finalStatus = Invoke-Command -ComputerName $TargetServer -ScriptBlock {
+                (Get-Service -Name $using:DatadogServiceName).Status
+            }
+            if ($startTimer -ge $startTimeout) {
+                Write-Log "Timeout waiting for service to start on $TargetServer" "ERROR"
+                return $false
+            }
+        } while ($finalStatus -ne 'Running')
         if ($finalStatus -eq 'Running') {
-            Write-Log "Successfully restarted Datadog Agent on $TargetServer (Status: $finalStatus)"
+            Write-Log "Datadog Agent restarted successfully on $TargetServer (took $startTimer seconds)" "SUCCESS"
             return $true
         }
         else {
-            Write-Log "Datadog Agent restart completed but service status is: $finalStatus" "WARNING"
+            Write-Log "Datadog Agent failed to start properly on $TargetServer. Final status: $finalStatus" "ERROR"
             return $false
         }
     }
@@ -444,146 +444,209 @@ function Restart-DatadogAgent {
 }
 
 function Show-PostDeploymentInfo {
+    Write-Log "`n========================================" "INFO"
+    Write-Log "DEPLOYMENT SUMMARY" "INFO"
+    Write-Log "========================================" "INFO"
+    Write-Log "Deployment Mode: $(if ($UseWindowsAuth) { 'Windows Authentication' } else { 'Standard Authentication' })" "INFO"
+    Write-Log "Test Mode: $TestMode" "INFO"
+    Write-Log "Backup Created: $BackupConfigs" "INFO"
+    Write-Log "Service Restarted: $RestartService" "INFO"
+    
     if ($UseWindowsAuth) {
-        Write-Log ""
-        Write-Log "Windows Authentication Alternative Deployment Complete"
-        Write-Log "Additional Resources Available:"
-        Write-Log "- Alternative dashboard: dashboards/sccm-sql-server-health.json.alt"
-        Write-Log "- Alternative widgets: widgets/sccm-sql-server-widgets.xml.alt"
-        Write-Log "- Comprehensive guide: WINDOWS_AUTH_ALTERNATIVE_README.md"
-        Write-Log "- File inventory: WINDOWS_AUTH_FILES_SUMMARY.md"
-        Write-Log ""
-        Write-Log "Next Steps:"
-        Write-Log "1. Verify metrics collection with 'auth:windows' tag"
-        Write-Log "2. Import alternative dashboard and widgets to Datadog"
-        Write-Log "3. Check Agent logs for authentication issues"
-        Write-Log "4. Review troubleshooting guide if needed"
+        Write-Log "`nWindows Authentication Alternative Deployment Complete" "SUCCESS"
+        Write-Log "`nIMPORTANT NOTES FOR WINDOWS AUTHENTICATION:" "INFO"
+        Write-Log "- Verify Datadog Agent service account has SQL Server access" "INFO"
+        Write-Log "- Check that Windows Authentication is enabled on SQL Server" "INFO"
+        Write-Log "- Monitor agent logs for authentication issues" "INFO"
+        Write-Log "- Use 'auth:windows' tag to identify these deployments in Datadog" "INFO"
+        Write-Log "`nAdditional Resources:" "INFO"
+        Write-Log "- Deployment logs: $LogFile" "INFO"
+        Write-Log "- Agent status: Run 'Get-Service $DatadogServiceName' on target servers" "INFO"
+        Write-Log "- Configuration validation: Check agent.exe status on each server" "INFO"
     }
     else {
-        Write-Log ""
-        Write-Log "Standard Configuration Deployment Complete"
-        Write-Log "Next Steps:"
-        Write-Log "1. Verify SQL Server authentication credentials"
-        Write-Log "2. Check metrics collection in Datadog"
-        Write-Log "3. Review Agent logs for any connection issues"
-        Write-Log "4. Import dashboards and configure alerts as needed"
+        Write-Log "`nStandard Configuration Deployment Complete" "SUCCESS"
+        Write-Log "NEXT STEPS:" "INFO"
+        Write-Log "1. Update SQL Server credentials in deployed configurations" "INFO"
+        Write-Log "2. Replace 'YOUR_API_KEY_HERE' with actual Datadog API key" "INFO"
+        Write-Log "3. Verify Datadog Agent connectivity to Datadog endpoints" "INFO"
+        Write-Log "4. Check metrics collection in Datadog dashboard" "INFO"
+        Write-Log "`nAdditional Resources:" "INFO"
+        Write-Log "- Deployment logs: $LogFile" "INFO"
+        Write-Log "- Configuration templates: $ConfigPath" "INFO"
+        Write-Log "- Server configuration: $ServerConfig" "INFO"
+    }
+    
+    Write-Log "`nVERIFICATION COMMANDS:" "INFO"
+    Write-Log "# Check agent status on all servers" "INFO"
+    Write-Log "Get-Service $DatadogServiceName -ComputerName <server-name>" "INFO"
+    Write-Log "`n# Verify configuration on target server" "INFO"
+    Write-Log "Invoke-Command -ComputerName <server> -ScriptBlock { & 'C:\Program Files\Datadog\Datadog Agent\bin\agent.exe' status }" "INFO"
+    Write-Log "`n# Check recent agent logs" "INFO"
+    Write-Log "Get-Content '\\<server>\c$\ProgramData\Datadog\logs\agent.log' -Tail 20" "INFO"
+    Write-Log "`nFor support and troubleshooting, refer to the README.md file." "INFO"
+    Write-Log "========================================" "INFO"
+}
+
+function Clear-TempDirectories {
+    param([string[]]$TempDirectories)
+    foreach ($tempDir in $TempDirectories) {
+        if ($tempDir -and (Test-Path $tempDir) -and $tempDir.StartsWith($env:TEMP)) {
+            try {
+                Remove-Item -Path $tempDir -Recurse -Force -ErrorAction Stop
+                Write-Log "Cleaned up temporary directory: $tempDir"
+            }
+            catch { Write-Log "Warning: Could not remove temporary directory $tempDir`: $($_.Exception.Message)" "WARNING" }
+        }
     }
 }
 
-# Main execution
-$deploymentMode = if ($UseWindowsAuth) { "Windows Authentication Alternative" } else { "Standard" }
+# Main execution block
+try {
+    # Initialize logging
+    Write-Log "========================================" "INFO"
+    Write-Log "DATADOG CONFIGURATION DEPLOYMENT SCRIPT" "INFO"
+    Write-Log "========================================" "INFO"
+    Write-Log "Started at: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" "INFO"
+    Write-Log "Script Version: 1.2" "INFO"
+    Write-Log "PowerShell Version: $($PSVersionTable.PSVersion)" "INFO"
+    Write-Log "Execution Policy: $(Get-ExecutionPolicy)" "INFO"
+    Write-Log "User Context: $($env:USERNAME)@$($env:COMPUTERNAME)" "INFO"
+    Write-Log "`nPARAMETERS:" "INFO"
+    Write-Log "- ConfigPath: $ConfigPath" "INFO"
+    Write-Log "- ServerConfig: $ServerConfig" "INFO"
+    Write-Log "- UseWindowsAuth: $UseWindowsAuth" "INFO"
+    Write-Log "- BackupConfigs: $BackupConfigs" "INFO"
+    Write-Log "- RestartService: $RestartService" "INFO"
+    Write-Log "- TestMode: $TestMode" "INFO"
+    Write-Log "- LogFile: $LogFile" "INFO"
+
+    # Check prerequisites
+    if (-not (Test-Prerequisites)) {
+        Write-Log "`nPrerequisites check failed. Exiting." "ERROR"
+        exit 1
+    }
+
+    # Load server configuration
+    $servers = Get-ServerConfiguration
+    if (-not $servers) {
+        Write-Log "`nFailed to load server configuration. Exiting." "ERROR"
+        exit 1
+    }
+
+    # Initialize deployment tracking
+    $deploymentResults = @{}
+    $totalServers = 0
+    $successfulDeployments = 0
+    $tempDirectories = @()
+
+    # Process each server role
+    foreach ($role in $servers.PSObject.Properties.Name) {
+        if (-not $RoleConfigurations.ContainsKey($role)) {
+            Write-Log "`nUnknown role: $role" "WARNING"
+            continue
+        }
+        
+        $roleConfig = $RoleConfigurations[$role]
+        $serverList = $servers.$role
+        
+        if (-not $serverList -or $serverList.Count -eq 0) {
+            Write-Log "`nNo servers defined for role: $role" "WARNING"
+            continue
+        }
+        
+        Write-Log "`nProcessing role: $role - $($roleConfig['Description']) ($($serverList.Count) servers)"
+        
+        foreach ($server in $serverList) {
+            $totalServers++
+            Write-Log "`nDeploying to $server (Role: $role)"
+            
+            $sourcePath = Get-ConfigurationSource -Role $role -ConfigDir $roleConfig['ConfigDir']
+            if (-not $sourcePath) {
+                Write-Log "`nFailed to prepare configuration source for $role" "ERROR"
+                continue
+            }
+            
+            # Track temp directories for cleanup
+            if ($sourcePath.StartsWith($env:TEMP)) {
+                $tempDirectories += $sourcePath
+            }
+            
+            $deploySuccess = Update-ConfigurationFiles -SourcePath $sourcePath -TargetServer $server -TargetPath $roleConfig['TargetPath'] -CreateBackup $BackupConfigs
+            
+            if ($deploySuccess -and $roleConfig['RequiresRestart']) {
+                $restartSuccess = Restart-DatadogAgent -TargetServer $server
+                $deploySuccess = $deploySuccess -and $restartSuccess
+            }
+            
+            if ($deploySuccess) {
+                $successfulDeployments++
+                Write-Log "`nSuccessfully deployed to $server" "SUCCESS"
+            }
+            else {
+                Write-Log "`nFailed to deploy to $server" "ERROR"
+            }
+            
+            $deploymentResults[$server] = @{
+                "Role"        = $role
+                "Success"     = $deploySuccess
+                "Description" = $roleConfig['Description']
+            }
+        }
+    }
+
+    # Cleanup temporary directories
+    if ($tempDirectories.Count -gt 0) {
+        Write-Log "`nCleaning up $($tempDirectories.Count) temporary directories"
+        Clear-TempDirectories -TempDirectories $tempDirectories
+    }
+
+    # Display final results
+    Write-Log "`n========================================" "INFO"
+    Write-Log "DEPLOYMENT RESULTS" "INFO"
+    Write-Log "========================================" "INFO"
+    Write-Log "Total Servers: $totalServers" "INFO"
+    Write-Log "Successful Deployments: $successfulDeployments" "SUCCESS"
+    Write-Log "Failed Deployments: $($totalServers - $successfulDeployments)" $(if ($totalServers - $successfulDeployments -gt 0) { "ERROR" } else { "INFO" })
+    Write-Log ""
+
+    # Show detailed results
+    foreach ($server in $deploymentResults.Keys) {
+        $result = $deploymentResults[$server]
+        $status = if ($result['Success']) { "SUCCESS" } else { "FAILED" }
+        $level = if ($result['Success']) { "SUCCESS" } else { "ERROR" }
+        Write-Log "$server ($($result['Role'])): $status" $level
+    }
+
+    # Show post-deployment information
+    Show-PostDeploymentInfo
+
+    # Set exit code based on results
+    if ($successfulDeployments -eq $totalServers) {
+        Write-Log "`nAll deployments completed successfully" "SUCCESS"
+        exit 0
+    }
+    elseif ($successfulDeployments -gt 0) {
+        Write-Log "`nPartial deployment completed. Check logs for failed servers." "WARNING"
+        exit 2
+    }
+    else {
+        Write-Log "`nAll deployments failed. Check configuration and connectivity." "ERROR"
+        exit 1
+    }
+}
+catch {
+    Write-Log "`nUnexpected error during deployment: $($_.Exception.Message)" "ERROR"
+    Write-Log "Stack trace: $($_.ScriptStackTrace)" "ERROR"
     
-Write-Log "Starting SCCM Datadog Configuration Deployment ($deploymentMode Mode)"
-Write-Log "Configuration Path: $ConfigPath"
-Write-Log "Server Config: $ServerConfig"
-Write-Log "Windows Authentication Mode: $UseWindowsAuth"
-Write-Log "Backup Configs: $BackupConfigs"
-Write-Log "Restart Service: $RestartService"
-Write-Log "Test Mode: $TestMode"
-Write-Log "Log File: $LogFile"
+    # Cleanup on error
+    if ($tempDirectories.Count -gt 0) {
+        Clear-TempDirectories -TempDirectories $tempDirectories
+    }
     
-if (-not (Test-Prerequisites)) {
-    Write-Log "Prerequisites check failed. Exiting." "ERROR"
     exit 1
 }
-    
-$servers = Get-ServerConfiguration
-if (-not $servers) {
-    Write-Log "Failed to load server configuration. Exiting." "ERROR"
-    exit 1
-}
-    
-$deploymentResults = @{}
-$totalServers = 0
-$successfulDeployments = 0
-$tempDirectories = @()
-    
-foreach ($role in $servers.PSObject.Properties.Name) {
-    if (-not $RoleConfigurations.ContainsKey($role)) {
-        Write-Log "Unknown role: $role" "WARNING"
-        continue
-    }
-        
-    $roleConfig = $RoleConfigurations[$role]
-    $serverList = $servers.$role
-        
-    if (-not $serverList -or $serverList.Count -eq 0) {
-        Write-Log "No servers defined for role: $role" "WARNING"
-        continue
-    }
-        
-    Write-Log "Processing role: $role - $($roleConfig.Description) ($($serverList.Count) servers)"
-        
-    foreach ($server in $serverList) {
-        $totalServers++
-        Write-Log "Deploying to $server (Role: $role)"
-            
-        $sourcePath = Get-ConfigurationSource -Role $role -ConfigDir $roleConfig.ConfigDir
-            
-        # Track temp directories for cleanup
-        if ($sourcePath.StartsWith($env:TEMP)) {
-            $tempDirectories += $sourcePath
-        }
-            
-        $deploySuccess = Update-ConfigurationFiles -SourcePath $sourcePath -TargetServer $server -TargetPath $roleConfig.TargetPath -CreateBackup $BackupConfigs
-            
-        if ($deploySuccess -and $roleConfig.RequiresRestart) {
-            $restartSuccess = Restart-DatadogAgent -TargetServer $server
-            $deploySuccess = $deploySuccess -and $restartSuccess
-        }
-            
-        if ($deploySuccess) {
-            $successfulDeployments++
-            Write-Log "Successfully deployed to $server" "SUCCESS"
-        }
-        else {
-            Write-Log "Failed to deploy to $server" "ERROR"
-        }
-            
-        $deploymentResults[$server] = @{
-            "Role"        = $role
-            "Success"     = $deploySuccess
-            "Description" = $roleConfig.Description
-        }
-    }
-}
-    
-# Clean up temporary directories
-foreach ($tempDir in $tempDirectories) {
-    if (Test-Path $tempDir) {
-        Remove-Item -Path $tempDir -Recurse -Force -ErrorAction SilentlyContinue
-        Write-Log "Cleaned up temporary directory: $tempDir"
-    }
-}
-    
-# Show post-deployment information
-Show-PostDeploymentInfo
-    
-# Summary
-Write-Log ""
-Write-Log "=== DEPLOYMENT SUMMARY ==="
-Write-Log "Deployment Mode: $deploymentMode"
-Write-Log "Total Servers: $totalServers"
-Write-Log "Successful Deployments: $successfulDeployments"
-Write-Log "Failed Deployments: $($totalServers - $successfulDeployments)"
-    
-# Detailed results
-Write-Log ""
-Write-Log "=== DETAILED RESULTS ==="
-foreach ($server in $deploymentResults.Keys | Sort-Object) {
-    $result = $deploymentResults[$server]
-    $status = if ($result.Success) { "SUCCESS" } else { "FAILED" }
-    Write-Log "$server [$($result.Role)] - $($result.Description): $status"
-}
-    
-Write-Log ""
-Write-Log "Deployment log saved to: $LogFile"
-    
-if ($successfulDeployments -eq $totalServers) {
-    Write-Log "All deployments completed successfully!" "SUCCESS"
-    exit 0
-}
-else {
-    Write-Log "Some deployments failed. Check logs for details." "WARNING"
-    exit 1
+finally {
+    Write-Log "`nDeployment script completed at: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')" "INFO"
+    Write-Log "Log file location: $LogFile" "INFO"
 }

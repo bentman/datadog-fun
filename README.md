@@ -71,9 +71,9 @@ sccm-datadog-configs/
 │           └── conf.yaml.alt       # Windows Auth alternative
 ├── dashboards/                     # Datadog dashboard configurations
 ├── widgets/                        # Datadog widget configurations
-├── Deploy-DatadogConfigs-Combined.ps1  # Unified deployment script
+├── Deploy-DatadogConfigs.ps1       # Unified deployment script
 ├── servers.json                    # Server role configuration template
-└── LOGS/                          # Deployment logs directory
+└── _LOGS/                          # Deployment logs directory
 ```
 
 ## Quick Start
@@ -89,19 +89,19 @@ notepad servers.json
 #### Standard Deployment (with SQL Server service accounts)
 ```powershell
 # Test deployment first (recommended)
-.\Deploy-DatadogConfigs-Combined.ps1 -TestMode $true
+.\Deploy-DatadogConfigs.ps1 -TestMode $true
 
 # Deploy configurations
-.\Deploy-DatadogConfigs-Combined.ps1
+.\Deploy-DatadogConfigs.ps1
 ```
 
 #### Windows Authentication Deployment (no service accounts required)
 ```powershell
 # Test Windows Auth deployment first
-.\Deploy-DatadogConfigs-Combined.ps1 -UseWindowsAuth -TestMode $true
+.\Deploy-DatadogConfigs.ps1 -UseWindowsAuth -TestMode $true
 
 # Deploy Windows Auth configurations
-.\Deploy-DatadogConfigs-Combined.ps1 -UseWindowsAuth
+.\Deploy-DatadogConfigs.ps1 -UseWindowsAuth
 ```
 
 ## Prerequisites
@@ -182,7 +182,7 @@ notepad servers.json
 **To use Windows Authentication alternative:**
 ```powershell
 # Deploy using the combined script
-.\Deploy-DatadogConfigs-Combined.ps1 -UseWindowsAuth
+.\Deploy-DatadogConfigs.ps1 -UseWindowsAuth
 
 # Or manually copy the alternative configuration
 Copy-Item "sql-server\conf.d\sqlserver.d\conf.yaml.alt" "C:\ProgramData\Datadog\conf.d\sqlserver.d\conf.yaml"
@@ -210,7 +210,7 @@ Copy-Item "sql-server\conf.d\sqlserver.d\conf.yaml.alt" "C:\ProgramData\Datadog\
 **To use Windows Authentication alternative:**
 ```powershell
 # Deploy using the combined script
-.\Deploy-DatadogConfigs-Combined.ps1 -UseWindowsAuth
+.\Deploy-DatadogConfigs.ps1 -UseWindowsAuth
 
 # Or manually copy the alternative configuration
 Copy-Item "sql-reporting-server\conf.d\sqlserver.d\conf.yaml.alt" "C:\ProgramData\Datadog\conf.d\sqlserver.d\conf.yaml"
@@ -220,23 +220,23 @@ Copy-Item "sql-reporting-server\conf.d\sqlserver.d\conf.yaml.alt" "C:\ProgramDat
 
 ### Automated Deployment (Recommended)
 
-The `Deploy-DatadogConfigs-Combined.ps1` script provides unified deployment functionality:
+The `Deploy-DatadogConfigs.ps1` script provides unified deployment functionality:
 
 ```powershell
 # Standard deployment with service accounts
-.\Deploy-DatadogConfigs-Combined.ps1
+.\Deploy-DatadogConfigs.ps1
 
 # Windows Authentication deployment (no service accounts)
-.\Deploy-DatadogConfigs-Combined.ps1 -UseWindowsAuth
+.\Deploy-DatadogConfigs.ps1 -UseWindowsAuth
 
 # Test mode (validation without deployment)
-.\Deploy-DatadogConfigs-Combined.ps1 -UseWindowsAuth -TestMode $true
+.\Deploy-DatadogConfigs.ps1 -UseWindowsAuth -TestMode $true
 
 # Deploy without creating backups
-.\Deploy-DatadogConfigs-Combined.ps1 -BackupConfigs $false
+.\Deploy-DatadogConfigs.ps1 -BackupConfigs $false
 
 # Deploy without restarting Datadog Agent
-.\Deploy-DatadogConfigs-Combined.ps1 -RestartService $false
+.\Deploy-DatadogConfigs.ps1 -RestartService $false
 ```
 
 **Script Features:**
@@ -248,8 +248,8 @@ The `Deploy-DatadogConfigs-Combined.ps1` script provides unified deployment func
 - Error handling and rollback capabilities
 
 **Log Files:**
-- Standard deployment: `LOGS\Datadog_DeployConfigs-yyyyMMdd-HHmmss.log`
-- Windows Auth deployment: `LOGS\Datadog_DeployConfigsAltAuth-yyyyMMdd-HHmmss.log`
+- Standard deployment: `_LOGS\Datadog_DeployConfigs-yyyyMMdd-HHmmss.log`
+- Windows Auth deployment: `_LOGS\Datadog_DeployConfigsAltAuth-yyyyMMdd-HHmmss.log`
 
 ### Manual Deployment
 
@@ -475,7 +475,7 @@ Get-Content "C:\ProgramData\Datadog\logs\*.log" | Select-String "ERROR\|WARN"
 ### Log Locations
 - **Agent Logs**: `C:\ProgramData\Datadog\logs\agent.log`
 - **Integration Logs**: `C:\ProgramData\Datadog\logs\`
-- **Deployment Logs**: `LOGS\Datadog_DeployConfigs*.log`
+- **Deployment Logs**: `_LOGS\Datadog_DeployConfigs*.log`
 
 ### Support Resources
 - Datadog Documentation: https://docs.datadoghq.com/

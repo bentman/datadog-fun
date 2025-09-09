@@ -22,7 +22,7 @@ sccm-datadog-configs/
 ├── DEPLOYMENT_README.md                         # Comprehensive deployment & installation guide
 ├── PACKAGE_SUMMARY.md                          # This summary file
 │
-├── Deploy-DatadogConfigs-Combined.ps1          # Unified deployment script
+├── Deploy-DatadogConfigs.ps1          # Unified deployment script
 ├── servers.json                                # Server role configuration template
 ├── LOGS/                                       # Deployment logs directory
 │
@@ -214,19 +214,19 @@ sccm-datadog-configs/
 #### Standard Deployment
 ```powershell
 # Deploy standard configurations with SQL service accounts
-.\Deploy-DatadogConfigs-Combined.ps1
+.\Deploy-DatadogConfigs.ps1
 
 # Test deployment first
-.\Deploy-DatadogConfigs-Combined.ps1 -TestMode $true
+.\Deploy-DatadogConfigs.ps1 -TestMode $true
 ```
 
 #### Windows Authentication Deployment
 ```powershell
 # Deploy Windows Authentication alternatives (no service accounts)
-.\Deploy-DatadogConfigs-Combined.ps1 -UseWindowsAuth
+.\Deploy-DatadogConfigs.ps1 -UseWindowsAuth
 
 # Test Windows Auth deployment first
-.\Deploy-DatadogConfigs-Combined.ps1 -UseWindowsAuth -TestMode $true
+.\Deploy-DatadogConfigs.ps1 -UseWindowsAuth -TestMode $true
 ```
 
 ### Manual Deployment
@@ -321,7 +321,7 @@ Step-by-step manual installation for environments requiring individual server co
 - **PACKAGE_SUMMARY.md**: This detailed package summary
 
 ### Deployment Resources
-- **Deploy-DatadogConfigs-Combined.ps1**: Unified deployment script with both authentication modes
+- **Deploy-DatadogConfigs.ps1**: Unified deployment script with both authentication modes
 - **servers.json**: Server role configuration template
 - **LOGS/**: Deployment logs with mode-specific naming
 

@@ -1,65 +1,279 @@
 # Windows Event Log Configuration for SCCM SQL Server
-# Monitors critical Windows and SQL Server events
+# Monitors critical Windows, SQL Server Database Engine, SQL Agent, and SCCM events
+# Updated with pattern-based filtering for critical event IDs worth alerting on
+#
+# CRITICAL EVENT IDs MONITORED FOR SQL SERVER:
+#
+# SQL SERVER DATABASE ENGINE CRITICAL ERRORS:
+# - 9001: Database log file becomes unavailable (critical database failure)
+# - 823: Operating system returned error during I/O operation (severe system-level error)
+# - 824: SQL Server detected logical consistency-based I/O error (database corruption)
+# - 825: SQL Server detected read retry (I/O subsystem issues)
+# - 832: Page has been read from disk more than once (memory pressure)
+# - 833: SQL Server has encountered I/O requests taking longer than 15 seconds
+# - 17053: Operating system error occurred during a file operation
+# - 17054: Current event is not reported to the Windows Event Log
+# - 17055: Operating system error occurred during a file operation
+# - 17061: SQL Server service startup errors
+# - 17062: SQL Server service startup errors
+#
+# SQL SERVER AUTHENTICATION AND CONNECTION ERRORS:
+# - 18456: Login failed for user (authentication errors)
+# - 18452: Login failed (connection errors)
+# - 18451: Login failed (connection timeout)
+# - 18453-18455: Various login failure scenarios
+# - 18470-18489: Connection and network errors
+#
+# SQL SERVER BACKUP AND RESTORE ERRORS:
+# - 3201-3210: Backup and restore operation failures
+# - 3201: Cannot open backup device
+# - 3202: Write on backup device failed
+# - 3203: Read on backup device failed
+# - 3204: Backup or restore was aborted
+#
+# SQL SERVER MEMORY AND PERFORMANCE ERRORS:
+# - 701: There is insufficient system memory in resource pool
+# - 802: There is insufficient memory available in the buffer pool
+# - 8645: A timeout occurred while waiting for memory resources
+# - 1730: Cannot allocate space for object in database
+# - 1105: Could not allocate space for object in database
+#
+# SQL SERVER SERVICE CONTROL EVENTS:
+# - 7000-7009: Service Control Manager errors
+# - 7032: Service Control Manager tried to take corrective action
+# - 7034: Service terminated unexpectedly
+# - 7036: Service state changes (start/stop)
+#
+# SYSTEM EVENTS:
+# - 41: System rebooted without cleanly shutting down
+# - 1074: System shutdown/restart initiated
+# - 6005/6006: Event log service started/stopped
+# - 6008: Unexpected system shutdown
 
 init_config:
 
-instances:
-  # System Event Log - Critical and Error events
-  - channels:
-      - path: System
-        type: windows_event_log
-        filters:
-          - query: '*[System[(Level=1 or Level=2)]]'  # Critical and Error events
+logs:
+  # System Event Log - Critical system events and service control issues
+  - type: windows_event
+    channel_path: System
+    source: windows.events
+    service: sccm-sql-server
     tags:
       - source:windows-system
       - role:sccm-sql-server
-    
-  # Application Event Log - SQL Server related events
-  - channels:
-      - path: Application
-        type: windows_event_log
-        filters:
-          - query: '*[System[Provider[@Name="MSSQLSERVER"] and (Level=1 or Level=2 or Level=3)]]'  # SQL Server events
+    log_processing_rules:
+      - type: include_at_match
+        name: critical_system_events
+        pattern: '"EventID":"(41|1074|6005|6006|6008|6009|6013)'
+      - type: include_at_match
+        name: service_control_manager_events
+        pattern: '"EventID":"(7000|7001|7002|7003|7004|7005|7006|7007|7008|7009)'
+      - type: include_at_match
+        name: service_failures
+        pattern: '"EventID":"(7032|7034|7036|7031|7022|7023|7024|7026)'
+      - type: include_at_match
+        name: dcom_errors
+        pattern: '"EventID":"(10016|10028|10009)'
+
+  # Application Event Log - SQL Server Database Engine critical errors
+  - type: windows_event
+    channel_path: Application
+    source: windows.events
+    service: sccm-sql-server
     tags:
       - source:sqlserver-application
       - role:sccm-sql-server
-    
+    log_processing_rules:
+      - type: include_at_match
+        name: sql_critical_database_errors
+        pattern: '"EventID":"(9001|823|824|825|832|833)'
+      - type: include_at_match
+        name: sql_io_and_file_errors
+        pattern: '"EventID":"(17053|17054|17055|17061|17062|17063|17064|17065|17066)'
+      - type: include_at_match
+        name: sql_memory_and_resource_errors
+        pattern: '"EventID":"(701|802|8645|1730|1105)'
+      - type: include_at_match
+        name: sql_login_failures
+        pattern: '"EventID":"(18456|18452|18451|18453|18454|18455)'
+      - type: include_at_match
+        name: sql_connection_issues
+        pattern: '"EventID":"(18470|18471|18482|18483|18486|18487|18488|18489)'
+      - type: include_at_match
+        name: sql_backup_restore_errors
+        pattern: '"EventID":"(3201|3202|3203|3204|3205|3206|3207|3208|3209|3210)'
+      - type: include_at_match
+        name: sql_service_startup_errors
+        pattern: '"EventID":"(17120|17121|17122|17123|17124|17125|17126|17127|17128|17129)'
+      - type: include_at_match
+        name: sql_database_corruption_errors
+        pattern: '"EventID":"(605|823|824|825|832|833|5180|5181|5182|5183|5184)'
+
   # Application Event Log - SQL Server Agent events
-  - channels:
-      - path: Application
-        type: windows_event_log
-        filters:
-          - query: '*[System[Provider[@Name="SQLSERVERAGENT"] and (Level=1 or Level=2 or Level=3)]]'  # SQL Agent events
+  - type: windows_event
+    channel_path: Application
+    source: windows.events
+    service: sccm-sql-server
     tags:
       - source:sqlserver-agent-application
       - role:sccm-sql-server
-    
+    log_processing_rules:
+      - type: include_at_match
+        name: sql_agent_job_failures
+        pattern: '"EventID":"(208|209|210|211|212|213|214|215|216|217|218)'
+      - type: include_at_match
+        name: sql_agent_service_errors
+        pattern: '"EventID":"(103|104|105|106|107|108|109|110|111|112|113)'
+      - type: include_at_match
+        name: sql_agent_connection_errors
+        pattern: '"EventID":"(201|202|203|204|205|206|207)'
+
   # Application Event Log - SCCM related events
-  - channels:
-      - path: Application
-        type: windows_event_log
-        filters:
-          - query: '*[System[Provider[@Name="SMS Server"] and (Level=1 or Level=2 or Level=3)]]'  # SCCM events
+  - type: windows_event
+    channel_path: Application
+    source: windows.events
+    service: sccm-sql-server
     tags:
       - source:sccm-application
       - role:sccm-sql-server
-    
-  # Security Event Log - Authentication events
-  - channels:
-      - path: Security
-        type: windows_event_log
-        filters:
-          - query: '*[System[(EventID=4625 or EventID=4648 or EventID=4771 or EventID=4776 or EventID=18456)]]'  # Failed logons including SQL
+    log_processing_rules:
+      - type: include_at_match
+        name: sccm_database_events
+        pattern: '"EventID":"(1000|1001|1002|1003|1004|1005|1006|1007|1008|1009|1010)'
+      - type: include_at_match
+        name: sccm_sql_integration_events
+        pattern: '"EventID":"(5000|5001|5002|5003|5004|5005|5006|5007|5008|5009|5010)'
+
+  # Security Event Log - Authentication and access events
+  - type: windows_event
+    channel_path: Security
+    source: windows.events
+    service: sccm-sql-server
     tags:
       - source:windows-security
       - role:sccm-sql-server
-    
-  # SQL Server specific event logs
-  - channels:
-      - path: Microsoft-SQLServer-Relational-Engine/Operational
-        type: windows_event_log
-        filters:
-          - query: '*[System[(Level=1 or Level=2 or Level=3)]]'  # Critical, Error, Warning
+    log_processing_rules:
+      - type: include_at_match
+        name: authentication_failures
+        pattern: '"EventID":"(4625|4648|4771|4776|4777|4820|4821|4822|4823|4824)'
+      - type: include_at_match
+        name: privilege_escalation_events
+        pattern: '"EventID":"(4672|4673|4674|4728|4732|4735|4737|4740|4755|4756|4794)'
+      - type: include_at_match
+        name: audit_policy_changes
+        pattern: '"EventID":"(1102|4618|4649|4719|4765|4766|4897|4964|5124)'
+      - type: include_at_match
+        name: account_management_events
+        pattern: '"EventID":"(4720|4722|4723|4724|4725|4726|4738|4781|4798|4799)'
+      - type: include_at_match
+        name: sql_server_audit_events
+        pattern: '"EventID":"(33205|33206|33207|33208|33209|33210|33211|33212|33213|33214)'
+
+  # SQL Server Engine Operational Events
+  - type: windows_event
+    channel_path: Microsoft-SQLServer-Relational-Engine/Operational
+    source: windows.events
+    service: sccm-sql-server
     tags:
       - source:sqlserver-engine-operational
       - role:sccm-sql-server
+    log_processing_rules:
+      - type: include_at_match
+        name: sql_engine_operational_errors
+        pattern: '"EventID":"(1|2|3|4|5|6|7|8|9|10|11|12|13|14|15)'
+      - type: include_at_match
+        name: sql_engine_performance_events
+        pattern: '"EventID":"(100|101|102|103|104|105|106|107|108|109|110)'
+      - type: include_at_match
+        name: sql_engine_deadlock_events
+        pattern: '"EventID":"(1205|1222)'
+
+  # Always On Availability Groups Events
+  - type: windows_event
+    channel_path: Microsoft-Windows-FailoverClustering/Operational
+    source: windows.events
+    service: sccm-sql-server
+    tags:
+      - source:failover-clustering
+      - role:sccm-sql-server
+    log_processing_rules:
+      - type: include_at_match
+        name: always_on_availability_group_events
+        pattern: '"EventID":"(1135|1146|1177|1196|1230|1254|1257|1558|1564|1573)'
+      - type: include_at_match
+        name: cluster_service_errors
+        pattern: '"EventID":"(1069|1070|1135|1146|1177|1196|1230)'
+
+  # SQL Server Always On Events
+  - type: windows_event
+    channel_path: Microsoft-Windows-SQLServer-AlwaysOn/Operational
+    source: windows.events
+    service: sccm-sql-server
+    tags:
+      - source:sqlserver-alwayson
+      - role:sccm-sql-server
+    log_processing_rules:
+      - type: include_at_match
+        name: alwayson_availability_group_errors
+        pattern: '"EventID":"(35201|35202|35203|35204|35205|35206|35207|35208|35209|35210)'
+      - type: include_at_match
+        name: alwayson_replica_state_changes
+        pattern: '"EventID":"(35264|35265|35266|35267|35268|35269|35270|35271|35272|35273)'
+
+  # Microsoft Defender Antivirus Events
+  - type: windows_event
+    channel_path: Microsoft-Windows-Windows Defender/Operational
+    source: windows.events
+    service: sccm-sql-server
+    tags:
+      - source:windows-defender
+      - role:sccm-sql-server
+    log_processing_rules:
+      - type: include_at_match
+        name: defender_malware_detection
+        pattern: '"EventID":"(1006|1007|1008|1009|1116|1117|1118|1119)'
+      - type: include_at_match
+        name: defender_scan_issues
+        pattern: '"EventID":"(1002|1003|1005|1012|1015)'
+
+  # PowerShell Security Events
+  - type: windows_event
+    channel_path: Microsoft-Windows-PowerShell/Operational
+    source: windows.events
+    service: sccm-sql-server
+    tags:
+      - source:powershell-operational
+      - role:sccm-sql-server
+    log_processing_rules:
+      - type: include_at_match
+        name: powershell_security_events
+        pattern: '"EventID":"(4103|4104|4105|4106)'
+
+  # Certificate Services Events - Important for SQL Server SSL/TLS
+  - type: windows_event
+    channel_path: Microsoft-Windows-CertificateServicesClient-Lifecycle-System/Operational
+    source: windows.events
+    service: sccm-sql-server
+    tags:
+      - source:certificate-services
+      - role:sccm-sql-server
+    log_processing_rules:
+      - type: include_at_match
+        name: certificate_lifecycle_errors
+        pattern: '"EventID":"(1001|1002|1003|1004|1005|1006|1007|1008|1009|1010)'
+
+  # Windows Error Reporting Events - Application crashes and hangs
+  - type: windows_event
+    channel_path: Application
+    source: windows.events
+    service: sccm-sql-server
+    tags:
+      - source:windows-error-reporting
+      - role:sccm-sql-server
+    log_processing_rules:
+      - type: include_at_match
+        name: application_crashes
+        pattern: '"EventID":"(1000|1001|1002|1004|1008|1026|1033|1034)'
+      - type: include_at_match
+        name: application_hangs
+        pattern: '"EventID":"(1002|1026)'

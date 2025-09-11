@@ -1,65 +1,221 @@
 # Windows Event Log Configuration for SCCM Distribution Point
 # Monitors critical Windows, IIS, and SCCM Distribution Point events
+# Updated with pattern-based filtering for critical event IDs worth alerting on
+#
+# CRITICAL EVENT IDs MONITORED:
+#
+# SYSTEM EVENTS:
+# - 1102: Audit log cleared (security concern)
+# - 7036: Service state changes (start/stop)
+# - 10016: DCOM permission errors (common on SCCM servers)
+# - 6008: Unexpected system shutdown
+# - 41: System rebooted without cleanly shutting down
+# - 1001: Windows Error Reporting
+# - 1074: System shutdown/restart initiated by user/application
+# - 6005/6006: Event log service started/stopped
+# - 6009/6013: System startup/shutdown events
+#
+# SERVICE CONTROL EVENTS:
+# - 7000: Service failed to start
+# - 7001: Service depends on service which failed to start
+# - 7009: Service operation timed out
+# - 7011: Service did not respond to start/control request
+# - 7022-7024: Service hung on starting/stopping
+# - 7026: Boot-start or system-start driver failed to load
+# - 7031: Service terminated unexpectedly
+# - 7032: Service Control Manager tried to take corrective action
+# - 7034: Service terminated unexpectedly
+#
+# SCCM DISTRIBUTION POINT EVENTS:
+# - 2301-2320: SCCM Distribution Point content distribution errors
+# - 6700-6709: WSUS synchronization manager errors
+#
+# APPLICATION ERRORS:
+# - 1000: Application error
+# - 1001: Application hang
+# - 1002: Application error (different type)
+# - 1004: Application error reporting
+# - 1008: Application error
+# - 1026: .NET Runtime error
+# - 1033/1034: Windows Installer errors
+#
+# IIS APPLICATION ERRORS:
+# - 1309: IIS configuration error
+# - 1325: IIS authentication error
+# - 1332: IIS worker process error (mentioned in user example)
+# - 1359: IIS application error
+# - 2268-2275: IIS HTTP errors and failures
+#
+# SECURITY EVENTS:
+# - 4625: Failed logon attempt
+# - 4648: Logon using explicit credentials
+# - 4771: Kerberos pre-authentication failed
+# - 4776: Domain controller attempted to validate credentials
+# - 4777: Domain controller failed to validate credentials
+# - 4820-4824: Kerberos authentication failures
+# - 4672-4674: Privilege use events
+# - 4728/4732/4735/4737: Security group membership changes
+# - 4740: User account locked out
+# - 4755/4756: Security group changes
+# - 4794: Directory Services Restore Mode password set
+# - 4618: Monitored security event pattern occurred
+# - 4649: Replay attack detected
+# - 4719: System audit policy changed
+# - 4765/4766: SID History added/failed to add
+# - 4897: Role separation enabled
+# - 4964: Special groups assigned to new logon
+# - 5124: Security setting updated on OCSP Responder Service
+# - 4720-4726: User account management events
+# - 4738: User account changed
+# - 4781: Account name changed
+# - 4798/4799: Group membership enumerated
+#
+# IIS OPERATIONAL EVENTS:
+# - 1309/1325/1359: IIS configuration and authentication errors
+# - 2268-2280: HTTP protocol errors and failures
+# - 1200-1210: IIS authentication errors
+#
+# WDS EVENTS (PXE Boot):
+# - 513-530: WDS deployment service errors
+# - 4002-4015: PXE boot errors (4002 mentioned in user example)
+#
+# WINDOWS DEFENDER EVENTS:
+# - 1006/1116: Malware detected
+# - 1007/1117: Action taken to protect system
+# - 1008/1118: Action failed to protect system
+# - 1009: Item restored from quarantine
+# - 1119: Critical error occurred
+# - 1002: Scan stopped before completion
+# - 1003: Scan paused
+# - 1005: Scan failed
+# - 1012: Unable to delete quarantined item
+# - 1015: Suspicious behavior detected
+#
+# POWERSHELL SECURITY EVENTS:
+# - 4103: PowerShell module logging
+# - 4104: PowerShell script block logging
+# - 4105/4106: PowerShell script start/stop
 
 init_config:
 
-instances:
-  # System Event Log - Critical and Error events
-  - channels:
-      - path: System
-        type: windows_event_log
-        filters:
-          - query: '*[System[(Level=1 or Level=2)]]'  # Critical and Error events
+logs:
+  # System Event Log - Critical system events and DCOM errors
+  - type: windows_event
+    channel_path: System
+    source: windows.events
+    service: sccm-distribution-point
     tags:
       - source:windows-system
       - role:sccm-distribution-point
-    
-  # Application Event Log - IIS related events
-  - channels:
-      - path: Application
-        type: windows_event_log
-        filters:
-          - query: '*[System[Provider[@Name="IIS-W3SVC-WP"] and (Level=1 or Level=2 or Level=3)]]'  # IIS Worker Process events
-    tags:
-      - source:iis-application
-      - role:sccm-distribution-point
-    
-  # Application Event Log - SCCM Distribution Point events
-  - channels:
-      - path: Application
-        type: windows_event_log
-        filters:
-          - query: '*[System[Provider[@Name="SMS Server"] and (Level=1 or Level=2 or Level=3)]]'  # SCCM events
+    log_processing_rules:
+      - type: include_at_match
+        name: critical_system_events
+        pattern: '"EventID":"(1102|7036|10016|6008|41|1001|1074|6005|6006|6009|6013)'
+      - type: include_at_match
+        name: service_control_events
+        pattern: '"EventID":"(7000|7001|7009|7011|7022|7023|7024|7026|7031|7032|7034)'
+
+  # Application Event Log - Critical application errors and SCCM events
+  - type: windows_event
+    channel_path: Application
+    source: windows.events
+    service: sccm-distribution-point
     tags:
       - source:sccm-application
       - role:sccm-distribution-point
-    
-  # Security Event Log - Authentication events
-  - channels:
-      - path: Security
-        type: windows_event_log
-        filters:
-          - query: '*[System[(EventID=4625 or EventID=4648 or EventID=4771 or EventID=4776)]]'  # Failed logons
+    log_processing_rules:
+      - type: include_at_match
+        name: sccm_distribution_point_events
+        pattern: '"EventID":"(2301|2302|2303|2304|2305|2306|2307|2308|2309|2310|2311|2312|2313|2314|2315|2316|2317|2318|2319|2320)'
+      - type: include_at_match
+        name: sccm_wsus_sync_events
+        pattern: '"EventID":"(6700|6701|6702|6703|6704|6705|6706|6707|6708|6709)'
+      - type: include_at_match
+        name: critical_application_errors
+        pattern: '"EventID":"(1000|1001|1002|1004|1008|1026|1033|1034)'
+      - type: include_at_match
+        name: iis_application_errors
+        pattern: '"EventID":"(1309|1325|1332|1359|2268|2269|2270|2271|2272|2273|2274|2275)'
+
+  # Security Event Log - Authentication and privilege events
+  - type: windows_event
+    channel_path: Security
+    source: windows.events
+    service: sccm-distribution-point
     tags:
       - source:windows-security
       - role:sccm-distribution-point
-    
-  # WDS Event Log (if PXE enabled)
-  - channels:
-      - path: Microsoft-Windows-Deployment-Services-Diagnostics/Operational
-        type: windows_event_log
-        filters:
-          - query: '*[System[(Level=1 or Level=2 or Level=3)]]'  # Critical, Error, Warning
-    tags:
-      - source:wds-operational
-      - role:sccm-distribution-point
-    
-  # IIS specific event logs
-  - channels:
-      - path: Microsoft-Windows-IIS-W3SVC/Operational
-        type: windows_event_log
-        filters:
-          - query: '*[System[(Level=1 or Level=2 or Level=3)]]'  # Critical, Error, Warning
+    log_processing_rules:
+      - type: include_at_match
+        name: authentication_failures
+        pattern: '"EventID":"(4625|4648|4771|4776|4777|4820|4821|4822|4823|4824)'
+      - type: include_at_match
+        name: privilege_escalation_events
+        pattern: '"EventID":"(4672|4673|4674|4728|4732|4735|4737|4740|4755|4756|4794)'
+      - type: include_at_match
+        name: audit_policy_changes
+        pattern: '"EventID":"(1102|4618|4649|4719|4765|4766|4897|4964|5124)'
+      - type: include_at_match
+        name: account_management_events
+        pattern: '"EventID":"(4720|4722|4723|4724|4725|4726|4738|4781|4798|4799)'
+
+  # IIS HTTP Errors and Authentication Issues
+  - type: windows_event
+    channel_path: Microsoft-Windows-IIS-W3SVC/Operational
+    source: windows.events
+    service: sccm-distribution-point
     tags:
       - source:iis-operational
       - role:sccm-distribution-point
+    log_processing_rules:
+      - type: include_at_match
+        name: iis_http_errors
+        pattern: '"EventID":"(1309|1325|1359|2268|2269|2270|2271|2272|2273|2274|2275|2276|2277|2278|2279|2280)'
+      - type: include_at_match
+        name: iis_authentication_errors
+        pattern: '"EventID":"(1200|1201|1202|1203|1204|1205|1206|1207|1208|1209|1210)'
+
+  # WDS Event Log (if PXE enabled) - Boot and deployment errors
+  - type: windows_event
+    channel_path: Microsoft-Windows-Deployment-Services-Diagnostics/Operational
+    source: windows.events
+    service: sccm-distribution-point
+    tags:
+      - source:wds-operational
+      - role:sccm-distribution-point
+    log_processing_rules:
+      - type: include_at_match
+        name: wds_deployment_errors
+        pattern: '"EventID":"(513|514|515|516|517|518|519|520|521|522|523|524|525|526|527|528|529|530)'
+      - type: include_at_match
+        name: wds_pxe_boot_errors
+        pattern: '"EventID":"(4002|4003|4004|4005|4006|4007|4008|4009|4010|4011|4012|4013|4014|4015)'
+
+  # Microsoft Defender Antivirus Events
+  - type: windows_event
+    channel_path: Microsoft-Windows-Windows Defender/Operational
+    source: windows.events
+    service: sccm-distribution-point
+    tags:
+      - source:windows-defender
+      - role:sccm-distribution-point
+    log_processing_rules:
+      - type: include_at_match
+        name: defender_malware_detection
+        pattern: '"EventID":"(1006|1007|1008|1009|1116|1117|1118|1119)'
+      - type: include_at_match
+        name: defender_scan_issues
+        pattern: '"EventID":"(1002|1003|1005|1012|1015)'
+
+  # PowerShell Security Events
+  - type: windows_event
+    channel_path: Microsoft-Windows-PowerShell/Operational
+    source: windows.events
+    service: sccm-distribution-point
+    tags:
+      - source:powershell-operational
+      - role:sccm-distribution-point
+    log_processing_rules:
+      - type: include_at_match
+        name: powershell_security_events
+        pattern: '"EventID":"(4103|4104|4105|4106)'

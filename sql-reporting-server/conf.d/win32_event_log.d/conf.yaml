@@ -1,65 +1,283 @@
 # Windows Event Log Configuration for SCCM SQL Reporting Server
-# Monitors critical Windows, SQL Server, and SSRS events
+# Monitors critical Windows, SQL Server, SSRS, and IIS events
+# Updated with pattern-based filtering for critical event IDs worth alerting on
+#
+# CRITICAL EVENT IDs MONITORED FOR SQL REPORTING SERVER:
+#
+# SSRS SPECIFIC EVENTS:
+# - 133: SSRS configuration file failed to load
+# - 1530: SSRS service startup timeout
+# - 106: SQL Server Agent must be running for scheduled operations
+# - 107: Can't connect to report server database
+# - 108: Can't load delivery, data processing, or rendering extension
+# - 109: Configuration file was modified
+# - 110: Invalid configuration setting
+# - 111: Can't create trace log
+# - 112: Possible denial of service attack detected
+# - 113: Can't create performance counter
+# - 114: Web portal can't connect to Report Server service
+# - 115: Scheduled task modified or deleted
+# - 116: Internal error occurred
+# - 117: Report server database is invalid version
+# - 118: Trace log not at expected location
+# - 119: No access to report server database contents
+# - 120: Symmetric key can't be decrypted
+# - 121: RPC Service failed to start
+# - 122: Can't connect to SMTP server for email delivery
+# - 123: Failed to write to trace log
+# - 129: Encrypted configuration setting can't be decrypted
+# - 130: Can't find configuration file
+# - 131: Encrypted user data value couldn't be decrypted
+# - 132: Failure during encryption of user data
+# - 134: Failed to encrypt values in configuration file
+#
+# SERVICE CONTROL MANAGER EVENTS:
+# - 7000-7009: Service Control Manager errors (mentioned in user example)
+# - 7032: Service Control Manager tried to take corrective action
+# - 7034: Service terminated unexpectedly
+# - 7036: Service state changes (start/stop)
+#
+# SQL SERVER EVENTS:
+# - 18456: SQL Server login failed
+# - 18452: SQL Server connection failed
+# - 823-825: Database corruption/IO errors
+# - 832-839: Database performance/memory errors
+#
+# IIS EVENTS:
+# - 1309: IIS configuration error
+# - 2268: IIS HTTP errors
+# - 5002-5012: IIS application pool errors
+#
+# SYSTEM EVENTS:
+# - 41: System rebooted without cleanly shutting down
+# - 1074: System shutdown/restart initiated
+# - 6005/6006: Event log service started/stopped
+# - 6008: Unexpected system shutdown
 
 init_config:
 
-instances:
-  # System Event Log - Critical and Error events
-  - channels:
-      - path: System
-        type: windows_event_log
-        filters:
-          - query: '*[System[(Level=1 or Level=2)]]'  # Critical and Error events
+logs:
+  # System Event Log - Critical system events and service control issues
+  - type: windows_event
+    channel_path: System
+    source: windows.events
+    service: sccm-sql-reporting-server
     tags:
       - source:windows-system
       - role:sccm-sql-reporting-server
-    
-  # Application Event Log - SQL Server related events
-  - channels:
-      - path: Application
-        type: windows_event_log
-        filters:
-          - query: '*[System[Provider[@Name="MSSQLSERVER"] and (Level=1 or Level=2 or Level=3)]]'  # SQL Server events
-    tags:
-      - source:sqlserver-application
-      - role:sccm-sql-reporting-server
-    
-  # Application Event Log - SQL Server Reporting Services events
-  - channels:
-      - path: Application
-        type: windows_event_log
-        filters:
-          - query: '*[System[Provider[@Name="Report Server"] and (Level=1 or Level=2 or Level=3)]]'  # SSRS events
+    log_processing_rules:
+      - type: include_at_match
+        name: critical_system_events
+        pattern: '"EventID":"(41|1074|6005|6006|6008|6009|6013)'
+      - type: include_at_match
+        name: service_control_manager_events
+        pattern: '"EventID":"(7000|7001|7002|7003|7004|7005|7006|7007|7008|7009)'
+      - type: include_at_match
+        name: service_failures
+        pattern: '"EventID":"(7032|7034|7036|7031|7022|7023|7024|7026)'
+      - type: include_at_match
+        name: dcom_errors
+        pattern: '"EventID":"(10016|10028|10009)'
+
+  # Application Event Log - SQL Server Reporting Services specific events
+  - type: windows_event
+    channel_path: Application
+    source: windows.events
+    service: sccm-sql-reporting-server
     tags:
       - source:ssrs-application
       - role:sccm-sql-reporting-server
-    
-  # Application Event Log - IIS related events
-  - channels:
-      - path: Application
-        type: windows_event_log
-        filters:
-          - query: '*[System[Provider[@Name="IIS-W3SVC-WP"] and (Level=1 or Level=2 or Level=3)]]'  # IIS Worker Process events
+    log_processing_rules:
+      - type: include_at_match
+        name: ssrs_critical_events
+        pattern: '"EventID":"(133|1530|106|107|108|109|110|111|112|113|114|115|116|117|118|119|120|121|122|123|129|130|131|132|134)'
+      - type: include_at_match
+        name: ssrs_database_connection_events
+        pattern: '"EventID":"(107|119|117|130)'
+      - type: include_at_match
+        name: ssrs_configuration_events
+        pattern: '"EventID":"(109|110|129|130|133|134)'
+      - type: include_at_match
+        name: ssrs_security_encryption_events
+        pattern: '"EventID":"(112|120|125|126|127|131|132)'
+      - type: include_at_match
+        name: ssrs_service_startup_events
+        pattern: '"EventID":"(121|124|1530)'
+
+  # Application Event Log - SQL Server Database Engine events
+  - type: windows_event
+    channel_path: Application
+    source: windows.events
+    service: sccm-sql-reporting-server
+    tags:
+      - source:sqlserver-application
+      - role:sccm-sql-reporting-server
+    log_processing_rules:
+      - type: include_at_match
+        name: sql_login_failures
+        pattern: '"EventID":"(18456|18452|18451|18453|18454|18455)'
+      - type: include_at_match
+        name: sql_connection_issues
+        pattern: '"EventID":"(18470|18471|18482|18483|18486|18487|18488|18489)'
+      - type: include_at_match
+        name: sql_database_corruption_errors
+        pattern: '"EventID":"(823|824|825|832|833|834|835|836|837|838|839)'
+      - type: include_at_match
+        name: sql_backup_restore_errors
+        pattern: '"EventID":"(3201|3202|3203|3204|3205|3206|3207|3208|3209|3210)'
+      - type: include_at_match
+        name: sql_service_errors
+        pattern: '"EventID":"(17053|17054|17055|17056|17057|17058|17059|17060|17061|17062)'
+      - type: include_at_match
+        name: sql_agent_errors
+        pattern: '"EventID":"(208|209|210|211|212|213|214|215|216|217|218)'
+
+  # Application Event Log - IIS and ASP.NET events
+  - type: windows_event
+    channel_path: Application
+    source: windows.events
+    service: sccm-sql-reporting-server
     tags:
       - source:iis-application
       - role:sccm-sql-reporting-server
-    
-  # Security Event Log - Authentication events
-  - channels:
-      - path: Security
-        type: windows_event_log
-        filters:
-          - query: '*[System[(EventID=4625 or EventID=4648 or EventID=4771 or EventID=4776)]]'  # Failed logons
+    log_processing_rules:
+      - type: include_at_match
+        name: iis_application_errors
+        pattern: '"EventID":"(1309|1325|1332|1359|2268|2269|2270|2271|2272|2273|2274|2275)'
+      - type: include_at_match
+        name: aspnet_application_errors
+        pattern: '"EventID":"(1000|1001|1002|1003|1004|1005|1006|1007|1008|1009|1010)'
+      - type: include_at_match
+        name: iis_application_pool_errors
+        pattern: '"EventID":"(5002|5003|5004|5005|5006|5007|5008|5009|5010|5011|5012)'
+
+  # Security Event Log - Authentication and access events
+  - type: windows_event
+    channel_path: Security
+    source: windows.events
+    service: sccm-sql-reporting-server
     tags:
       - source:windows-security
       - role:sccm-sql-reporting-server
-    
-  # IIS specific event logs
-  - channels:
-      - path: Microsoft-Windows-IIS-W3SVC/Operational
-        type: windows_event_log
-        filters:
-          - query: '*[System[(Level=1 or Level=2 or Level=3)]]'  # Critical, Error, Warning
+    log_processing_rules:
+      - type: include_at_match
+        name: authentication_failures
+        pattern: '"EventID":"(4625|4648|4771|4776|4777|4820|4821|4822|4823|4824)'
+      - type: include_at_match
+        name: privilege_escalation_events
+        pattern: '"EventID":"(4672|4673|4674|4728|4732|4735|4737|4740|4755|4756|4794)'
+      - type: include_at_match
+        name: audit_policy_changes
+        pattern: '"EventID":"(1102|4618|4649|4719|4765|4766|4897|4964|5124)'
+      - type: include_at_match
+        name: account_management_events
+        pattern: '"EventID":"(4720|4722|4723|4724|4725|4726|4738|4781|4798|4799)'
+
+  # IIS HTTP Errors and Authentication Issues
+  - type: windows_event
+    channel_path: Microsoft-Windows-IIS-W3SVC/Operational
+    source: windows.events
+    service: sccm-sql-reporting-server
     tags:
       - source:iis-operational
       - role:sccm-sql-reporting-server
+    log_processing_rules:
+      - type: include_at_match
+        name: iis_http_errors
+        pattern: '"EventID":"(1309|1325|1359|2268|2269|2270|2271|2272|2273|2274|2275|2276|2277|2278|2279|2280)'
+      - type: include_at_match
+        name: iis_authentication_errors
+        pattern: '"EventID":"(1200|1201|1202|1203|1204|1205|1206|1207|1208|1209|1210)'
+      - type: include_at_match
+        name: iis_application_pool_events
+        pattern: '"EventID":"(5001|5002|5003|5004|5005|5006|5007|5008|5009|5010|5011|5012)'
+      - type: include_at_match
+        name: iis_worker_process_events
+        pattern: '"EventID":"(5013|5014|5015|5016|5017|5018|5019|5020|5021|5022|5023)'
+
+  # ASP.NET Events - Important for SSRS web services
+  - type: windows_event
+    channel_path: Microsoft-Windows-IIS-W3SVC-WP/Operational
+    source: windows.events
+    service: sccm-sql-reporting-server
+    tags:
+      - source:aspnet-operational
+      - role:sccm-sql-reporting-server
+    log_processing_rules:
+      - type: include_at_match
+        name: aspnet_worker_process_errors
+        pattern: '"EventID":"(2001|2002|2003|2004|2005|2006|2007|2008|2009|2010)'
+      - type: include_at_match
+        name: aspnet_compilation_errors
+        pattern: '"EventID":"(1003|1004|1005|1006|1007|1008|1009|1010|1011|1012)'
+
+  # Microsoft Defender Antivirus Events
+  - type: windows_event
+    channel_path: Microsoft-Windows-Windows Defender/Operational
+    source: windows.events
+    service: sccm-sql-reporting-server
+    tags:
+      - source:windows-defender
+      - role:sccm-sql-reporting-server
+    log_processing_rules:
+      - type: include_at_match
+        name: defender_malware_detection
+        pattern: '"EventID":"(1006|1007|1008|1009|1116|1117|1118|1119)'
+      - type: include_at_match
+        name: defender_scan_issues
+        pattern: '"EventID":"(1002|1003|1005|1012|1015)'
+
+  # PowerShell Security Events
+  - type: windows_event
+    channel_path: Microsoft-Windows-PowerShell/Operational
+    source: windows.events
+    service: sccm-sql-reporting-server
+    tags:
+      - source:powershell-operational
+      - role:sccm-sql-reporting-server
+    log_processing_rules:
+      - type: include_at_match
+        name: powershell_security_events
+        pattern: '"EventID":"(4103|4104|4105|4106)'
+
+  # Certificate Services Events - Important for SSRS SSL/TLS
+  - type: windows_event
+    channel_path: Microsoft-Windows-CertificateServicesClient-Lifecycle-System/Operational
+    source: windows.events
+    service: sccm-sql-reporting-server
+    tags:
+      - source:certificate-services
+      - role:sccm-sql-reporting-server
+    log_processing_rules:
+      - type: include_at_match
+        name: certificate_lifecycle_errors
+        pattern: '"EventID":"(1001|1002|1003|1004|1005|1006|1007|1008|1009|1010)'
+
+  # Performance Counter Events - Important for SSRS performance monitoring
+  - type: windows_event
+    channel_path: Microsoft-Windows-Kernel-Process/Operational
+    source: windows.events
+    service: sccm-sql-reporting-server
+    tags:
+      - source:kernel-process
+      - role:sccm-sql-reporting-server
+    log_processing_rules:
+      - type: include_at_match
+        name: process_performance_events
+        pattern: '"EventID":"(1|2|3|4|5|6|7|8|9|10)'
+
+  # Windows Error Reporting Events - Application crashes and hangs
+  - type: windows_event
+    channel_path: Application
+    source: windows.events
+    service: sccm-sql-reporting-server
+    tags:
+      - source:windows-error-reporting
+      - role:sccm-sql-reporting-server
+    log_processing_rules:
+      - type: include_at_match
+        name: application_crashes
+        pattern: '"EventID":"(1000|1001|1002|1004|1008|1026|1033|1034)'
+      - type: include_at_match
+        name: application_hangs
+        pattern: '"EventID":"(1002|1026)'

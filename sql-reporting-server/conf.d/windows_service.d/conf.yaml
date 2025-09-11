@@ -1,54 +1,78 @@
 # Windows Service Check Configuration for SCCM SQL Reporting Server
-# Monitors critical SQL Server Reporting Services
+# Monitors critical SQL Server Reporting Services and infrastructure services
+# Updated with proper service grouping and tagging per Datadog best practices
 
 init_config:
 
 instances:
-  # SQL Server Reporting Services
+  # SQL Server Reporting Services Core
   - services:
       - ReportServer
+      - ReportServerTempDB
     tags:
-      - service:sql-server-reporting-services
       - role:sccm-sql-reporting-server
-    
-  # SQL Server Database Engine (if local)
+      - service_group:ssrs-core
+      - environment:production
+    windows_service_startup_type_tag: true
+    collect_display_name_as_tag: true
+    disable_legacy_service_tag: true
+
+  # SQL Server Services (if local database)
   - services:
       - MSSQLSERVER
-    tags:
-      - service:sql-server-engine
-      - role:sccm-sql-reporting-server
-    
-  # SQL Server Agent (if local)
-  - services:
       - SQLSERVERAGENT
     tags:
-      - service:sql-server-agent
       - role:sccm-sql-reporting-server
-    
-  # World Wide Web Publishing Service (IIS) - For Report Manager
+      - service_group:sql-server-local
+      - environment:production
+    windows_service_startup_type_tag: true
+    collect_display_name_as_tag: true
+    disable_legacy_service_tag: true
+
+  # Web Infrastructure Services (IIS) - For Report Manager and Web Service
   - services:
       - W3SVC
-    tags:
-      - service:iis
-      - role:sccm-sql-reporting-server
-    
-  # IIS Admin Service
-  - services:
       - IISADMIN
     tags:
-      - service:iis-admin
       - role:sccm-sql-reporting-server
-    
-  # Windows Management Instrumentation
+      - service_group:web-infrastructure
+      - environment:production
+    windows_service_startup_type_tag: true
+    collect_display_name_as_tag: true
+    disable_legacy_service_tag: true
+
+  # Windows Infrastructure Services
   - services:
       - Winmgmt
-    tags:
-      - service:wmi
-      - role:sccm-sql-reporting-server
-    
-  # Windows Remote Management
-  - services:
       - WinRM
     tags:
-      - service:winrm
       - role:sccm-sql-reporting-server
+      - service_group:windows-infrastructure
+      - environment:production
+    windows_service_startup_type_tag: true
+    collect_display_name_as_tag: true
+    disable_legacy_service_tag: true
+
+  # Application Pool Services (IIS Application Pools for SSRS)
+  - services:
+      - name: WAS
+        startup_type: automatic
+    tags:
+      - role:sccm-sql-reporting-server
+      - service_group:iis-application-pools
+      - environment:production
+    windows_service_startup_type_tag: true
+    collect_display_name_as_tag: true
+    disable_legacy_service_tag: true
+
+  # Email and Notification Services (if configured)
+  - services:
+      - SMTPSVC
+      - EventSystem
+    tags:
+      - role:sccm-sql-reporting-server
+      - service_group:notification-services
+      - environment:production
+    windows_service_startup_type_tag: true
+    collect_display_name_as_tag: true
+    disable_legacy_service_tag: true

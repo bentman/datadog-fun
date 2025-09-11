@@ -1,0 +1,547 @@
+{
+  "title": "Windows Server Health - System Metrics Overview",
+  "description": "Basic Windows Server health monitoring dashboard focusing on core system metrics: CPU, Memory, Disk, Network, and Event Logs. Suitable for all Windows servers regardless of role or application.",
+  "template_variables": [
+    {
+      "name": "host",
+      "prefix": "host",
+      "available_values": [],
+      "default": "*"
+    }
+  ],
+  "layout_type": "ordered",
+  "widgets": [
+    {
+      "id": 0,
+      "definition": {
+        "type": "note",
+        "content": "# 🖥️ Windows Server Health Dashboard\n\n**Basic system health monitoring for Windows servers**\n\n📊 **CPU Usage**: System CPU utilization by host  \n🧠 **Memory Usage**: Memory utilization and availability  \n💾 **Disk Performance**: Disk I/O and space utilization  \n🌐 **Network Activity**: Network bytes sent/received  \n📝 **Event Logs**: Windows Event Log monitoring (Info, Warning, Error)  \n⏰ **Time Sync**: NTP offset monitoring  \n\n*Use the host filter above to focus on specific servers*",
+        "background_color": "vivid_green",
+        "font_size": "14",
+        "text_align": "left",
+        "vertical_align": "top",
+        "show_tick": true,
+        "tick_pos": "50%",
+        "tick_edge": "bottom",
+        "has_padding": true
+      },
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "width": 12,
+        "height": 3
+      }
+    },
+    {
+      "id": 1,
+      "definition": {
+        "type": "timeseries",
+        "requests": [
+          {
+            "q": "avg:system.cpu.system{$host} by {host}",
+            "display_type": "line",
+            "style": {
+              "palette": "dog_classic",
+              "line_type": "solid",
+              "line_width": "normal"
+            }
+          }
+        ],
+        "title": "CPU Usage - System (%)",
+        "title_size": "16",
+        "title_align": "left",
+        "yaxis": {
+          "min": "0",
+          "max": "100",
+          "scale": "linear",
+          "label": "",
+          "include_zero": true
+        },
+        "markers": [
+          {
+            "value": "y = 80",
+            "display_type": "error dashed"
+          },
+          {
+            "value": "y = 90",
+            "display_type": "error solid"
+          }
+        ],
+        "show_legend": true,
+        "legend_layout": "auto",
+        "legend_columns": ["avg", "min", "max", "value"]
+      },
+      "layout": {
+        "x": 0,
+        "y": 3,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 2,
+      "definition": {
+        "type": "timeseries",
+        "requests": [
+          {
+            "q": "avg:system.mem.pct_usable{$host} by {host}",
+            "display_type": "line",
+            "style": {
+              "palette": "dog_classic",
+              "line_type": "solid",
+              "line_width": "normal"
+            }
+          }
+        ],
+        "title": "Memory Available (%)",
+        "title_size": "16",
+        "title_align": "left",
+        "yaxis": {
+          "min": "0",
+          "max": "100",
+          "scale": "linear",
+          "label": "",
+          "include_zero": true
+        },
+        "markers": [
+          {
+            "value": "y = 20",
+            "display_type": "error dashed"
+          },
+          {
+            "value": "y = 10",
+            "display_type": "error solid"
+          }
+        ],
+        "show_legend": true,
+        "legend_layout": "auto",
+        "legend_columns": ["avg", "min", "max", "value"]
+      },
+      "layout": {
+        "x": 6,
+        "y": 3,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 3,
+      "definition": {
+        "type": "timeseries",
+        "requests": [
+          {
+            "q": "avg:system.disk.read_time{$host,device:C:} by {host}",
+            "display_type": "line",
+            "style": {
+              "palette": "dog_classic",
+              "line_type": "solid",
+              "line_width": "normal"
+            }
+          }
+        ],
+        "title": "Disk Read Time - C: Drive (ms)",
+        "title_size": "16",
+        "title_align": "left",
+        "yaxis": {
+          "min": "0",
+          "scale": "linear",
+          "label": "",
+          "include_zero": true
+        },
+        "markers": [
+          {
+            "value": "y = 20",
+            "display_type": "warning dashed"
+          },
+          {
+            "value": "y = 50",
+            "display_type": "error solid"
+          }
+        ],
+        "show_legend": true,
+        "legend_layout": "auto",
+        "legend_columns": ["avg", "min", "max", "value"]
+      },
+      "layout": {
+        "x": 0,
+        "y": 6,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 4,
+      "definition": {
+        "type": "timeseries",
+        "requests": [
+          {
+            "q": "avg:system.disk.free{$host,device:C:} by {host}",
+            "display_type": "line",
+            "style": {
+              "palette": "green",
+              "line_type": "solid",
+              "line_width": "normal"
+            }
+          },
+          {
+            "q": "avg:system.disk.used{$host,device:C:} by {host}",
+            "display_type": "line",
+            "style": {
+              "palette": "orange",
+              "line_type": "solid",
+              "line_width": "normal"
+            }
+          }
+        ],
+        "title": "Disk Space - C: Drive (GB)",
+        "title_size": "16",
+        "title_align": "left",
+        "yaxis": {
+          "min": "0",
+          "scale": "linear",
+          "label": "",
+          "include_zero": true
+        },
+        "show_legend": true,
+        "legend_layout": "auto",
+        "legend_columns": ["avg", "min", "max", "value"]
+      },
+      "layout": {
+        "x": 6,
+        "y": 6,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 5,
+      "definition": {
+        "type": "timeseries",
+        "requests": [
+          {
+            "q": "avg:system.net.bytes_rcvd{$host} by {host}",
+            "display_type": "line",
+            "style": {
+              "palette": "blue",
+              "line_type": "solid",
+              "line_width": "normal"
+            }
+          },
+          {
+            "q": "avg:system.net.bytes_sent{$host} by {host}",
+            "display_type": "line",
+            "style": {
+              "palette": "purple",
+              "line_type": "solid",
+              "line_width": "normal"
+            }
+          }
+        ],
+        "title": "Network Activity (bytes/sec)",
+        "title_size": "16",
+        "title_align": "left",
+        "yaxis": {
+          "min": "0",
+          "scale": "linear",
+          "label": "",
+          "include_zero": true
+        },
+        "show_legend": true,
+        "legend_layout": "auto",
+        "legend_columns": ["avg", "min", "max", "value"]
+      },
+      "layout": {
+        "x": 0,
+        "y": 9,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 6,
+      "definition": {
+        "type": "timeseries",
+        "requests": [
+          {
+            "q": "avg:ntp.offset{$host} by {host}",
+            "display_type": "line",
+            "style": {
+              "palette": "dog_classic",
+              "line_type": "solid",
+              "line_width": "normal"
+            }
+          }
+        ],
+        "title": "NTP Offset (seconds)",
+        "title_size": "16",
+        "title_align": "left",
+        "yaxis": {
+          "scale": "linear",
+          "label": "",
+          "include_zero": true
+        },
+        "markers": [
+          {
+            "value": "y = 5",
+            "display_type": "warning dashed"
+          },
+          {
+            "value": "y = 10",
+            "display_type": "error solid"
+          },
+          {
+            "value": "y = -5",
+            "display_type": "warning dashed"
+          },
+          {
+            "value": "y = -10",
+            "display_type": "error solid"
+          }
+        ],
+        "show_legend": true,
+        "legend_layout": "auto",
+        "legend_columns": ["avg", "min", "max", "value"]
+      },
+      "layout": {
+        "x": 6,
+        "y": 9,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 7,
+      "definition": {
+        "type": "note",
+        "content": "## 📝 Windows Event Logs\n\n**Event log monitoring across all Windows servers**\n\nMonitoring Windows Event Logs for system health indicators:",
+        "background_color": "gray",
+        "font_size": "14",
+        "text_align": "left",
+        "vertical_align": "center",
+        "show_tick": false,
+        "has_padding": true
+      },
+      "layout": {
+        "x": 0,
+        "y": 12,
+        "width": 12,
+        "height": 1
+      }
+    },
+    {
+      "id": 8,
+      "definition": {
+        "type": "event_stream",
+        "query": "sources:windows.events -status:info $host",
+        "event_size": "s",
+        "title": "Event Logs - Info Events",
+        "title_size": "16",
+        "title_align": "left"
+      },
+      "layout": {
+        "x": 0,
+        "y": 13,
+        "width": 4,
+        "height": 4
+      }
+    },
+    {
+      "id": 9,
+      "definition": {
+        "type": "event_stream",
+        "query": "sources:windows.events status:warning $host",
+        "event_size": "s",
+        "title": "Event Logs - Warning Events",
+        "title_size": "16",
+        "title_align": "left"
+      },
+      "layout": {
+        "x": 4,
+        "y": 13,
+        "width": 4,
+        "height": 4
+      }
+    },
+    {
+      "id": 10,
+      "definition": {
+        "type": "event_stream",
+        "query": "sources:windows.events status:error $host",
+        "event_size": "s",
+        "title": "Event Logs - Error Events",
+        "title_size": "16",
+        "title_align": "left"
+      },
+      "layout": {
+        "x": 8,
+        "y": 13,
+        "width": 4,
+        "height": 4
+      }
+    },
+    {
+      "id": 11,
+      "definition": {
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "avg:system.cpu.system{$host}",
+            "aggregator": "avg"
+          }
+        ],
+        "title": "Avg CPU Usage",
+        "title_size": "16",
+        "title_align": "left",
+        "precision": 1,
+        "text_align": "center",
+        "custom_links": [],
+        "conditional_formats": [
+          {
+            "comparator": ">",
+            "value": 90,
+            "palette": "red_on_white"
+          },
+          {
+            "comparator": ">",
+            "value": 80,
+            "palette": "yellow_on_white"
+          },
+          {
+            "comparator": "<=",
+            "value": 80,
+            "palette": "green_on_white"
+          }
+        ]
+      },
+      "layout": {
+        "x": 0,
+        "y": 17,
+        "width": 3,
+        "height": 2
+      }
+    },
+    {
+      "id": 12,
+      "definition": {
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "avg:system.mem.pct_usable{$host}",
+            "aggregator": "avg"
+          }
+        ],
+        "title": "Avg Memory Available",
+        "title_size": "16",
+        "title_align": "left",
+        "precision": 1,
+        "text_align": "center",
+        "custom_links": [],
+        "conditional_formats": [
+          {
+            "comparator": "<",
+            "value": 10,
+            "palette": "red_on_white"
+          },
+          {
+            "comparator": "<",
+            "value": 20,
+            "palette": "yellow_on_white"
+          },
+          {
+            "comparator": ">=",
+            "value": 20,
+            "palette": "green_on_white"
+          }
+        ]
+      },
+      "layout": {
+        "x": 3,
+        "y": 17,
+        "width": 3,
+        "height": 2
+      }
+    },
+    {
+      "id": 13,
+      "definition": {
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "avg:system.disk.free{$host,device:C:}",
+            "aggregator": "avg"
+          }
+        ],
+        "title": "Avg Disk Free (GB)",
+        "title_size": "16",
+        "title_align": "left",
+        "precision": 1,
+        "text_align": "center",
+        "custom_links": [],
+        "conditional_formats": [
+          {
+            "comparator": "<",
+            "value": 5,
+            "palette": "red_on_white"
+          },
+          {
+            "comparator": "<",
+            "value": 10,
+            "palette": "yellow_on_white"
+          },
+          {
+            "comparator": ">=",
+            "value": 10,
+            "palette": "green_on_white"
+          }
+        ]
+      },
+      "layout": {
+        "x": 6,
+        "y": 17,
+        "width": 3,
+        "height": 2
+      }
+    },
+    {
+      "id": 14,
+      "definition": {
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "count:windows.events{$host,status:error}",
+            "aggregator": "sum"
+          }
+        ],
+        "title": "Error Events (24h)",
+        "title_size": "16",
+        "title_align": "left",
+        "precision": 0,
+        "text_align": "center",
+        "custom_links": [],
+        "conditional_formats": [
+          {
+            "comparator": ">",
+            "value": 50,
+            "palette": "red_on_white"
+          },
+          {
+            "comparator": ">",
+            "value": 10,
+            "palette": "yellow_on_white"
+          },
+          {
+            "comparator": "<=",
+            "value": 10,
+            "palette": "green_on_white"
+          }
+        ]
+      },
+      "layout": {
+        "x": 9,
+        "y": 17,
+        "width": 3,
+        "height": 2
+      }
+    }
+  ]
+}

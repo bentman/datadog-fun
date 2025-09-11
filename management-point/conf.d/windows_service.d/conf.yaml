@@ -1,54 +1,66 @@
 # Windows Service Check Configuration for SCCM Management Point
 # Monitors critical services for Management Point functionality
+# Updated with proper service grouping and tagging per Datadog best practices
 
 init_config:
 
 instances:
-  # World Wide Web Publishing Service (IIS) - Critical for MP
+  # Web Infrastructure Services (IIS) - Critical for Management Point
   - services:
       - W3SVC
-    tags:
-      - service:iis
-      - role:sccm-management-point
-    
-  # IIS Admin Service
-  - services:
       - IISADMIN
     tags:
-      - service:iis-admin
       - role:sccm-management-point
-    
-  # Windows Management Instrumentation - Critical for client communication
+      - service_group:web-infrastructure
+      - environment:production
+    windows_service_startup_type_tag: true
+    collect_display_name_as_tag: true
+    disable_legacy_service_tag: true
+
+  # Windows Infrastructure Services - Critical for client communication
   - services:
       - Winmgmt
-    tags:
-      - service:wmi
-      - role:sccm-management-point
-    
-  # Background Intelligent Transfer Service
-  - services:
+      - WinRM
       - BITS
     tags:
-      - service:bits
       - role:sccm-management-point
-    
-  # Windows Remote Management
-  - services:
-      - WinRM
-    tags:
-      - service:winrm
-      - role:sccm-management-point
-    
-  # SMS MP Control Manager (if collocated with site server)
+      - service_group:windows-infrastructure
+      - environment:production
+    windows_service_startup_type_tag: true
+    collect_display_name_as_tag: true
+    disable_legacy_service_tag: true
+
+  # SCCM Management Point Services
   - services:
       - SMS_MP_CONTROL_MANAGER
     tags:
-      - service:sms-mp-control-manager
       - role:sccm-management-point
-    
-  # HTTP SSL (if using HTTPS)
+      - service_group:sccm-management-point
+      - environment:production
+    windows_service_startup_type_tag: true
+    collect_display_name_as_tag: true
+    disable_legacy_service_tag: true
+
+  # Security and SSL Services (if using HTTPS)
   - services:
       - HTTPFilter
+      - CertSvc
     tags:
-      - service:http-ssl
       - role:sccm-management-point
+      - service_group:security-ssl
+      - environment:production
+    windows_service_startup_type_tag: true
+    collect_display_name_as_tag: true
+    disable_legacy_service_tag: true
+
+  # Application Pool Services (IIS Application Pools)
+  - services:
+      - name: WAS
+        startup_type: automatic
+    tags:
+      - role:sccm-management-point
+      - service_group:iis-application-pools
+      - environment:production
+    windows_service_startup_type_tag: true
+    collect_display_name_as_tag: true
+    disable_legacy_service_tag: true

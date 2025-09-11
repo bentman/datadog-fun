@@ -1,20 +1,16 @@
 <#
 .SYNOPSIS
-    Deploys Datadog monitoring configurations to SCCM servers with support for Windows Authentication alternatives.
+    Deploys Datadog monitoring configurations to SCCM servers using Windows Authentication.
 
 .DESCRIPTION
     This script automates the deployment of Datadog monitoring configurations to SCCM infrastructure servers.
-    It supports both standard SQL Server authentication and Windows Authentication alternatives for environments
-    with service account policy restrictions.
+    All SQL Server connections use Windows Authentication (Trusted_Connection=yes) for enhanced security.
 
 .PARAMETER ConfigPath
     Path to the configuration files directory. Defaults to script root directory.
 
 .PARAMETER ServerConfig
     Path to the servers.json configuration file. Defaults to servers.json in script root.
-
-.PARAMETER UseWindowsAuth
-    Use Windows Authentication alternatives for SQL Server connections instead of service accounts.
 
 .PARAMETER BackupConfigs
     Create backup of existing configurations before deployment. Default is $true.
@@ -27,24 +23,20 @@
 
 .EXAMPLE
     .\Deploy-DatadogConfigs.ps1
-    Standard deployment with service accounts, creates backups, and restarts services.
+    Deploy configurations with Windows Authentication, creates backups, and restarts services.
 
 .EXAMPLE
-    .\Deploy-DatadogConfigs.ps1 -UseWindowsAuth -TestMode $true
-    Test Windows Authentication deployment without making changes.
+    .\Deploy-DatadogConfigs.ps1 -TestMode $true
+    Test deployment without making changes.
 
 .EXAMPLE
     .\Deploy-DatadogConfigs.ps1 -BackupConfigs $false -RestartService $false
     Deploy without creating backups or restarting services.
 
-.EXAMPLE
-    .\Deploy-DatadogConfigs.ps1 -UseWindowsAuth
-    Deploy using Windows Authentication alternatives for SQL Server connections.
-
 .NOTES
     - Script must be run as Administrator
     - Agent service account must have log file read permissions
-    - For Windows Authentication, Datadog Agent service account needs SQL Server access
+    - Datadog Agent service account needs SQL Server access for Windows Authentication
 #>
 
 [CmdletBinding()]
@@ -52,8 +44,6 @@ param(
     [Parameter(Mandatory = $false)] [string]$ConfigPath,
     
     [Parameter(Mandatory = $false)] [string]$ServerConfig,
-    
-    [Parameter(Mandatory = $false)] [switch]$UseWindowsAuth = $false,
     
     [Parameter(Mandatory = $false)] [bool]$BackupConfigs = $true,
     
@@ -70,9 +60,8 @@ if (-not $ServerConfig) { $ServerConfig = Join-Path $PSScriptRoot "servers.json"
 $LogsDir = Join-Path $PSScriptRoot "_LOGS"
 if (-not (Test-Path $LogsDir)) { New-Item -Path $LogsDir -ItemType Directory -Force | Out-Null }
 
-# Set log file based on deployment mode
-if ($UseWindowsAuth) { $LogFile = Join-Path $LogsDir "Datadog_DeployConfigsAltAuth-$(Get-Date -Format 'yyyyMMdd-HHmmss').log" }
-else { $LogFile = Join-Path $LogsDir "Datadog_DeployConfigs-$(Get-Date -Format 'yyyyMMdd-HHmmss').log" }
+# Set log file
+$LogFile = Join-Path $LogsDir "Datadog_DeployConfigs-$(Get-Date -Format 'yyyyMMdd-HHmmss').log"
 
 # Default Datadog Windows service name (default service name used by the agent)
 $DatadogServiceName = "DatadogAgent"
@@ -84,35 +73,30 @@ $RoleConfigurations = @{
         "ConfigDir"         = "site-server"
         "TargetPath"        = "C:\ProgramData\Datadog"
         "RequiresRestart"   = $true
-        "HasWindowsAuthAlt" = $false
     }
     "management-point"     = @{
         "Description"       = "SCCM Management Point Server"
         "ConfigDir"         = "management-point"
         "TargetPath"        = "C:\ProgramData\Datadog"
         "RequiresRestart"   = $true
-        "HasWindowsAuthAlt" = $false
     }
     "distribution-point"   = @{
         "Description"       = "SCCM Distribution Point Server"
         "ConfigDir"         = "distribution-point"
         "TargetPath"        = "C:\ProgramData\Datadog"
         "RequiresRestart"   = $true
-        "HasWindowsAuthAlt" = $false
     }
     "sql-server"           = @{
         "Description"       = "SCCM SQL Database Server"
         "ConfigDir"         = "sql-server"
         "TargetPath"        = "C:\ProgramData\Datadog"
         "RequiresRestart"   = $true
-        "HasWindowsAuthAlt" = $true
     }
     "sql-reporting-server" = @{
         "Description"       = "SQL Reporting Services Server"
         "ConfigDir"         = "sql-reporting-server"
         "TargetPath"        = "C:\ProgramData\Datadog"
         "RequiresRestart"   = $true
-        "HasWindowsAuthAlt" = $true
     }
 }
 
@@ -208,53 +192,9 @@ function Get-ConfigurationSource {
         Write-Log "Configuration source path not found: $sourcePath" "ERROR"
         return $null
     }
-    if ($UseWindowsAuth -and $RoleConfigurations[$Role]['HasWindowsAuthAlt']) {
-        Write-Log "Using Windows Authentication alternative configuration for $Role"
-        # For SQL roles, we need to handle the alternative files
-        if ($Role -eq "sql-server" -or $Role -eq "sql-reporting-server") {
-            $altConfigPath = Join-Path $sourcePath "conf.d\sqlserver.d\conf.yaml.alt"
-            if ($TestMode) {
-                # In TestMode, validate the alternative config exists and return source path
-                if (Test-Path $altConfigPath) {
-                    Write-Log "TEST MODE: Windows Auth alternative config found: $altConfigPath" "INFO"
-                    Write-Log "TEST MODE: Would create temporary directory and replace conf.yaml with .alt version" "INFO"
-                    # Validate alternative config syntax
-                    try {
-                        $altContent = Get-Content $altConfigPath -Raw
-                        if ($altContent -match "Trusted_Connection\s*:\s*yes") {
-                            Write-Log "TEST MODE: Alternative config contains Windows Authentication settings" "INFO"
-                        }
-                        else { Write-Log "TEST MODE: Alternative config may not contain proper Windows Authentication settings" "WARNING" }
-                    }
-                    catch { Write-Log "TEST MODE: Could not validate alternative config syntax: $($_.Exception.Message)" "WARNING" }
-                }
-                else {
-                    Write-Log "TEST MODE: Windows Auth alternative not found: $altConfigPath" "ERROR"
-                    return $null
-                }
-                return $sourcePath
-            }
-            # Create a temporary directory with the alternative configuration
-            $tempPath = Join-Path $env:TEMP "datadog-winauth-$Role-$(Get-Date -Format 'yyyyMMddHHmmss')"
-            New-Item -Path $tempPath -ItemType Directory -Force | Out-Null
-            # Copy all files from source
-            Copy-Item -Path "$sourcePath\*" -Destination $tempPath -Recurse -Verbose -Force
-            # Replace the main SQL Server config with the alternative
-            $targetConfigPath = Join-Path $tempPath "conf.d\sqlserver.d\conf.yaml"
-            if (Test-Path $altConfigPath) {
-                Copy-Item -Path $altConfigPath -Destination $targetConfigPath -Verbose -Force
-                Write-Log "Replaced SQL Server config with Windows Auth alternative"
-            }
-            else { 
-                Write-Log "Windows Auth alternative not found: $altConfigPath" "ERROR"
-                return $null
-            }
-            return $tempPath
-        }
-    }
-    elseif ($UseWindowsAuth -and -not $RoleConfigurations[$Role]['HasWindowsAuthAlt']) {
-        Write-Log "Windows Authentication requested but no alternative available for role: $Role" "WARNING"
-    }
+    
+    # All configurations now use Windows Authentication by default
+    Write-Log "Using Windows Authentication configuration for $Role"
     return $sourcePath
 }
 
@@ -463,30 +403,26 @@ function Show-PostDeploymentInfo {
     Write-Log "`n========================================" "INFO"
     Write-Log "DEPLOYMENT SUMMARY" "INFO"
     Write-Log "========================================" "INFO"
-    Write-Log "Deployment Mode: $(if ($UseWindowsAuth) { 'Windows Authentication' } else { 'Standard Authentication' })" "INFO"
+    Write-Log "Deployment Mode: Windows Authentication" "INFO"
     Write-Log "Test Mode: $TestMode" "INFO"
     Write-Log "Backup Created: $BackupConfigs" "INFO"
     Write-Log "Service Restarted: $RestartService" "INFO"
     
-    if ($UseWindowsAuth) {
-        Write-Log "`nWindows Authentication Alternative Deployment Complete" "SUCCESS"
-        Write-Log "`nIMPORTANT NOTES FOR WINDOWS AUTHENTICATION:" "INFO"
-        Write-Log "- Verify Datadog Agent service account has SQL Server access" "INFO"
-        Write-Log "- Check that Windows Authentication is enabled on SQL Server" "INFO"
-        Write-Log "- Monitor agent logs for authentication issues" "INFO"
-        Write-Log "- Use 'auth:windows' tag to identify these deployments in Datadog" "INFO"
-        Write-Log "`nAdditional Resources:" "INFO"
-        Write-Log "- Deployment logs: $LogFile" "INFO"
-        Write-Log "- Agent status: Run 'Get-Service $DatadogServiceName' on target servers" "INFO"
-        Write-Log "- Configuration validation: Check agent.exe status on each server" "INFO"
-    }
-    else {
-        Write-Log "`nStandard Configuration Deployment Complete" "SUCCESS"
-        Write-Log "NEXT STEPS:" "INFO"
-        Write-Log "1. Update SQL Server credentials in deployed configurations" "INFO"
-        Write-Log "2. Replace 'YOUR_API_KEY_HERE' with actual Datadog API key" "INFO"
-        Write-Log "3. Verify Datadog Agent connectivity to Datadog endpoints" "INFO"
-        Write-Log "4. Check metrics collection in Datadog dashboard" "INFO"
+    Write-Log "`nWindows Authentication Deployment Complete" "SUCCESS"
+    Write-Log "`nIMPORTANT NOTES FOR WINDOWS AUTHENTICATION:" "INFO"
+    Write-Log "- Verify Datadog Agent service account has SQL Server access" "INFO"
+    Write-Log "- Check that Windows Authentication is enabled on SQL Server" "INFO"
+    Write-Log "- Monitor agent logs for authentication issues" "INFO"
+    Write-Log "- Use 'auth:windows' tag to identify these deployments in Datadog" "INFO"
+    Write-Log "`nAdditional Resources:" "INFO"
+    Write-Log "- Deployment logs: $LogFile" "INFO"
+    Write-Log "- Agent status: Run 'Get-Service $DatadogServiceName' on target servers" "INFO"
+    Write-Log "- Configuration validation: Check agent.exe status on each server" "INFO"
+    
+    Write-Log "NEXT STEPS:" "INFO"
+        Write-Log "1. Replace 'YOUR_API_KEY_HERE' with actual Datadog API key" "INFO"
+        Write-Log "2. Verify Datadog Agent connectivity to Datadog endpoints" "INFO"
+        Write-Log "3. Check metrics collection in Datadog dashboard" "INFO"
         Write-Log "`nAdditional Resources:" "INFO"
         Write-Log "- Deployment logs: $LogFile" "INFO"
         Write-Log "- Configuration templates: $ConfigPath" "INFO"
@@ -531,7 +467,7 @@ try {
     Write-Log "`nPARAMETERS:" "INFO"
     Write-Log "- ConfigPath: $ConfigPath" "INFO"
     Write-Log "- ServerConfig: $ServerConfig" "INFO"
-    Write-Log "- UseWindowsAuth: $UseWindowsAuth" "INFO"
+    Write-Log "- Windows Authentication: Enabled (default)" "INFO"
     Write-Log "- BackupConfigs: $BackupConfigs" "INFO"
     Write-Log "- RestartService: $RestartService" "INFO"
     Write-Log "- TestMode: $TestMode" "INFO"

@@ -1,54 +1,67 @@
 # Windows Service Check Configuration for SCCM SQL Server
-# Monitors critical SQL Server services
+# Monitors critical SQL Server and infrastructure services
+# Updated with proper service grouping and tagging per Datadog best practices
 
 init_config:
 
 instances:
-  # SQL Server Database Engine
+  # Core SQL Server Services
   - services:
       - MSSQLSERVER
-    tags:
-      - service:sql-server-engine
-      - role:sccm-sql-server
-    
-  # SQL Server Agent
-  - services:
       - SQLSERVERAGENT
     tags:
-      - service:sql-server-agent
       - role:sccm-sql-server
-    
-  # SQL Server Browser (if multiple instances)
+      - service_group:sql-server-core
+      - environment:production
+    windows_service_startup_type_tag: true
+    collect_display_name_as_tag: true
+    disable_legacy_service_tag: true
+
+  # SQL Server Support Services
   - services:
       - SQLBrowser
-    tags:
-      - service:sql-server-browser
-      - role:sccm-sql-server
-    
-  # SQL Server VSS Writer
-  - services:
       - SQLWriter
-    tags:
-      - service:sql-server-vss-writer
-      - role:sccm-sql-server
-    
-  # Windows Management Instrumentation
-  - services:
-      - Winmgmt
-    tags:
-      - service:wmi
-      - role:sccm-sql-server
-    
-  # Windows Remote Management
-  - services:
-      - WinRM
-    tags:
-      - service:winrm
-      - role:sccm-sql-server
-    
-  # Distributed Transaction Coordinator
-  - services:
       - MSDTC
     tags:
-      - service:msdtc
       - role:sccm-sql-server
+      - service_group:sql-server-support
+      - environment:production
+    windows_service_startup_type_tag: true
+    collect_display_name_as_tag: true
+    disable_legacy_service_tag: true
+
+  # Windows Infrastructure Services
+  - services:
+      - Winmgmt
+      - WinRM
+    tags:
+      - role:sccm-sql-server
+      - service_group:windows-infrastructure
+      - environment:production
+    windows_service_startup_type_tag: true
+    collect_display_name_as_tag: true
+    disable_legacy_service_tag: true
+
+  # SQL Server Named Instances (if applicable)
+  - services:
+      - name: MSSQL\$.*
+        startup_type: automatic
+    tags:
+      - role:sccm-sql-server
+      - service_group:sql-server-named-instances
+      - environment:production
+    windows_service_startup_type_tag: true
+    collect_display_name_as_tag: true
+    disable_legacy_service_tag: true
+
+  # SQL Server Always On Services (if applicable)
+  - services:
+      - MSSQLSERVER_HADR
+      - SQLSERVERAGENT_HADR
+    tags:
+      - role:sccm-sql-server
+      - service_group:sql-server-alwayson
+      - environment:production
+    windows_service_startup_type_tag: true
+    collect_display_name_as_tag: true
+    disable_legacy_service_tag: true

@@ -1,91 +1,77 @@
-# SQL Server Check Configuration for SCCM Reporting Server
-# Monitors SQL Server Reporting Services database and performance
+# SQL Server Check Configuration for SCCM Reporting Server (Windows Authentication Alternative)
+# Monitors SQL Server Reporting Services database and performance without username/password
+# Uses Windows Authentication with minimal viable configuration
 
 init_config:
 
 instances:
-  # Main SQL Server instance monitoring for Reporting Services
+  # Main SQL Server instance monitoring for Reporting Services with Windows Authentication
   - host: localhost,1433
-    username: datadog_monitoring_user
-    password: YOUR_SQL_MONITORING_PASSWORD
+    connection_string: "Trusted_Connection=yes"
     connector: odbc
     driver: ODBC Driver 18 for SQL Server
     tags:
       - role:sccm-sql-reporting-server
       - database:reportserver
+      - auth:windows
     
-    # Database Monitoring Configuration
-    dbm: true
-    query_metrics:
-      enabled: true
-      run_sync: false
-      collection_interval: 10
-    query_activity:
-      enabled: true
-      collection_interval: 10
+    # Basic Database Monitoring Configuration (simplified)
+    dbm: false  # Disabled to reduce authentication requirements
     
-    # Custom queries for SSRS-specific monitoring
+    # Essential custom queries for SSRS monitoring (basic level)
     custom_queries:
-      # ReportServer Database Size
+      # Basic ReportServer Database Check
       - query: |
           SELECT 
             'ReportServer' as database_name,
-            SUM(CAST(FILEPROPERTY(name, 'SpaceUsed') AS bigint) * 8192.) as used_space_bytes,
-            SUM(size * 8192.) as allocated_space_bytes
-          FROM ReportServer.sys.database_files
-          WHERE type IN (0,1)
+            COUNT(*) as table_count
+          FROM INFORMATION_SCHEMA.TABLES
+          WHERE TABLE_CATALOG = 'ReportServer'
         columns:
           - name: database_name
             type: tag
-          - name: used_space_bytes
-            type: gauge
-          - name: allocated_space_bytes
+          - name: table_count
             type: gauge
         tags:
-          - query:reportserver_database_size
+          - query:reportserver_basic_check
       
-      # ReportServerTempDB Database Size
+      # Basic ReportServerTempDB Check
       - query: |
           SELECT 
             'ReportServerTempDB' as database_name,
-            SUM(CAST(FILEPROPERTY(name, 'SpaceUsed') AS bigint) * 8192.) as used_space_bytes,
-            SUM(size * 8192.) as allocated_space_bytes
-          FROM ReportServerTempDB.sys.database_files
-          WHERE type IN (0,1)
+            COUNT(*) as table_count
+          FROM INFORMATION_SCHEMA.TABLES
+          WHERE TABLE_CATALOG = 'ReportServerTempDB'
         columns:
           - name: database_name
             type: tag
-          - name: used_space_bytes
-            type: gauge
-          - name: allocated_space_bytes
+          - name: table_count
             type: gauge
         tags:
-          - query:reportserver_tempdb_size
+          - query:reportserver_tempdb_check
       
-      # Report Execution Statistics
+      # SQL Server Basic Health Check
       - query: |
           SELECT 
-            COUNT(*) as total_reports,
-            SUM(CASE WHEN TimeEnd > DATEADD(hour, -1, GETDATE()) THEN 1 ELSE 0 END) as reports_last_hour,
-            AVG(DATEDIFF(ms, TimeStart, TimeEnd)) as avg_execution_time_ms
-          FROM ReportServer.dbo.ExecutionLog3
-          WHERE TimeStart > DATEADD(day, -1, GETDATE())
+            @@SERVERNAME as server_name,
+            @@VERSION as sql_version,
+            GETDATE() as current_time
         columns:
-          - name: total_reports
-            type: gauge
-          - name: reports_last_hour
-            type: gauge
-          - name: avg_execution_time_ms
-            type: gauge
+          - name: server_name
+            type: tag
+          - name: sql_version
+            type: tag
+          - name: current_time
+            type: tag
         tags:
-          - query:ssrs_execution_stats
+          - query:sql_server_info
     
-    # Performance counters
+    # Performance counters (essential only)
     include_task_scheduler_metrics: false
-    include_db_fragmentation_metrics: true
+    include_db_fragmentation_metrics: false  # Requires additional permissions
     include_fci_metrics: false
     
-    # Log collection
+    # Log collection (SSRS logs)
     logs:
       - type: file
         path: C:\Program Files\Microsoft SQL Server\MSRS13.MSSQLSERVER\Reporting Services\LogFiles\ReportServerService*.log
@@ -95,6 +81,9 @@ instances:
           - type: multi_line
             name: new_log_start_with_timestamp
             pattern: \w+\s+\d{2}\s+\d{2}:\d{2}:\d{2}
+        tags:
+          - auth:windows
+          - role:sccm-sql-reporting-server
       
       - type: file
         path: C:\Program Files\Microsoft SQL Server\MSRS13.MSSQLSERVER\Reporting Services\LogFiles\ReportServerWebApp*.log
@@ -104,3 +93,29 @@ instances:
           - type: multi_line
             name: new_log_start_with_timestamp
             pattern: \w+\s+\d{2}\s+\d{2}:\d{2}:\d{2}
+        tags:
+          - auth:windows
+          - role:sccm-sql-reporting-server
+      
+      # Basic SQL Server logs for reporting server
+      - type: file
+        path: C:\Program Files\Microsoft SQL Server\MSSQL15.MSSQLSERVER\MSSQL\Log\ERRORLOG
+        source: sqlserver
+        service: sqlserver-reporting
+        log_processing_rules:
+          - type: multi_line
+            name: new_log_start_with_date
+            pattern: \d{4}-\d{2}-\d{2}
+        tags:
+          - auth:windows
+          - role:sccm-sql-reporting-server
+
+# Alternative configuration notes:
+# 1. Uses Windows Authentication (Trusted_Connection=yes) instead of username/password
+# 2. DBM disabled to reduce permission requirements
+# 3. Simplified custom queries using INFORMATION_SCHEMA views (more accessible)
+# 4. Essential performance counters only
+# 5. SSRS log collection maintained
+# 6. Added auth:windows tag for identification
+# 7. Basic SQL Server health monitoring included
+# 8. Suitable for environments where service accounts cannot be used

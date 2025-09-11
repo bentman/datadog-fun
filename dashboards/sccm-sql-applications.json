@@ -1,0 +1,622 @@
+{
+  "title": "SCCM & SQL Applications - Service Health Overview",
+  "description": "Application-focused dashboard for SCCM and SQL Server services, monitoring service health, application performance, and error events by role category. Basic configuration suitable for customization.",
+  "template_variables": [
+    {
+      "name": "host",
+      "prefix": "host",
+      "available_values": [],
+      "default": "*"
+    },
+    {
+      "name": "role",
+      "prefix": "role",
+      "available_values": [
+        "sccm-site-server",
+        "sccm-sql-server", 
+        "sccm-sql-reporting-server",
+        "sccm-management-point",
+        "sccm-distribution-point"
+      ],
+      "default": "*"
+    }
+  ],
+  "layout_type": "ordered",
+  "widgets": [
+    {
+      "id": 0,
+      "definition": {
+        "type": "note",
+        "content": "# 🏢 SCCM & SQL Applications Dashboard\n\n**Application and service health monitoring for SCCM infrastructure**\n\n🔧 **Service Health**: Windows service status by role category  \n🗄️ **SQL Performance**: Database and reporting service metrics  \n🌐 **IIS Performance**: Web services for Management/Distribution Points  \n📝 **Error Events**: Application error monitoring by role  \n⚡ **Performance**: Key application performance indicators  \n\n*Use template variables above to filter by specific hosts or roles*",
+        "background_color": "vivid_blue",
+        "font_size": "14",
+        "text_align": "left",
+        "vertical_align": "top",
+        "show_tick": true,
+        "tick_pos": "50%",
+        "tick_edge": "bottom",
+        "has_padding": true
+      },
+      "layout": {
+        "x": 0,
+        "y": 0,
+        "width": 12,
+        "height": 3
+      }
+    },
+    {
+      "id": 1,
+      "definition": {
+        "type": "note",
+        "content": "## 🔧 Service Health by Role",
+        "background_color": "gray",
+        "font_size": "14",
+        "text_align": "left",
+        "vertical_align": "center",
+        "show_tick": false,
+        "has_padding": true
+      },
+      "layout": {
+        "x": 0,
+        "y": 3,
+        "width": 12,
+        "height": 1
+      }
+    },
+    {
+      "id": 2,
+      "definition": {
+        "type": "check_status",
+        "title": "Site Server Services",
+        "title_size": "16",
+        "title_align": "left",
+        "check": "windows_service.state",
+        "grouping": "cluster",
+        "group_by": ["host", "service_group"],
+        "tags": ["role:sccm-site-server", "$host"]
+      },
+      "layout": {
+        "x": 0,
+        "y": 4,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 3,
+      "definition": {
+        "type": "check_status",
+        "title": "SQL Server Services",
+        "title_size": "16",
+        "title_align": "left",
+        "check": "windows_service.state",
+        "grouping": "cluster",
+        "group_by": ["host", "service_group"],
+        "tags": ["role:sccm-sql-server", "$host"]
+      },
+      "layout": {
+        "x": 6,
+        "y": 4,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 4,
+      "definition": {
+        "type": "check_status",
+        "title": "Management Point Services",
+        "title_size": "16",
+        "title_align": "left",
+        "check": "windows_service.state",
+        "grouping": "cluster",
+        "group_by": ["host", "service_group"],
+        "tags": ["role:sccm-management-point", "$host"]
+      },
+      "layout": {
+        "x": 0,
+        "y": 7,
+        "width": 4,
+        "height": 3
+      }
+    },
+    {
+      "id": 5,
+      "definition": {
+        "type": "check_status",
+        "title": "Distribution Point Services",
+        "title_size": "16",
+        "title_align": "left",
+        "check": "windows_service.state",
+        "grouping": "cluster",
+        "group_by": ["host", "service_group"],
+        "tags": ["role:sccm-distribution-point", "$host"]
+      },
+      "layout": {
+        "x": 4,
+        "y": 7,
+        "width": 4,
+        "height": 3
+      }
+    },
+    {
+      "id": 6,
+      "definition": {
+        "type": "check_status",
+        "title": "SQL Reporting Services",
+        "title_size": "16",
+        "title_align": "left",
+        "check": "windows_service.state",
+        "grouping": "cluster",
+        "group_by": ["host", "service_group"],
+        "tags": ["role:sccm-sql-reporting-server", "$host"]
+      },
+      "layout": {
+        "x": 8,
+        "y": 7,
+        "width": 4,
+        "height": 3
+      }
+    },
+    {
+      "id": 7,
+      "definition": {
+        "type": "note",
+        "content": "## 🗄️ SQL Server Performance",
+        "background_color": "gray",
+        "font_size": "14",
+        "text_align": "left",
+        "vertical_align": "center",
+        "show_tick": false,
+        "has_padding": true
+      },
+      "layout": {
+        "x": 0,
+        "y": 10,
+        "width": 12,
+        "height": 1
+      }
+    },
+    {
+      "id": 8,
+      "definition": {
+        "type": "timeseries",
+        "requests": [
+          {
+            "q": "avg:sqlserver.stats.connections{$host,role:sccm-sql-server} by {host}",
+            "display_type": "line",
+            "style": {
+              "palette": "dog_classic",
+              "line_type": "solid",
+              "line_width": "normal"
+            }
+          }
+        ],
+        "title": "SQL Server Connections",
+        "title_size": "16",
+        "title_align": "left",
+        "yaxis": {
+          "min": "0",
+          "scale": "linear",
+          "include_zero": true
+        },
+        "show_legend": true,
+        "legend_layout": "auto",
+        "legend_columns": ["avg", "min", "max", "value"]
+      },
+      "layout": {
+        "x": 0,
+        "y": 11,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 9,
+      "definition": {
+        "type": "timeseries",
+        "requests": [
+          {
+            "q": "avg:sqlserver.stats.batch_requests{$host,role:sccm-sql-server} by {host}",
+            "display_type": "line",
+            "style": {
+              "palette": "dog_classic",
+              "line_type": "solid",
+              "line_width": "normal"
+            }
+          }
+        ],
+        "title": "SQL Server Batch Requests/sec",
+        "title_size": "16",
+        "title_align": "left",
+        "yaxis": {
+          "min": "0",
+          "scale": "linear",
+          "include_zero": true
+        },
+        "show_legend": true,
+        "legend_layout": "auto",
+        "legend_columns": ["avg", "min", "max", "value"]
+      },
+      "layout": {
+        "x": 6,
+        "y": 11,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 10,
+      "definition": {
+        "type": "note",
+        "content": "## 🌐 IIS Performance",
+        "background_color": "gray",
+        "font_size": "14",
+        "text_align": "left",
+        "vertical_align": "center",
+        "show_tick": false,
+        "has_padding": true
+      },
+      "layout": {
+        "x": 0,
+        "y": 14,
+        "width": 12,
+        "height": 1
+      }
+    },
+    {
+      "id": 11,
+      "definition": {
+        "type": "timeseries",
+        "requests": [
+          {
+            "q": "avg:iis.requests_per_sec{$host,role:sccm-management-point} by {host}",
+            "display_type": "line",
+            "style": {
+              "palette": "blue",
+              "line_type": "solid",
+              "line_width": "normal"
+            }
+          },
+          {
+            "q": "avg:iis.requests_per_sec{$host,role:sccm-distribution-point} by {host}",
+            "display_type": "line",
+            "style": {
+              "palette": "green",
+              "line_type": "solid",
+              "line_width": "normal"
+            }
+          }
+        ],
+        "title": "IIS Requests/sec (MP & DP)",
+        "title_size": "16",
+        "title_align": "left",
+        "yaxis": {
+          "min": "0",
+          "scale": "linear",
+          "include_zero": true
+        },
+        "show_legend": true,
+        "legend_layout": "auto",
+        "legend_columns": ["avg", "min", "max", "value"]
+      },
+      "layout": {
+        "x": 0,
+        "y": 15,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 12,
+      "definition": {
+        "type": "timeseries",
+        "requests": [
+          {
+            "q": "avg:iis.errors_per_sec{$host,$role} by {host,role}",
+            "display_type": "line",
+            "style": {
+              "palette": "warm",
+              "line_type": "solid",
+              "line_width": "normal"
+            }
+          }
+        ],
+        "title": "IIS Errors/sec by Role",
+        "title_size": "16",
+        "title_align": "left",
+        "yaxis": {
+          "min": "0",
+          "scale": "linear",
+          "include_zero": true
+        },
+        "show_legend": true,
+        "legend_layout": "auto",
+        "legend_columns": ["avg", "min", "max", "value"]
+      },
+      "layout": {
+        "x": 6,
+        "y": 15,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 13,
+      "definition": {
+        "type": "note",
+        "content": "## 📝 Application Error Events by Role",
+        "background_color": "gray",
+        "font_size": "14",
+        "text_align": "left",
+        "vertical_align": "center",
+        "show_tick": false,
+        "has_padding": true
+      },
+      "layout": {
+        "x": 0,
+        "y": 18,
+        "width": 12,
+        "height": 1
+      }
+    },
+    {
+      "id": 14,
+      "definition": {
+        "type": "event_stream",
+        "query": "sources:windows.events status:error role:sccm-site-server $host",
+        "event_size": "s",
+        "title": "Site Server - Error Events",
+        "title_size": "16",
+        "title_align": "left"
+      },
+      "layout": {
+        "x": 0,
+        "y": 19,
+        "width": 6,
+        "height": 4
+      }
+    },
+    {
+      "id": 15,
+      "definition": {
+        "type": "event_stream",
+        "query": "sources:windows.events status:error role:sccm-sql-server $host",
+        "event_size": "s",
+        "title": "SQL Server - Error Events",
+        "title_size": "16",
+        "title_align": "left"
+      },
+      "layout": {
+        "x": 6,
+        "y": 19,
+        "width": 6,
+        "height": 4
+      }
+    },
+    {
+      "id": 16,
+      "definition": {
+        "type": "event_stream",
+        "query": "sources:windows.events status:error role:sccm-management-point $host",
+        "event_size": "s",
+        "title": "Management Point - Error Events",
+        "title_size": "16",
+        "title_align": "left"
+      },
+      "layout": {
+        "x": 0,
+        "y": 23,
+        "width": 4,
+        "height": 4
+      }
+    },
+    {
+      "id": 17,
+      "definition": {
+        "type": "event_stream",
+        "query": "sources:windows.events status:error role:sccm-distribution-point $host",
+        "event_size": "s",
+        "title": "Distribution Point - Error Events",
+        "title_size": "16",
+        "title_align": "left"
+      },
+      "layout": {
+        "x": 4,
+        "y": 23,
+        "width": 4,
+        "height": 4
+      }
+    },
+    {
+      "id": 18,
+      "definition": {
+        "type": "event_stream",
+        "query": "sources:windows.events status:error role:sccm-sql-reporting-server $host",
+        "event_size": "s",
+        "title": "SQL Reporting - Error Events",
+        "title_size": "16",
+        "title_align": "left"
+      },
+      "layout": {
+        "x": 8,
+        "y": 23,
+        "width": 4,
+        "height": 4
+      }
+    },
+    {
+      "id": 19,
+      "definition": {
+        "type": "note",
+        "content": "## ⚡ Key Performance Indicators",
+        "background_color": "gray",
+        "font_size": "14",
+        "text_align": "left",
+        "vertical_align": "center",
+        "show_tick": false,
+        "has_padding": true
+      },
+      "layout": {
+        "x": 0,
+        "y": 27,
+        "width": 12,
+        "height": 1
+      }
+    },
+    {
+      "id": 20,
+      "definition": {
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "sum:windows_service.state{$host,$role,check:ok}",
+            "aggregator": "last"
+          }
+        ],
+        "title": "Services OK",
+        "title_size": "16",
+        "title_align": "left",
+        "precision": 0,
+        "text_align": "center",
+        "custom_links": [],
+        "conditional_formats": [
+          {
+            "comparator": ">=",
+            "value": 1,
+            "palette": "green_on_white"
+          },
+          {
+            "comparator": "<",
+            "value": 1,
+            "palette": "red_on_white"
+          }
+        ]
+      },
+      "layout": {
+        "x": 0,
+        "y": 28,
+        "width": 3,
+        "height": 2
+      }
+    },
+    {
+      "id": 21,
+      "definition": {
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "sum:windows_service.state{$host,$role,check:critical}",
+            "aggregator": "last"
+          }
+        ],
+        "title": "Services Critical",
+        "title_size": "16",
+        "title_align": "left",
+        "precision": 0,
+        "text_align": "center",
+        "custom_links": [],
+        "conditional_formats": [
+          {
+            "comparator": ">",
+            "value": 0,
+            "palette": "red_on_white"
+          },
+          {
+            "comparator": "<=",
+            "value": 0,
+            "palette": "green_on_white"
+          }
+        ]
+      },
+      "layout": {
+        "x": 3,
+        "y": 28,
+        "width": 3,
+        "height": 2
+      }
+    },
+    {
+      "id": 22,
+      "definition": {
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "count:windows.events{$host,$role,status:error}",
+            "aggregator": "sum"
+          }
+        ],
+        "title": "Error Events (24h)",
+        "title_size": "16",
+        "title_align": "left",
+        "precision": 0,
+        "text_align": "center",
+        "custom_links": [],
+        "conditional_formats": [
+          {
+            "comparator": ">",
+            "value": 50,
+            "palette": "red_on_white"
+          },
+          {
+            "comparator": ">",
+            "value": 10,
+            "palette": "yellow_on_white"
+          },
+          {
+            "comparator": "<=",
+            "value": 10,
+            "palette": "green_on_white"
+          }
+        ]
+      },
+      "layout": {
+        "x": 6,
+        "y": 28,
+        "width": 3,
+        "height": 2
+      }
+    },
+    {
+      "id": 23,
+      "definition": {
+        "type": "query_value",
+        "requests": [
+          {
+            "q": "avg:sqlserver.stats.connections{$host,role:sccm-sql-server}",
+            "aggregator": "avg"
+          }
+        ],
+        "title": "Avg SQL Connections",
+        "title_size": "16",
+        "title_align": "left",
+        "precision": 0,
+        "text_align": "center",
+        "custom_links": [],
+        "conditional_formats": [
+          {
+            "comparator": ">",
+            "value": 100,
+            "palette": "yellow_on_white"
+          },
+          {
+            "comparator": ">",
+            "value": 200,
+            "palette": "red_on_white"
+          },
+          {
+            "comparator": "<=",
+            "value": 100,
+            "palette": "green_on_white"
+          }
+        ]
+      },
+      "layout": {
+        "x": 9,
+        "y": 28,
+        "width": 3,
+        "height": 2
+      }
+    }
+  ]
+}

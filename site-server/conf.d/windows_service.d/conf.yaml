@@ -1,54 +1,58 @@
 # Windows Service Check Configuration for SCCM Site Server
-# Monitors critical SCCM services
+# Monitors critical SCCM and infrastructure services
+# Updated with proper service grouping and tagging per Datadog best practices
 
 init_config:
 
 instances:
-  # SMS Executive Service - Core SCCM service
+  # Core SCCM Site Server Services
   - services:
       - SMS_EXECUTIVE
-    tags:
-      - service:sms-executive
-      - role:sccm-site-server
-    
-  # SMS Site Component Manager - Manages site components
-  - services:
       - SMS_SITE_COMPONENT_MANAGER
-    tags:
-      - service:sms-site-component-manager
-      - role:sccm-site-server
-    
-  # SMS Notification Server - Client notification service
-  - services:
       - SMS_NOTIFICATION_SERVER
     tags:
-      - service:sms-notification-server
       - role:sccm-site-server
-    
-  # World Wide Web Publishing Service (IIS)
+      - service_group:sccm-core
+      - environment:production
+    windows_service_startup_type_tag: true
+    collect_display_name_as_tag: true
+    disable_legacy_service_tag: true
+
+  # Web Infrastructure Services (IIS)
   - services:
       - W3SVC
+      - IISADMIN
     tags:
-      - service:iis
       - role:sccm-site-server
-    
-  # Windows Management Instrumentation
+      - service_group:web-infrastructure
+      - environment:production
+    windows_service_startup_type_tag: true
+    collect_display_name_as_tag: true
+    disable_legacy_service_tag: true
+
+  # Windows Infrastructure Services
   - services:
       - Winmgmt
-    tags:
-      - service:wmi
-      - role:sccm-site-server
-    
-  # Background Intelligent Transfer Service
-  - services:
+      - WinRM
       - BITS
     tags:
-      - service:bits
       - role:sccm-site-server
-    
-  # Windows Remote Management
+      - service_group:windows-infrastructure
+      - environment:production
+    windows_service_startup_type_tag: true
+    collect_display_name_as_tag: true
+    disable_legacy_service_tag: true
+
+  # Optional SCCM Services (may not be present on all site servers)
   - services:
-      - WinRM
+      - SMS_MP_CONTROL_MANAGER
+      - SMS_DP_MONITOR
+      - SMS_WSUS_SYNC_MANAGER
+      - SMS_WSUS_CONTROL_MANAGER
     tags:
-      - service:winrm
       - role:sccm-site-server
+      - service_group:sccm-optional
+      - environment:production
+    windows_service_startup_type_tag: true
+    collect_display_name_as_tag: true
+    disable_legacy_service_tag: true

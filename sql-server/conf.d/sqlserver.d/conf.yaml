@@ -1,91 +1,62 @@
-# SQL Server Check Configuration for SCCM Database
-# Monitors SQL Server performance and SCCM database health
+# SQL Server Check Configuration for SCCM Database (Windows Authentication Alternative)
+# Monitors SQL Server performance and SCCM database health without username/password
+# Uses Windows Authentication with minimal viable configuration
 
 init_config:
 
 instances:
-  # Main SQL Server instance monitoring
+  # Main SQL Server instance monitoring with Windows Authentication
   - host: localhost,1433
-    username: datadog_monitoring_user
-    password: YOUR_SQL_MONITORING_PASSWORD
+    connection_string: "Trusted_Connection=yes"
     connector: odbc
     driver: ODBC Driver 18 for SQL Server
     tags:
       - role:sccm-sql-server
       - database:sccm
+      - auth:windows
     
-    # Database Monitoring Configuration
-    dbm: true
-    query_metrics:
-      enabled: true
-      run_sync: false
-      collection_interval: 10
-    query_activity:
-      enabled: true
-      collection_interval: 10
+    # Basic Database Monitoring Configuration (simplified)
+    dbm: false  # Disabled to reduce authentication requirements
     
-    # Custom queries for SCCM-specific monitoring
+    # Essential custom queries for SCCM monitoring (basic level)
     custom_queries:
-      # SCCM Database Size Monitoring
+      # Basic SCCM Database Size Monitoring (using simpler query)
       - query: |
           SELECT 
-            DB_NAME() as database_name,
-            SUM(CAST(FILEPROPERTY(name, 'SpaceUsed') AS bigint) * 8192.) as used_space_bytes,
-            SUM(size * 8192.) as allocated_space_bytes
+            'SCCM' as database_name,
+            COUNT(*) as file_count
           FROM sys.database_files
           WHERE type IN (0,1)
         columns:
           - name: database_name
             type: tag
-          - name: used_space_bytes
-            type: gauge
-          - name: allocated_space_bytes
+          - name: file_count
             type: gauge
         tags:
-          - query:sccm_database_size
+          - query:sccm_database_files
       
-      # SCCM Client Count
-      - query: |
-          SELECT COUNT(*) as client_count
-          FROM v_R_System
-          WHERE Client0 = 1 AND Obsolete0 = 0
-        columns:
-          - name: client_count
-            type: gauge
-        tags:
-          - query:sccm_client_count
-      
-      # SCCM Site Status
+      # SQL Server Basic Health Check
       - query: |
           SELECT 
-            SiteCode,
-            COUNT(*) as component_count,
-            SUM(CASE WHEN Status = 0 THEN 1 ELSE 0 END) as ok_components,
-            SUM(CASE WHEN Status = 1 THEN 1 ELSE 0 END) as warning_components,
-            SUM(CASE WHEN Status = 2 THEN 1 ELSE 0 END) as critical_components
-          FROM v_ComponentSummarizer
-          WHERE TallyInterval = 0
-          GROUP BY SiteCode
+            @@SERVERNAME as server_name,
+            @@VERSION as sql_version,
+            GETDATE() as current_time
         columns:
-          - name: sitecode
+          - name: server_name
             type: tag
-          - name: component_count
-            type: gauge
-          - name: ok_components
-            type: gauge
-          - name: warning_components
-            type: gauge
-          - name: critical_components
-            type: gauge
+          - name: sql_version
+            type: tag
+          - name: current_time
+            type: tag
         tags:
-          - query:sccm_site_status
+          - query:sql_server_info
     
-    # Performance counters
+    # Performance counters (essential only)
     include_task_scheduler_metrics: false
-    include_db_fragmentation_metrics: true
+    include_db_fragmentation_metrics: false  # Requires additional permissions
     include_fci_metrics: false
     
-    # Log collection
+    # Log collection (basic SQL Server logs)
     logs:
       - type: file
         path: C:\Program Files\Microsoft SQL Server\MSSQL15.MSSQLSERVER\MSSQL\Log\ERRORLOG
@@ -95,6 +66,9 @@ instances:
           - type: multi_line
             name: new_log_start_with_date
             pattern: \d{4}-\d{2}-\d{2}
+        tags:
+          - auth:windows
+          - role:sccm-sql-server
       
       - type: file
         path: C:\Program Files\Microsoft SQL Server\MSSQL15.MSSQLSERVER\MSSQL\Log\SQLAGENT.OUT
@@ -104,3 +78,15 @@ instances:
           - type: multi_line
             name: new_log_start_with_date
             pattern: \d{4}-\d{2}-\d{2}
+        tags:
+          - auth:windows
+          - role:sccm-sql-server
+
+# Alternative configuration notes:
+# 1. Uses Windows Authentication (Trusted_Connection=yes) instead of username/password
+# 2. DBM disabled to reduce permission requirements
+# 3. Simplified custom queries that work with basic permissions
+# 4. Essential performance counters only
+# 5. Basic log collection maintained
+# 6. Added auth:windows tag for identification
+# 7. Suitable for environments where service accounts cannot be used

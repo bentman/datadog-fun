@@ -1,55 +1,239 @@
 # Windows Event Log Configuration for SCCM Site Server
-# Monitors critical Windows and SCCM events
+# Monitors critical Windows, SQL Server, Active Directory, and SCCM Site Server events
+# Updated with pattern-based filtering for critical event IDs worth alerting on
+#
+# CRITICAL EVENT IDs MONITORED FOR SITE SERVER:
+#
+# SCCM SITE COMPONENT MANAGER EVENTS:
+# - 4909: SMS cannot find "System Management" container in Active Directory
+# - 4912: SMS cannot update existing "System Management" object in Active Directory
+# - 4913: SMS cannot create "System Management" object in Active Directory
+# - 4915: SMS cannot delete "System Management" object in Active Directory
+# - 1016: SMS_NOTIFICATION_SERVER Site Component Manager failed to install component
+# - 1037: Site Component Manager related errors
+# - 1021/1022: Site Component Manager installation/configuration errors
+#
+# SERVICE CONTROL MANAGER EVENTS:
+# - 7032: Service Control Manager tried to take corrective action
+# - 7034: Service terminated unexpectedly
+# - 7036: Service state changes (start/stop)
+#
+# SYSTEM EVENTS:
+# - 41: System rebooted without cleanly shutting down
+# - 1074: System shutdown/restart initiated
+# - 6005/6006: Event log service started/stopped
+# - 6008: Unexpected system shutdown
+# - 6009/6013: System startup/shutdown events
+#
+# SQL SERVER EVENTS (Site Database):
+# - 18456: SQL Server login failed
+# - 18452: SQL Server connection failed
+# - 823-825: Database corruption/IO errors
+# - 832-839: Database performance/memory errors
+#
+# ACTIVE DIRECTORY INTEGRATION EVENTS:
+# - 4625: Failed logon attempt
+# - 4648: Logon using explicit credentials
+# - 4771: Kerberos pre-authentication failed
+# - 4776: Domain controller attempted to validate credentials
+#
+# WSUS INTEGRATION EVENTS:
+# - 6700-6709: WSUS synchronization manager errors
+# - 364: WSUS service errors
+# - 365: WSUS database errors
 
 init_config:
 
-instances:
-  # System Event Log - Critical and Error events
-  - channels:
-      - path: System
-        type: windows_event_log
-        filters:
-          - query: '*[System[(Level=1 or Level=2)]]'  # Critical and Error events
+logs:
+  # System Event Log - Critical system events and service control issues
+  - type: windows_event
+    channel_path: System
+    source: windows.events
+    service: sccm-site-server
     tags:
       - source:windows-system
       - role:sccm-site-server
-    
-  # Application Event Log - SCCM related events
-  - channels:
-      - path: Application
-        type: windows_event_log
-        filters:
-          - query: '*[System[Provider[@Name="SMS Server"] and (Level=1 or Level=2 or Level=3)]]'  # SCCM Critical, Error, Warning
+    log_processing_rules:
+      - type: include_at_match
+        name: critical_system_events
+        pattern: '"EventID":"(41|1074|6005|6006|6008|6009|6013)'
+      - type: include_at_match
+        name: service_control_manager_events
+        pattern: '"EventID":"(7032|7034|7036)'
+      - type: include_at_match
+        name: service_failures
+        pattern: '"EventID":"(7000|7001|7009|7011|7022|7023|7024|7026|7031)'
+      - type: include_at_match
+        name: dcom_errors
+        pattern: '"EventID":"(10016|10028|10009)'
+
+  # Application Event Log - SCCM Site Component Manager and critical application errors
+  - type: windows_event
+    channel_path: Application
+    source: windows.events
+    service: sccm-site-server
     tags:
       - source:sccm-application
       - role:sccm-site-server
-    
-  # Application Event Log - General application errors
-  - channels:
-      - path: Application
-        type: windows_event_log
-        filters:
-          - query: '*[System[(Level=1 or Level=2)]]'  # Critical and Error events
+    log_processing_rules:
+      - type: include_at_match
+        name: sccm_site_component_manager_events
+        pattern: '"EventID":"(4909|4912|4913|4915)'
+      - type: include_at_match
+        name: sccm_component_installation_errors
+        pattern: '"EventID":"(1016|1037|1021|1022)'
+      - type: include_at_match
+        name: sccm_site_server_events
+        pattern: '"EventID":"(1000|1001|1002|1003|1004|1005|1006|1007|1008|1009|1010)'
+      - type: include_at_match
+        name: sccm_backup_maintenance_events
+        pattern: '"EventID":"(5000|5001|5002|5003|5004|5005|5006|5007|5008|5009|5010)'
+      - type: include_at_match
+        name: wsus_integration_events
+        pattern: '"EventID":"(6700|6701|6702|6703|6704|6705|6706|6707|6708|6709|364|365)'
+      - type: include_at_match
+        name: critical_application_errors
+        pattern: '"EventID":"(1000|1001|1002|1004|1008|1026|1033|1034)'
+
+  # SQL Server Events - Database connectivity and performance issues (Site Database)
+  - type: windows_event
+    channel_path: Application
+    source: windows.events
+    service: sccm-site-server
     tags:
-      - source:windows-application
+      - source:sql-server-site-db
       - role:sccm-site-server
-    
-  # Security Event Log - Authentication failures and security events
-  - channels:
-      - path: Security
-        type: windows_event_log
-        filters:
-          - query: '*[System[(EventID=4625 or EventID=4648 or EventID=4771 or EventID=4776)]]'  # Failed logons
+    log_processing_rules:
+      - type: include_at_match
+        name: sql_login_failures
+        pattern: '"EventID":"(18456|18452|18451|18453|18454|18455)'
+      - type: include_at_match
+        name: sql_connection_issues
+        pattern: '"EventID":"(18470|18471|18482|18483|18486|18487|18488|18489)'
+      - type: include_at_match
+        name: sql_database_corruption_errors
+        pattern: '"EventID":"(823|824|825|832|833|834|835|836|837|838|839)'
+      - type: include_at_match
+        name: sql_backup_restore_errors
+        pattern: '"EventID":"(3201|3202|3203|3204|3205|3206|3207|3208|3209|3210)'
+      - type: include_at_match
+        name: sql_service_errors
+        pattern: '"EventID":"(17053|17054|17055|17056|17057|17058|17059|17060|17061|17062)'
+
+  # Security Event Log - Authentication and Active Directory integration events
+  - type: windows_event
+    channel_path: Security
+    source: windows.events
+    service: sccm-site-server
     tags:
       - source:windows-security
       - role:sccm-site-server
-    
-  # ConfigMgr specific event log (if available)
-  - channels:
-      - path: Microsoft-ConfigMgr/Operational
-        type: windows_event_log
-        filters:
-          - query: '*[System[(Level=1 or Level=2 or Level=3)]]'  # Critical, Error, Warning
+    log_processing_rules:
+      - type: include_at_match
+        name: authentication_failures
+        pattern: '"EventID":"(4625|4648|4771|4776|4777|4820|4821|4822|4823|4824)'
+      - type: include_at_match
+        name: privilege_escalation_events
+        pattern: '"EventID":"(4672|4673|4674|4728|4732|4735|4737|4740|4755|4756|4794)'
+      - type: include_at_match
+        name: audit_policy_changes
+        pattern: '"EventID":"(1102|4618|4649|4719|4765|4766|4897|4964|5124)'
+      - type: include_at_match
+        name: account_management_events
+        pattern: '"EventID":"(4720|4722|4723|4724|4725|4726|4738|4781|4798|4799)'
+      - type: include_at_match
+        name: active_directory_integration_events
+        pattern: '"EventID":"(4662|4663|4664|4670|4907|4908|4909|4910|4911)'
+
+  # ConfigMgr Operational Events - SCCM specific operational issues
+  - type: windows_event
+    channel_path: Microsoft-ConfigMgr/Operational
+    source: windows.events
+    service: sccm-site-server
     tags:
       - source:configmgr-operational
       - role:sccm-site-server
+    log_processing_rules:
+      - type: include_at_match
+        name: configmgr_site_operations
+        pattern: '"EventID":"(1|2|3|4|5|6|7|8|9|10|11|12|13|14|15)'
+      - type: include_at_match
+        name: configmgr_component_errors
+        pattern: '"EventID":"(100|101|102|103|104|105|106|107|108|109|110)'
+      - type: include_at_match
+        name: configmgr_database_operations
+        pattern: '"EventID":"(200|201|202|203|204|205|206|207|208|209|210)'
+
+  # Active Directory Events - Domain controller and schema extension issues
+  - type: windows_event
+    channel_path: Directory Service
+    source: windows.events
+    service: sccm-site-server
+    tags:
+      - source:active-directory
+      - role:sccm-site-server
+    log_processing_rules:
+      - type: include_at_match
+        name: ad_schema_extension_errors
+        pattern: '"EventID":"(1168|1169|1170|1171|1172|1173|1174|1175|1176|1177|1178)'
+      - type: include_at_match
+        name: ad_replication_errors
+        pattern: '"EventID":"(1311|1312|1313|1314|1315|1316|1317|1318|1319|1320)'
+
+  # Windows Update Services Events - WSUS integration monitoring
+  - type: windows_event
+    channel_path: Microsoft-Windows-WindowsUpdateClient/Operational
+    source: windows.events
+    service: sccm-site-server
+    tags:
+      - source:windows-update-client
+      - role:sccm-site-server
+    log_processing_rules:
+      - type: include_at_match
+        name: wsus_client_errors
+        pattern: '"EventID":"(20|21|22|23|24|25|26|27|28|29|30)'
+      - type: include_at_match
+        name: wsus_download_errors
+        pattern: '"EventID":"(1014|1015|1016|1017|1018|1019|1020|1021|1022|1023)'
+
+  # Microsoft Defender Antivirus Events
+  - type: windows_event
+    channel_path: Microsoft-Windows-Windows Defender/Operational
+    source: windows.events
+    service: sccm-site-server
+    tags:
+      - source:windows-defender
+      - role:sccm-site-server
+    log_processing_rules:
+      - type: include_at_match
+        name: defender_malware_detection
+        pattern: '"EventID":"(1006|1007|1008|1009|1116|1117|1118|1119)'
+      - type: include_at_match
+        name: defender_scan_issues
+        pattern: '"EventID":"(1002|1003|1005|1012|1015)'
+
+  # PowerShell Security Events
+  - type: windows_event
+    channel_path: Microsoft-Windows-PowerShell/Operational
+    source: windows.events
+    service: sccm-site-server
+    tags:
+      - source:powershell-operational
+      - role:sccm-site-server
+    log_processing_rules:
+      - type: include_at_match
+        name: powershell_security_events
+        pattern: '"EventID":"(4103|4104|4105|4106)'
+
+  # Certificate Services Events - Important for SCCM PKI and site communications
+  - type: windows_event
+    channel_path: Microsoft-Windows-CertificateServicesClient-Lifecycle-System/Operational
+    source: windows.events
+    service: sccm-site-server
+    tags:
+      - source:certificate-services
+      - role:sccm-site-server
+    log_processing_rules:
+      - type: include_at_match
+        name: certificate_lifecycle_errors
+        pattern: '"EventID":"(1001|1002|1003|1004|1005|1006|1007|1008|1009|1010)'

@@ -59,11 +59,11 @@
         },
         "markers": [
           {
-            "value": "y = 80",
-            "display_type": "error dashed"
+            "value": "y = 75",
+            "display_type": "warning dashed"
           },
           {
-            "value": "y = 90",
+            "value": "y = 85",
             "display_type": "error solid"
           }
         ],
@@ -175,33 +175,35 @@
         "type": "timeseries",
         "requests": [
           {
-            "q": "avg:system.disk.free{$host,device:C:} by {host}",
+            "q": "avg:system.disk.in_use{$host,device:C:} by {host}",
             "display_type": "line",
             "style": {
-              "palette": "green",
-              "line_type": "solid",
-              "line_width": "normal"
-            }
-          },
-          {
-            "q": "avg:system.disk.used{$host,device:C:} by {host}",
-            "display_type": "line",
-            "style": {
-              "palette": "orange",
+              "palette": "dog_classic",
               "line_type": "solid",
               "line_width": "normal"
             }
           }
         ],
-        "title": "Disk Space - C: Drive (GB)",
+        "title": "Disk Usage - C: Drive (%)",
         "title_size": "16",
         "title_align": "left",
         "yaxis": {
           "min": "0",
+          "max": "100",
           "scale": "linear",
           "label": "",
           "include_zero": true
         },
+        "markers": [
+          {
+            "value": "y = 80",
+            "display_type": "warning dashed"
+          },
+          {
+            "value": "y = 90",
+            "display_type": "error solid"
+          }
+        ],
         "show_legend": true,
         "legend_layout": "auto",
         "legend_columns": ["avg", "min", "max", "value"]
@@ -332,7 +334,7 @@
       "id": 8,
       "definition": {
         "type": "event_stream",
-        "query": "sources:windows.events -status:info $host",
+        "query": "sources:windows.events status:info $host",
         "event_size": "s",
         "title": "Event Logs - Info Events",
         "title_size": "16",
@@ -398,17 +400,17 @@
         "conditional_formats": [
           {
             "comparator": ">",
-            "value": 90,
+            "value": 85,
             "palette": "red_on_white"
           },
           {
             "comparator": ">",
-            "value": 80,
+            "value": 75,
             "palette": "yellow_on_white"
           },
           {
             "comparator": "<=",
-            "value": 80,
+            "value": 75,
             "palette": "green_on_white"
           }
         ]
@@ -467,11 +469,11 @@
         "type": "query_value",
         "requests": [
           {
-            "q": "avg:system.disk.free{$host,device:C:}",
+            "q": "avg:system.disk.in_use{$host,device:C:}",
             "aggregator": "avg"
           }
         ],
-        "title": "Avg Disk Free (GB)",
+        "title": "Avg Disk Usage (%)",
         "title_size": "16",
         "title_align": "left",
         "precision": 1,
@@ -479,18 +481,18 @@
         "custom_links": [],
         "conditional_formats": [
           {
-            "comparator": "<",
-            "value": 5,
+            "comparator": ">",
+            "value": 90,
             "palette": "red_on_white"
           },
           {
-            "comparator": "<",
-            "value": 10,
+            "comparator": ">",
+            "value": 80,
             "palette": "yellow_on_white"
           },
           {
-            "comparator": ">=",
-            "value": 10,
+            "comparator": "<=",
+            "value": 80,
             "palette": "green_on_white"
           }
         ]

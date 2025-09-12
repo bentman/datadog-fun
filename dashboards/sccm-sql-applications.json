@@ -470,7 +470,7 @@
         "type": "query_value",
         "requests": [
           {
-            "q": "sum:windows_service.state{$host,$role,check:ok}",
+            "q": "sum:windows_service.state{$host,$role,state:running}",
             "aggregator": "last"
           }
         ],
@@ -506,7 +506,7 @@
         "type": "query_value",
         "requests": [
           {
-            "q": "sum:windows_service.state{$host,$role,check:critical}",
+            "q": "sum:windows_service.state{$host,$role,state:stopped}",
             "aggregator": "last"
           }
         ],

@@ -24,7 +24,7 @@
   "layout_type": "ordered",
   "widgets": [
     {
-      "id": 0,
+
       "definition": {
         "type": "note",
         "content": "# 🏢 SCCM & SQL Applications Dashboard\n\n**Application and service health monitoring for SCCM infrastructure**\n\n🔧 **Service Health**: Windows service status by role category  \n🗄️ **SQL Performance**: Database and reporting service metrics  \n🌐 **IIS Performance**: Web services for Management/Distribution Points  \n📝 **Error Events**: Application error monitoring by role  \n⚡ **Performance**: Key application performance indicators  \n\n*Use template variables above to filter by specific hosts or roles*",
@@ -45,7 +45,7 @@
       }
     },
     {
-      "id": 1,
+
       "definition": {
         "type": "note",
         "content": "## 🔧 Service Health by Role",
@@ -64,7 +64,7 @@
       }
     },
     {
-      "id": 2,
+
       "definition": {
         "type": "check_status",
         "title": "Site Server Services",
@@ -83,7 +83,7 @@
       }
     },
     {
-      "id": 3,
+
       "definition": {
         "type": "check_status",
         "title": "SQL Server Services",
@@ -102,7 +102,7 @@
       }
     },
     {
-      "id": 4,
+
       "definition": {
         "type": "check_status",
         "title": "Management Point Services",
@@ -121,7 +121,7 @@
       }
     },
     {
-      "id": 5,
+
       "definition": {
         "type": "check_status",
         "title": "Distribution Point Services",
@@ -140,7 +140,7 @@
       }
     },
     {
-      "id": 6,
+
       "definition": {
         "type": "check_status",
         "title": "SQL Reporting Services",
@@ -159,7 +159,7 @@
       }
     },
     {
-      "id": 7,
+
       "definition": {
         "type": "note",
         "content": "## 🗄️ SQL Server Performance",
@@ -178,7 +178,7 @@
       }
     },
     {
-      "id": 8,
+
       "definition": {
         "type": "timeseries",
         "requests": [
@@ -212,7 +212,7 @@
       }
     },
     {
-      "id": 9,
+
       "definition": {
         "type": "timeseries",
         "requests": [
@@ -246,7 +246,7 @@
       }
     },
     {
-      "id": 10,
+
       "definition": {
         "type": "note",
         "content": "## 🌐 IIS Performance",
@@ -265,7 +265,7 @@
       }
     },
     {
-      "id": 11,
+
       "definition": {
         "type": "timeseries",
         "requests": [
@@ -308,7 +308,7 @@
       }
     },
     {
-      "id": 12,
+
       "definition": {
         "type": "timeseries",
         "requests": [
@@ -342,7 +342,7 @@
       }
     },
     {
-      "id": 13,
+
       "definition": {
         "type": "note",
         "content": "## 📝 Application Error Events by Role",
@@ -361,7 +361,7 @@
       }
     },
     {
-      "id": 14,
+
       "definition": {
         "type": "event_stream",
         "query": "sources:windows.events status:error role:sccm-site-server $host",
@@ -378,7 +378,7 @@
       }
     },
     {
-      "id": 15,
+
       "definition": {
         "type": "event_stream",
         "query": "sources:windows.events status:error role:sccm-sql-server $host",
@@ -395,7 +395,7 @@
       }
     },
     {
-      "id": 16,
+
       "definition": {
         "type": "event_stream",
         "query": "sources:windows.events status:error role:sccm-management-point $host",
@@ -412,7 +412,7 @@
       }
     },
     {
-      "id": 17,
+
       "definition": {
         "type": "event_stream",
         "query": "sources:windows.events status:error role:sccm-distribution-point $host",
@@ -429,7 +429,7 @@
       }
     },
     {
-      "id": 18,
+
       "definition": {
         "type": "event_stream",
         "query": "sources:windows.events status:error role:sccm-sql-reporting-server $host",
@@ -446,7 +446,7 @@
       }
     },
     {
-      "id": 19,
+
       "definition": {
         "type": "note",
         "content": "## ⚡ Key Performance Indicators",
@@ -465,7 +465,7 @@
       }
     },
     {
-      "id": 20,
+
       "definition": {
         "type": "query_value",
         "requests": [
@@ -501,7 +501,7 @@
       }
     },
     {
-      "id": 21,
+
       "definition": {
         "type": "query_value",
         "requests": [
@@ -537,7 +537,7 @@
       }
     },
     {
-      "id": 22,
+
       "definition": {
         "type": "query_value",
         "requests": [
@@ -578,7 +578,7 @@
       }
     },
     {
-      "id": 23,
+
       "definition": {
         "type": "query_value",
         "requests": [

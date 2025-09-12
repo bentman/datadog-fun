@@ -12,7 +12,7 @@
   "layout_type": "ordered",
   "widgets": [
     {
-      "id": 0,
+
       "definition": {
         "type": "note",
         "content": "# 🖥️ Windows Server Health Dashboard\n\n**Basic system health monitoring for Windows servers**\n\n📊 **CPU Usage**: System CPU utilization by host  \n🧠 **Memory Usage**: Memory utilization and availability  \n💾 **Disk Performance**: Disk I/O and space utilization  \n🌐 **Network Activity**: Network bytes sent/received  \n📝 **Event Logs**: Windows Event Log monitoring (Info, Warning, Error)  \n⏰ **Time Sync**: NTP offset monitoring  \n\n*Use the host filter above to focus on specific servers*",
@@ -33,7 +33,7 @@
       }
     },
     {
-      "id": 1,
+
       "definition": {
         "type": "timeseries",
         "requests": [
@@ -57,16 +57,7 @@
           "label": "",
           "include_zero": true
         },
-        "markers": [
-          {
-            "value": "y = 75",
-            "display_type": "warning dashed"
-          },
-          {
-            "value": "y = 85",
-            "display_type": "error solid"
-          }
-        ],
+
         "show_legend": true,
         "legend_layout": "auto",
         "legend_columns": ["avg", "min", "max", "value"]
@@ -79,7 +70,7 @@
       }
     },
     {
-      "id": 2,
+
       "definition": {
         "type": "timeseries",
         "requests": [
@@ -125,7 +116,7 @@
       }
     },
     {
-      "id": 3,
+
       "definition": {
         "type": "timeseries",
         "requests": [
@@ -170,7 +161,7 @@
       }
     },
     {
-      "id": 4,
+
       "definition": {
         "type": "timeseries",
         "requests": [
@@ -194,16 +185,7 @@
           "label": "",
           "include_zero": true
         },
-        "markers": [
-          {
-            "value": "y = 80",
-            "display_type": "warning dashed"
-          },
-          {
-            "value": "y = 90",
-            "display_type": "error solid"
-          }
-        ],
+
         "show_legend": true,
         "legend_layout": "auto",
         "legend_columns": ["avg", "min", "max", "value"]
@@ -216,7 +198,7 @@
       }
     },
     {
-      "id": 5,
+
       "definition": {
         "type": "timeseries",
         "requests": [
@@ -260,7 +242,7 @@
       }
     },
     {
-      "id": 6,
+
       "definition": {
         "type": "timeseries",
         "requests": [
@@ -312,7 +294,7 @@
       }
     },
     {
-      "id": 7,
+
       "definition": {
         "type": "note",
         "content": "## 📝 Windows Event Logs\n\n**Event log monitoring across all Windows servers**\n\nMonitoring Windows Event Logs for system health indicators:",
@@ -331,7 +313,7 @@
       }
     },
     {
-      "id": 8,
+
       "definition": {
         "type": "event_stream",
         "query": "sources:windows.events status:info $host",
@@ -348,7 +330,7 @@
       }
     },
     {
-      "id": 9,
+
       "definition": {
         "type": "event_stream",
         "query": "sources:windows.events status:warning $host",
@@ -365,7 +347,7 @@
       }
     },
     {
-      "id": 10,
+
       "definition": {
         "type": "event_stream",
         "query": "sources:windows.events status:error $host",
@@ -382,7 +364,7 @@
       }
     },
     {
-      "id": 11,
+
       "definition": {
         "type": "query_value",
         "requests": [
@@ -423,7 +405,7 @@
       }
     },
     {
-      "id": 12,
+
       "definition": {
         "type": "query_value",
         "requests": [
@@ -464,7 +446,7 @@
       }
     },
     {
-      "id": 13,
+
       "definition": {
         "type": "query_value",
         "requests": [
@@ -505,7 +487,7 @@
       }
     },
     {
-      "id": 14,
+
       "definition": {
         "type": "query_value",
         "requests": [

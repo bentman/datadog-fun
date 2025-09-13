@@ -1,6 +1,6 @@
 # SCCM Datadog Monitoring Configuration Package
 
-Comprehensive Datadog monitoring configurations for Microsoft System Center Configuration Manager (SCCM) servers using Windows Authentication for enhanced security.
+Comprehensive Datadog monitoring configurations for Microsoft System Center Configuration Manager (SCCM) servers using Windows Authentication for enhanced security and LCD monitoring approach.
 
 ## Prerequisites
 
@@ -11,9 +11,9 @@ Comprehensive Datadog monitoring configurations for Microsoft System Center Conf
 
 ## Components
 
-- **Site Server**: Primary SCCM site server monitoring with IIS and core services
-- **Management Point**: Client communication endpoint monitoring with IIS
-- **Distribution Point**: Content distribution monitoring with IIS and WDS
+- **Site Server**: Basic SCCM site server monitoring with essential services
+- **Management Point**: Client communication endpoint monitoring
+- **Distribution Point**: Content distribution monitoring with IIS
 - **SQL Server**: Database performance monitoring with Windows Authentication
 - **SQL Reporting Server**: SSRS monitoring with Windows Authentication
 

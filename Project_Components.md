@@ -59,19 +59,19 @@ datadog-fun/
 ## Component Descriptions
 
 ### Site Server
-The primary SCCM site server handles overall site management and coordination. Monitoring focuses on SMS services, site database connectivity, and component status. Key services include SMS_EXECUTIVE, SMS_SITE_COMPONENT_MANAGER, and SMS_NOTIFICATION_SERVER with special attention to IIS monitoring for AdminService and client communication.
+The primary SCCM site server handles overall site management and coordination. Monitoring provides essential service health, system performance, and event logging with LCD approach for reliable operation.
 
 ### Management Point
-Serves as the primary client communication endpoint in SCCM infrastructure. Monitoring emphasizes IIS performance, client request processing, and certificate management. Critical services monitored include SMS_EXECUTIVE, IIS services, and BITS with particular focus on high client connection volume scenarios.
+Serves as the primary client communication endpoint in SCCM infrastructure. Monitoring provides essential service health, IIS performance for client communications, and system metrics for reliable operation.
 
 ### Distribution Point
-Handles content distribution to SCCM clients across the network. Monitoring targets IIS performance, content synchronization processes, and PXE services when enabled. Key services include IIS services, WDS for PXE environments, and BITS with special consideration for disk space monitoring of the content library.
+Handles content distribution to SCCM clients across the network. Monitoring provides essential service health, system performance with emphasis on disk and network utilization, and IIS monitoring for content distribution reliability.
 
 ### SQL Server
-Hosts the SCCM database and provides core data services. Monitoring focuses on database performance, connection health, and backup status using Windows Authentication. Critical services include SQL Server Database Engine and SQL Server Agent with comprehensive performance metrics and connection monitoring.
+Hosts the SCCM database and provides core data services. Monitoring focuses on SQL Server performance metrics, database health, and system resources using Windows Authentication for security-compliant operation.
 
 ### SQL Reporting Server
-Provides SCCM reporting services through SQL Server Reporting Services. Monitoring emphasizes SSRS performance, report execution times, and database connectivity. Key services include SQL Server Reporting Services and IIS Application Pools with Windows Authentication for secure database connections.
+Provides SCCM reporting services through SQL Server Reporting Services. Monitoring emphasizes SSRS performance, report execution, and database connectivity using Windows Authentication for secure reporting delivery.
 
 ## Configuration Components
 

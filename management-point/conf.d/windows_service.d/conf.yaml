@@ -8,7 +8,6 @@ instances:
   # Web Infrastructure Services (IIS) - Critical for Management Point
   - services:
       - W3SVC
-      - IISADMIN
     tags:
       - role:sccm-management-point
       - service_group:web-infrastructure
@@ -41,25 +40,12 @@ instances:
     collect_display_name_as_tag: true
     disable_legacy_service_tag: true
 
-  # Security and SSL Services (if using HTTPS)
+  # Security and SSL Services (MS CA PKI HTTPS implementation)
   - services:
-      - HTTPFilter
       - CertSvc
     tags:
       - role:sccm-management-point
       - service_group:security-ssl
-      - environment:production
-    windows_service_startup_type_tag: true
-    collect_display_name_as_tag: true
-    disable_legacy_service_tag: true
-
-  # Application Pool Services (IIS Application Pools)
-  - services:
-      - name: WAS
-        startup_type: automatic
-    tags:
-      - role:sccm-management-point
-      - service_group:iis-application-pools
       - environment:production
     windows_service_startup_type_tag: true
     collect_display_name_as_tag: true

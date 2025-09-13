@@ -9,7 +9,6 @@ instances:
   - services:
       - SMS_EXECUTIVE
       - SMS_SITE_COMPONENT_MANAGER
-      - SMS_NOTIFICATION_SERVER
     tags:
       - role:sccm-site-server
       - service_group:sccm-core
@@ -18,26 +17,15 @@ instances:
     collect_display_name_as_tag: true
     disable_legacy_service_tag: true
 
-  # Web Infrastructure Services (IIS)
+  # Web & Infrastructure Services
   - services:
       - W3SVC
-      - IISADMIN
-    tags:
-      - role:sccm-site-server
-      - service_group:web-infrastructure
-      - environment:production
-    windows_service_startup_type_tag: true
-    collect_display_name_as_tag: true
-    disable_legacy_service_tag: true
-
-  # Windows Infrastructure Services
-  - services:
       - Winmgmt
       - WinRM
       - BITS
     tags:
       - role:sccm-site-server
-      - service_group:windows-infrastructure
+      - service_group:web-infrastructure
       - environment:production
     windows_service_startup_type_tag: true
     collect_display_name_as_tag: true
@@ -49,6 +37,7 @@ instances:
       - SMS_DP_MONITOR
       - SMS_WSUS_SYNC_MANAGER
       - SMS_WSUS_CONTROL_MANAGER
+      - SMS_NOTIFICATION_SERVER
     tags:
       - role:sccm-site-server
       - service_group:sccm-optional

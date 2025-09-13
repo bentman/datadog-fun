@@ -42,10 +42,6 @@ instances:
       - [DiskReadsPersec, system.disk.reads_per_sec, gauge]
       - [DiskWritesPersec, system.disk.writes_per_sec, gauge]
       - [AvgDiskQueueLength, system.disk.avg_queue_length, gauge]
-      - [DiskReadBytesPerSec, system.disk.read_bytes_per_sec, gauge]
-      - [DiskWriteBytesPerSec, system.disk.write_bytes_per_sec, gauge]
-      - [AvgDiskSecPerRead, system.disk.avg_sec_per_read, gauge]
-      - [AvgDiskSecPerWrite, system.disk.avg_sec_per_write, gauge]
     tags:
       - role:sccm-sql-server
     

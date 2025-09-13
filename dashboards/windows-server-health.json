@@ -1,6 +1,6 @@
 {
   "title": "Windows Server Health - System Metrics Overview",
-  "description": "Basic Windows Server health monitoring dashboard focusing on core system metrics: CPU, Memory, Disk, Network, and Event Logs. Suitable for all Windows servers regardless of role or application.",
+  "description": "Basic Windows Server health monitoring dashboard focusing on core system metrics: CPU, Memory, Disk, Network, and Event Logs.",
   "template_variables": [
     {
       "name": "host",
@@ -15,7 +15,7 @@
       "id": 0,
       "definition": {
         "type": "note",
-        "content": "# 🖥️ Windows Server Health Dashboard\n\n**Basic system health monitoring for Windows servers**\n\n📊 **CPU Usage**: System CPU utilization by host  \n🧠 **Memory Usage**: Memory utilization and availability  \n💾 **Disk Performance**: Disk I/O and space utilization  \n🌐 **Network Activity**: Network bytes sent/received  \n📝 **Event Logs**: Windows Event Log monitoring (Info, Warning, Error)  \n⏰ **Time Sync**: NTP offset monitoring  \n\n*Use the host filter above to focus on specific servers*",
+        "content": "# 🖥️ Windows Server Health Dashboard\n\n**Basic system health monitoring for Windows servers**\n\n📊 **CPU Usage**: System CPU utilization by host\n🧠 **Memory Usage**: Memory utilization by host\n💾 **Disk Usage**: Disk utilization by host\n🌐 **Network Activity**: Network bytes received/sent by host\n📝 **Event Logs**: Windows Event Log monitoring (Info, Warning, Error)\n⏰ **Time Sync**: NTP offset monitoring\n\n*Use the host filter above to focus on specific servers*",
         "background_color": "vivid_green",
         "font_size": "14",
         "text_align": "left",
@@ -38,7 +38,7 @@
         "type": "timeseries",
         "requests": [
           {
-            "q": "avg:system.cpu.system{$host} by {host}",
+            "q": "avg:system.cpu.pct_processor_time{$host} by {host}",
             "display_type": "line",
             "style": {
               "palette": "dog_classic",
@@ -47,7 +47,7 @@
             }
           }
         ],
-        "title": "CPU Usage - System (%)",
+        "title": "CPU Usage (%)",
         "title_size": "16",
         "title_align": "left",
         "yaxis": {
@@ -59,11 +59,11 @@
         },
         "markers": [
           {
-            "value": "y = 75",
+            "value": "y = 85",
             "display_type": "warning dashed"
           },
           {
-            "value": "y = 85",
+            "value": "y = 95",
             "display_type": "error dashed"
           }
         ],
@@ -84,7 +84,7 @@
         "type": "timeseries",
         "requests": [
           {
-            "q": "avg:system.mem.pct_usable{$host} by {host}",
+            "q": "100 - avg:system.mem.pct_usable{$host} by {host}",
             "display_type": "line",
             "style": {
               "palette": "purple",
@@ -93,7 +93,7 @@
             }
           }
         ],
-        "title": "Memory Usage - Available (%)",
+        "title": "Memory Usage (%)",
         "title_size": "16",
         "title_align": "left",
         "yaxis": {
@@ -105,11 +105,11 @@
         },
         "markers": [
           {
-            "value": "y = 75",
+            "value": "y = 85",
             "display_type": "warning dashed"
           },
           {
-            "value": "y = 85",
+            "value": "y = 95",
             "display_type": "error dashed"
           }
         ],
@@ -139,7 +139,7 @@
             }
           }
         ],
-        "title": "Disk Usage - Space Used (%)",
+        "title": "Disk Usage (%)",
         "title_size": "16",
         "title_align": "left",
         "yaxis": {
@@ -151,11 +151,11 @@
         },
         "markers": [
           {
-            "value": "y = 80",
+            "value": "y = 85",
             "display_type": "warning dashed"
           },
           {
-            "value": "y = 90",
+            "value": "y = 95",
             "display_type": "error dashed"
           }
         ],
@@ -176,25 +176,16 @@
         "type": "timeseries",
         "requests": [
           {
-            "q": "avg:system.net.bytes_sent{$host} by {host}",
+            "q": "avg:system.net.bytes_rcvd{$host} by {host}",
             "display_type": "line",
             "style": {
               "palette": "green",
               "line_type": "solid",
               "line_width": "normal"
             }
-          },
-          {
-            "q": "avg:system.net.bytes_rcvd{$host} by {host}",
-            "display_type": "line",
-            "style": {
-              "palette": "blue",
-              "line_type": "solid",
-              "line_width": "normal"
-            }
           }
         ],
-        "title": "Network Activity - Bytes Sent/Received",
+        "title": "Network Received (Bytes)",
         "title_size": "16",
         "title_align": "left",
         "yaxis": {
@@ -218,16 +209,16 @@
         "type": "timeseries",
         "requests": [
           {
-            "q": "avg:ntp.offset{$host} by {host}",
+            "q": "avg:system.net.bytes_sent{$host} by {host}",
             "display_type": "line",
             "style": {
-              "palette": "warm",
+              "palette": "blue",
               "line_type": "solid",
               "line_width": "normal"
             }
           }
         ],
-        "title": "NTP Time Offset (ms)",
+        "title": "Network Sent (Bytes)",
         "title_size": "16",
         "title_align": "left",
         "yaxis": {
@@ -248,6 +239,38 @@
     {
       "id": 6,
       "definition": {
+        "type": "timeseries",
+        "requests": [
+          {
+            "q": "avg:ntp.offset{$host} by {host}",
+            "display_type": "line",
+            "style": {
+              "palette": "warm",
+              "line_type": "solid",
+              "line_width": "normal"
+            }
+          }
+        ],
+        "title": "NTP Offset (ms)",
+        "title_size": "16",
+        "title_align": "left",
+        "yaxis": {
+          "scale": "linear"
+        },
+        "show_legend": true,
+        "legend_layout": "auto",
+        "legend_columns": ["avg", "min", "max", "value"]
+      },
+      "layout": {
+        "x": 6,
+        "y": 9,
+        "width": 6,
+        "height": 3
+      }
+    },
+    {
+      "id": 7,
+      "definition": {
         "type": "query_table",
         "requests": [
           {
@@ -263,14 +286,14 @@
         "has_search_bar": "auto"
       },
       "layout": {
-        "x": 6,
-        "y": 9,
-        "width": 6,
+        "x": 0,
+        "y": 12,
+        "width": 12,
         "height": 3
       }
     },
     {
-      "id": 7,
+      "id": 8,
       "definition": {
         "type": "note",
         "content": "## 📝 Event Log Monitoring",
@@ -283,13 +306,13 @@
       },
       "layout": {
         "x": 0,
-        "y": 12,
+        "y": 15,
         "width": 12,
         "height": 1
       }
     },
     {
-      "id": 8,
+      "id": 9,
       "definition": {
         "type": "event_stream",
         "query": "sources:windows.events status:info $host",
@@ -300,13 +323,13 @@
       },
       "layout": {
         "x": 0,
-        "y": 13,
+        "y": 16,
         "width": 4,
         "height": 4
       }
     },
     {
-      "id": 9,
+      "id": 10,
       "definition": {
         "type": "event_stream",
         "query": "sources:windows.events status:warning $host",
@@ -317,13 +340,13 @@
       },
       "layout": {
         "x": 4,
-        "y": 13,
+        "y": 16,
         "width": 4,
         "height": 4
       }
     },
     {
-      "id": 10,
+      "id": 11,
       "definition": {
         "type": "event_stream",
         "query": "sources:windows.events status:error $host",
@@ -334,113 +357,9 @@
       },
       "layout": {
         "x": 8,
-        "y": 13,
+        "y": 16,
         "width": 4,
         "height": 4
-      }
-    },
-    {
-      "id": 11,
-      "definition": {
-        "type": "check_status",
-        "check": "windows_service",
-        "grouping": "cluster",
-        "group_by": ["host", "service"],
-        "tags": ["$host"],
-        "title": "Windows Service Status - Running",
-        "title_size": "16",
-        "title_align": "left"
-      },
-      "layout": {
-        "x": 0,
-        "y": 17,
-        "width": 3,
-        "height": 2
-      }
-    },
-    {
-      "id": 12,
-      "definition": {
-        "type": "check_status",
-        "check": "windows_service",
-        "grouping": "cluster",
-        "group_by": ["host", "service"],
-        "tags": ["$host"],
-        "title": "Windows Service Status - Stopped",
-        "title_size": "16",
-        "title_align": "left"
-      },
-      "layout": {
-        "x": 3,
-        "y": 17,
-        "width": 3,
-        "height": 2
-      }
-    },
-    {
-      "id": 13,
-      "definition": {
-        "type": "timeseries",
-        "requests": [
-          {
-            "q": "avg:system.uptime{$host} by {host}",
-            "display_type": "line",
-            "style": {
-              "palette": "cool",
-              "line_type": "solid",
-              "line_width": "normal"
-            }
-          }
-        ],
-        "title": "System Uptime (seconds)",
-        "title_size": "16",
-        "title_align": "left",
-        "yaxis": {
-          "scale": "linear",
-          "include_zero": true
-        },
-        "show_legend": true,
-        "legend_layout": "auto",
-        "legend_columns": ["avg", "min", "max", "value"]
-      },
-      "layout": {
-        "x": 6,
-        "y": 17,
-        "width": 3,
-        "height": 2
-      }
-    },
-    {
-      "id": 14,
-      "definition": {
-        "type": "timeseries",
-        "requests": [
-          {
-            "q": "avg:system.load.1{$host} by {host}",
-            "display_type": "line",
-            "style": {
-              "palette": "warm",
-              "line_type": "solid",
-              "line_width": "normal"
-            }
-          }
-        ],
-        "title": "System Load Average (1min)",
-        "title_size": "16",
-        "title_align": "left",
-        "yaxis": {
-          "scale": "linear",
-          "include_zero": true
-        },
-        "show_legend": true,
-        "legend_layout": "auto",
-        "legend_columns": ["avg", "min", "max", "value"]
-      },
-      "layout": {
-        "x": 9,
-        "y": 17,
-        "width": 3,
-        "height": 2
       }
     }
   ]

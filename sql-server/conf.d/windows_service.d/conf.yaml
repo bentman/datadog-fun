@@ -41,27 +41,3 @@ instances:
     windows_service_startup_type_tag: true
     collect_display_name_as_tag: true
     disable_legacy_service_tag: true
-
-  # SQL Server Named Instances (if applicable)
-  - services:
-      - name: MSSQL\$.*
-        startup_type: automatic
-    tags:
-      - role:sccm-sql-server
-      - service_group:sql-server-named-instances
-      - environment:production
-    windows_service_startup_type_tag: true
-    collect_display_name_as_tag: true
-    disable_legacy_service_tag: true
-
-  # SQL Server Always On Services (if applicable)
-  - services:
-      - MSSQLSERVER_HADR
-      - SQLSERVERAGENT_HADR
-    tags:
-      - role:sccm-sql-server
-      - service_group:sql-server-alwayson
-      - environment:production
-    windows_service_startup_type_tag: true
-    collect_display_name_as_tag: true
-    disable_legacy_service_tag: true

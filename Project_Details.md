@@ -126,21 +126,19 @@ Test-NetConnection -ComputerName <SQL_SERVER> -Port 1433
 ## Monitoring Configuration
 
 ### System Performance Monitoring
-- **CPU Usage**: Warning >80%, Critical >90%
+- **CPU Usage**: Warning >85%, Critical >95%
 - **Memory Usage**: Warning >85%, Critical >95%
 - **Disk Space**: Warning <15% free, Critical <10% free
 - **Network Utilization**: Warning >70%, Critical >85%
 
-### SCCM Service Monitoring
+### Service Monitoring
 - **Service Status**: Critical if any monitored service is stopped
-- **Response Time**: Warning >5s, Critical >10s
-- **Error Rates**: Warning >1%, Critical >5%
+- **System Resource Usage**: Monitor via dashboard widgets for alerting
 
 ### SQL Server Performance
-- **Connection Count**: Warning >80% of max, Critical >90% of max
-- **Query Response Time**: Warning >1s, Critical >5s
-- **Database Size Growth**: Warning >10% monthly, Critical >20% monthly
-- **Backup Age**: Warning >25 hours, Critical >49 hours
+- **Cache Hit Ratio**: Warning <90%, Critical <85%
+- **Page Life Expectancy**: Warning <300sec, Critical <180sec
+- **Blocked Processes**: Warning >5, Critical >10
 
 ### Windows Event Log Monitoring
 - **System Events**: Critical system events, service failures, DCOM errors

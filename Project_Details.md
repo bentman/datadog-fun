@@ -71,21 +71,27 @@ For environments requiring manual deployment:
 ### 1. Environment Preparation
 
 **Update Server Inventory:**
-Edit `servers.json` with your SCCM server details:
+Edit `servers.json` with your SCCM server details in role-based groups:
 ```json
 {
-  "servers": [
-    {
-      "hostname": "SCCM-SITE-01",
-      "role": "site-server",
-      "description": "Primary Site Server"
-    },
-    {
-      "hostname": "SCCM-MP-01",
-      "role": "management-point",
-      "description": "Management Point Server"
-    }
-  ]
+    "site-server": [
+        "sccm-site01.contoso.com",
+        "sccm-site02.contoso.com"
+    ],
+    "management-point": [
+        "sccm-mp01.contoso.com",
+        "sccm-mp02.contoso.com"
+    ],
+    "distribution-point": [
+        "sccm-dp01.contoso.com",
+        "sccm-dp02.contoso.com"
+    ],
+    "sql-server": [
+        "sccm-sql01.contoso.com"
+    ],
+    "sql-reporting-server": [
+        "sccm-ssrs01.contoso.com"
+    ]
 }
 ```
 

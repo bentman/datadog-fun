@@ -4,21 +4,14 @@
 init_config:
 
 instances:
-  # Default Web Site monitoring for Report Manager
   - host: localhost
-    tags:
-      - role:sccm-sql-reporting-server
-      - iis_site:default
-    
-  # Monitor SSRS application pools
-  - host: localhost
-    tags:
-      - role:sccm-sql-reporting-server
-      - component:ssrs-app-pools
-    
-  # Additional IIS metrics collection for reporting services
-  - host: localhost
+    sites:
+      - "Default Web Site"
+    detailed_sites: false
+    ignore_ssl_warning: true
+    include_per_site: true
     include_wmi_metrics: true
     tags:
       - role:sccm-sql-reporting-server
-      - component:iis-wmi
+      - iis_site:default
+      - component:sccm-iis-monitoring

@@ -1,6 +1,6 @@
-# SQL Server Check Configuration for SCCM Database (Windows Authentication Alternative)
-# Monitors SQL Server performance and SCCM database health without username/password
-# Uses Windows Authentication with minimal viable configuration
+# SQL Server Check Configuration for SCCM Database Server (Windows Authentication)
+# Monitors SQL Server performance and SCCM database health for SQL Server 2019
+# Uses Windows Authentication with MSSQLSERVER default instance (SCCM requirement)
 
 init_config:
 
@@ -9,38 +9,97 @@ instances:
   - host: localhost,1433
     connection_string: "Trusted_Connection=yes"
     connector: odbc
-    driver: ODBC Driver 18 for SQL Server
+    driver: ODBC Driver 18 for SQL Server  # Required by SCCM
     tags:
       - role:sccm-sql-server
       - database:sccm
+      - service:sql-server
       - auth:windows
-    
-    # Basic Database Monitoring Configuration (simplified)
-    dbm: false  # Disabled to reduce authentication requirements
-    
-    # Essential custom queries for SCCM monitoring (basic level)
+
+    # Database Monitoring Configuration
+    dbm: false  # Keep disabled for production - requires additional permissions
+
+    # Enhanced custom queries for SCCM database health monitoring
     custom_queries:
-      # Basic SCCM Database Size Monitoring (using simpler query)
+      # SCCM Database Health Overview
       - query: |
-          SELECT 
-            'SCCM' as database_name,
-            COUNT(*) as file_count
-          FROM sys.database_files
-          WHERE type IN (0,1)
+          SELECT
+            name as database_name,
+            compatibility_level,
+            state_desc,
+            recovery_model_desc
+          FROM sys.databases
+          WHERE name NOT IN ('master', 'tempdb', 'model', 'msdb')
         columns:
           - name: database_name
             type: tag
-          - name: file_count
+          - name: compatibility_level
+            type: gauge
+          - name: state_desc
+            type: tag
+          - name: recovery_model_desc
+            type: tag
+        tags:
+          - query:sccm_database_health
+          - database:sccm
+
+      # SCCM Database Size and Growth Monitoring
+      - query: |
+          SELECT
+            DB_NAME(database_id) as database_name,
+            SUM(size * 8 / 1024) as database_size_mb,
+            SUM(CASE WHEN state_desc = 'ONLINE' THEN 0 ELSE 1 END) as offline_files
+          FROM sys.master_files
+          WHERE DB_NAME(database_id) NOT IN ('master', 'tempdb', 'model', 'msdb')
+          GROUP BY database_id
+        columns:
+          - name: database_name
+            type: tag
+          - name: database_size_mb
+            type: gauge
+          - name: offline_files
             type: gauge
         tags:
-          - query:sccm_database_files
-      
+          - query:sccm_database_size
+          - database:sccm
+
+      # SQL Server Connection and Process Monitoring
+      - query: |
+          SELECT
+            @@CONNECTIONS as total_connections,
+            (SELECT COUNT(*) FROM master.dbo.sysprocesses WHERE cmd <> '') as active_processes
+        columns:
+          - name: total_connections
+            type: gauge
+          - name: active_processes
+            type: gauge
+        tags:
+          - query:sql_server_connections
+          - instance:sql-server
+
+      # SCCM Status Messages Access (Safe version using INFO)
+      - query: |
+          SELECT
+            'StatusMessages' as table_type,
+            COUNT(*) as schema_tables
+          FROM INFORMATION_SCHEMA.TABLES
+          WHERE TABLE_NAME LIKE '%StatusMessage%'
+        columns:
+          - name: table_type
+            type: tag
+          - name: schema_tables
+            type: gauge
+        tags:
+          - query:sccm_status_messages_access
+          - database:sccm
+
       # SQL Server Basic Health Check
       - query: |
-          SELECT 
+          SELECT
             @@SERVERNAME as server_name,
             @@VERSION as sql_version,
-            GETDATE() as current_time
+            GETDATE() as current_time,
+            @@SPID as spid
         columns:
           - name: server_name
             type: tag
@@ -48,18 +107,30 @@ instances:
             type: tag
           - name: current_time
             type: tag
+          - name: spid
+            type: gauge
         tags:
           - query:sql_server_info
-    
-    # Performance counters (essential only)
-    include_task_scheduler_metrics: false
-    include_db_fragmentation_metrics: false  # Requires additional permissions
-    include_fci_metrics: false
-    
-    # Log collection (basic SQL Server logs)
+
+    # Performance counters - enabling safe categories for SCCM
+    include_instance_metrics: false
+
+    # Task scheduler monitoring for SCCM maintenance jobs
+    include_task_scheduler_metrics: true
+
+    # File and I/O monitoring for SCCM database files
+    include_instance_file_metrics: true
+    include_instance_file_growth_metrics: true
+    include_instance_file_ios_metrics: true
+
+    # Database fragmentation (keep disabled for SCCM permissions)
+    include_db_fragmentation_metrics: false
+
+    # Enhanced log collection using SQL Server 2019 default instance paths
     logs:
+      # SQL Server Error Logs (MSSQL16.MSSQLSERVER default instance)
       - type: file
-        path: C:\Program Files\Microsoft SQL Server\MSSQL15.MSSQLSERVER\MSSQL\Log\ERRORLOG
+        path: C:\Program Files\Microsoft SQL Server\MSSQL16.MSSQLSERVER\MSSQL\Log\ERRORLOG
         source: sqlserver
         service: sqlserver
         log_processing_rules:
@@ -69,9 +140,11 @@ instances:
         tags:
           - auth:windows
           - role:sccm-sql-server
-      
+          - instance:default
+
+      # SQL Server Agent Logs (MSSQL16.MSSQLSERVER default instance)
       - type: file
-        path: C:\Program Files\Microsoft SQL Server\MSSQL15.MSSQLSERVER\MSSQL\Log\SQLAGENT.OUT
+        path: C:\Program Files\Microsoft SQL Server\MSSQL16.MSSQLSERVER\MSSQL\Log\SQLAGENT.OUT
         source: sqlserver
         service: sqlserver-agent
         log_processing_rules:
@@ -81,12 +154,13 @@ instances:
         tags:
           - auth:windows
           - role:sccm-sql-server
+          - instance:default
 
-# Alternative configuration notes:
-# 1. Uses Windows Authentication (Trusted_Connection=yes) instead of username/password
-# 2. DBM disabled to reduce permission requirements
-# 3. Simplified custom queries that work with basic permissions
-# 4. Essential performance counters only
-# 5. Basic log collection maintained
-# 6. Added auth:windows tag for identification
-# 7. Suitable for environments where service accounts cannot be used
+# Configuration Notes for SCCM Compatibility:
+# - Uses ODBC Driver 18 for SQL Server (required by SCCM)
+# - MSSQL16.MSSQLSERVER paths for SQL Server 2019 default instance
+# - Enhanced SCCM database monitoring using accessible system views
+# - File I/O metrics enabled for space monitoring without heavy permissions
+# - Task scheduler monitoring for SCCM maintenance job tracking
+# - All queries designed for Windows Authentication with SCCM permissions
+# - Status message monitoring uses safe INFO schema instead of direct table access

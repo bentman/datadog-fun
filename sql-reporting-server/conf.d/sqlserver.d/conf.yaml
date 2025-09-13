@@ -1,6 +1,6 @@
-# SQL Server Check Configuration for SCCM Reporting Server (Windows Authentication Alternative)
-# Monitors SQL Server Reporting Services database and performance without username/password
-# Uses Windows Authentication with minimal viable configuration
+# SQL Server Check Configuration for SCMM Reporting Server (Windows Authentication)
+# Monitors SQL Server Reporting Services database and performance for SQL Server 2019
+# Uses Windows Authentication with default instance names (MSSQLSERVER)
 
 init_config:
 
@@ -9,46 +9,88 @@ instances:
   - host: localhost,1433
     connection_string: "Trusted_Connection=yes"
     connector: odbc
-    driver: ODBC Driver 18 for SQL Server
+    driver: ODBC Driver 19 for SQL Server
     tags:
       - role:sccm-sql-reporting-server
       - database:reportserver
+      - service:ssrs
       - auth:windows
     
-    # Basic Database Monitoring Configuration (simplified)
-    dbm: false  # Disabled to reduce authentication requirements
+    # Database Monitoring Configuration
+    dbm: false  # Keep disabled for production - requires additional permissions
     
-    # Essential custom queries for SSRS monitoring (basic level)
+    # Enhanced custom queries for SSRS health monitoring
     custom_queries:
-      # Basic ReportServer Database Check
+      # SSRS System Health Check
       - query: |
           SELECT 
-            'ReportServer' as database_name,
-            COUNT(*) as table_count
-          FROM INFORMATION_SCHEMA.TABLES
-          WHERE TABLE_CATALOG = 'ReportServer'
+            'SSRS_Health' as health_check,
+            COUNT(*) as active_sessions
+          FROM ReportServerTempDB.dbo.ReportingSessions
+          WHERE Expiration > GETDATE()
         columns:
-          - name: database_name
+          - name: health_check
             type: tag
-          - name: table_count
+          - name: active_sessions
             type: gauge
         tags:
-          - query:reportserver_basic_check
+          - query:ssrs_sessions
+          - database:reportservertempdb
       
-      # Basic ReportServerTempDB Check
+      # SSRS Report Performance Summary (Top 10 by execution count)
       - query: |
           SELECT 
-            'ReportServerTempDB' as database_name,
-            COUNT(*) as table_count
-          FROM INFORMATION_SCHEMA.TABLES
-          WHERE TABLE_CATALOG = 'ReportServerTempDB'
+            TOP 10
+            ReportID,
+            [Name] as report_name,
+            ExecutionCount as execution_count,
+            AVG(ExecutionTime) as avg_execution_time
+          FROM ReportServer.dbo.Catalog
+          WHERE Type = 2  -- 2 = Report
+          ORDER BY ExecutionCount DESC
         columns:
-          - name: database_name
+          - name: report_name
             type: tag
-          - name: table_count
+          - name: execution_count
+            type: gauge
+          - name: avg_execution_time
             type: gauge
         tags:
-          - query:reportserver_tempdb_check
+          - query:ssrs_report_performance
+          - database:reportserver
+      
+      # SSRS Subscription Monitoring
+      - query: |
+          SELECT 
+            COUNT(*) as active_subscriptions,
+            SUM(CASE WHEN LastStatus='Delivered' THEN 1 ELSE 0 END) as successful_subscriptions,
+            SUM(CASE WHEN LastStatus LIKE '%Error%' THEN 1 ELSE 0 END) as failed_subscriptions
+          FROM ReportServer.dbo.Subscriptions
+        columns:
+          - name: active_subscriptions
+            type: gauge
+          - name: successful_subscriptions
+            type: gauge
+          - name: failed_subscriptions
+            type: gauge
+        tags:
+          - query:ssrs_subscription_health
+          - database:reportserver
+      
+      # SSRS Data Source Monitoring
+      - query: |
+          SELECT 
+            COUNT(*) as data_sources,
+            SUM(CASE WHEN ConnectionString LIKE '%Integrated Security%' THEN 1 ELSE 0 END) as windows_auth_datasources
+          FROM ReportServer.dbo.DataSource
+        columns:
+          - name: data_sources
+            type: gauge
+          - name: windows_auth_datasources
+            type: gauge
+        tags:
+          - query:ssrs_data_source_security
+          - database:reportserver
       
       # SQL Server Basic Health Check
       - query: |
@@ -66,40 +108,53 @@ instances:
         tags:
           - query:sql_server_info
     
-    # Performance counters (essential only)
-    include_task_scheduler_metrics: false
-    include_db_fragmentation_metrics: false  # Requires additional permissions
-    include_fci_metrics: false
+    # Performance counters - enabling safe categories
+    include_instance_metrics: false
     
-    # Log collection (SSRS logs)
+    # Task scheduler monitoring
+    include_task_scheduler_metrics: true
+    
+    # File and I/O monitoring
+    include_instance_file_metrics: true
+    include_instance_file_growth_metrics: true
+    include_instance_file_ios_metrics: true
+    
+    # Database fragmentation (consider enabling if permissions allow)
+    include_db_fragmentation_metrics: false
+    
+    # Enhanced log collection using default instance paths (SQL Server 2019)
     logs:
+      # SSRS Service Logs (MSRS2019.MSSQLSERVER default instance)
       - type: file
-        path: C:\Program Files\Microsoft SQL Server\MSRS13.MSSQLSERVER\Reporting Services\LogFiles\ReportServerService*.log
+        path: C:\Program Files\Microsoft SQL Server\MSRS2019.MSSQLSERVER\Reporting Services\LogFiles\ReportServerService*.log
         source: ssrs
         service: ssrs
         log_processing_rules:
           - type: multi_line
             name: new_log_start_with_timestamp
-            pattern: \w+\s+\d{2}\s+\d{2}:\d{2}:\d{2}
+            pattern: \d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}
         tags:
           - auth:windows
           - role:sccm-sql-reporting-server
-      
+          - instance:default
+          
+      # SSRS Web Application Logs (MSRS2019.MSSQLSERVER default instance)
       - type: file
-        path: C:\Program Files\Microsoft SQL Server\MSRS13.MSSQLSERVER\Reporting Services\LogFiles\ReportServerWebApp*.log
+        path: C:\Program Files\Microsoft SQL Server\MSRS2019.MSSQLSERVER\Reporting Services\LogFiles\ReportServerWebApp*.log
         source: ssrs-webapp
         service: ssrs-webapp
         log_processing_rules:
           - type: multi_line
             name: new_log_start_with_timestamp
-            pattern: \w+\s+\d{2}\s+\d{2}:\d{2}:\d{2}
+            pattern: \d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}
         tags:
           - auth:windows
           - role:sccm-sql-reporting-server
+          - instance:default
       
-      # Basic SQL Server logs for reporting server
+      # SQL Server Error Logs (MSSQL16.MSSQLSERVER default instance)
       - type: file
-        path: C:\Program Files\Microsoft SQL Server\MSSQL15.MSSQLSERVER\MSSQL\Log\ERRORLOG
+        path: C:\Program Files\Microsoft SQL Server\MSSQL16.MSSQLSERVER\MSSQL\Log\ERRORLOG
         source: sqlserver
         service: sqlserver-reporting
         log_processing_rules:
@@ -109,6 +164,7 @@ instances:
         tags:
           - auth:windows
           - role:sccm-sql-reporting-server
+          - instance:default
 
 # Alternative configuration notes:
 # 1. Uses Windows Authentication (Trusted_Connection=yes) instead of username/password

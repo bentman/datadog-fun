@@ -69,34 +69,34 @@ $DatadogServiceName = "DatadogAgent"
 # Configuration mappings
 $RoleConfigurations = @{
     "site-server"          = @{
-        "Description"       = "SCCM Primary Site Server"
-        "ConfigDir"         = "site-server"
-        "TargetPath"        = "C:\ProgramData\Datadog"
-        "RequiresRestart"   = $true
+        "Description"     = "SCCM Primary Site Server"
+        "ConfigDir"       = "site-server"
+        "TargetPath"      = "C:\ProgramData\Datadog"
+        "RequiresRestart" = $true
     }
     "management-point"     = @{
-        "Description"       = "SCCM Management Point Server"
-        "ConfigDir"         = "management-point"
-        "TargetPath"        = "C:\ProgramData\Datadog"
-        "RequiresRestart"   = $true
+        "Description"     = "SCCM Management Point Server"
+        "ConfigDir"       = "management-point"
+        "TargetPath"      = "C:\ProgramData\Datadog"
+        "RequiresRestart" = $true
     }
     "distribution-point"   = @{
-        "Description"       = "SCCM Distribution Point Server"
-        "ConfigDir"         = "distribution-point"
-        "TargetPath"        = "C:\ProgramData\Datadog"
-        "RequiresRestart"   = $true
+        "Description"     = "SCCM Distribution Point Server"
+        "ConfigDir"       = "distribution-point"
+        "TargetPath"      = "C:\ProgramData\Datadog"
+        "RequiresRestart" = $true
     }
     "sql-server"           = @{
-        "Description"       = "SCCM SQL Database Server"
-        "ConfigDir"         = "sql-server"
-        "TargetPath"        = "C:\ProgramData\Datadog"
-        "RequiresRestart"   = $true
+        "Description"     = "SCCM SQL Database Server"
+        "ConfigDir"       = "sql-server"
+        "TargetPath"      = "C:\ProgramData\Datadog"
+        "RequiresRestart" = $true
     }
     "sql-reporting-server" = @{
-        "Description"       = "SQL Reporting Services Server"
-        "ConfigDir"         = "sql-reporting-server"
-        "TargetPath"        = "C:\ProgramData\Datadog"
-        "RequiresRestart"   = $true
+        "Description"     = "SQL Reporting Services Server"
+        "ConfigDir"       = "sql-reporting-server"
+        "TargetPath"      = "C:\ProgramData\Datadog"
+        "RequiresRestart" = $true
     }
 }
 
@@ -351,7 +351,7 @@ function Restart-DatadogAgent {
             return $true
         }
         catch {
-            Write-Log "TEST MODE: Failed to check Datadog Agent service on $TargetServer: $($_.Exception.Message)" "ERROR"
+            Write-Log "TEST MODE: Failed to check Datadog Agent service on $($TargetServer): $($_.Exception.Message)" "ERROR"
             return $false
         }
     }
@@ -420,25 +420,24 @@ function Show-PostDeploymentInfo {
     Write-Log "- Configuration validation: Check agent.exe status on each server" "INFO"
     
     Write-Log "NEXT STEPS:" "INFO"
-        Write-Log "1. Replace 'YOUR_API_KEY_HERE' with actual Datadog API key" "INFO"
-        Write-Log "2. Verify Datadog Agent connectivity to Datadog endpoints" "INFO"
-        Write-Log "3. Check metrics collection in Datadog dashboard" "INFO"
-        Write-Log "`nAdditional Resources:" "INFO"
-        Write-Log "- Deployment logs: $LogFile" "INFO"
-        Write-Log "- Configuration templates: $ConfigPath" "INFO"
-        Write-Log "- Server configuration: $ServerConfig" "INFO"
-    }
-    
-    Write-Log "`nVERIFICATION COMMANDS:" "INFO"
-    Write-Log "# Check agent status on all servers" "INFO"
-    Write-Log "Get-Service $DatadogServiceName -ComputerName <server-name>" "INFO"
-    Write-Log "`n# Verify configuration on target server" "INFO"
-    Write-Log "Invoke-Command -ComputerName <server> -ScriptBlock { & 'C:\Program Files\Datadog\Datadog Agent\bin\agent.exe' status }" "INFO"
-    Write-Log "`n# Check recent agent logs" "INFO"
-    Write-Log "Get-Content '\\<server>\c$\ProgramData\Datadog\logs\agent.log' -Tail 20" "INFO"
-    Write-Log "`nFor support and troubleshooting, refer to the README.md file." "INFO"
-    Write-Log "========================================" "INFO"
+    Write-Log "1. Replace 'YOUR_API_KEY_HERE' with actual Datadog API key" "INFO"
+    Write-Log "2. Verify Datadog Agent connectivity to Datadog endpoints" "INFO"
+    Write-Log "3. Check metrics collection in Datadog dashboard" "INFO"
+    Write-Log "`nAdditional Resources:" "INFO"
+    Write-Log "- Deployment logs: $LogFile" "INFO"
+    Write-Log "- Configuration templates: $ConfigPath" "INFO"
+    Write-Log "- Server configuration: $ServerConfig" "INFO"
 }
+    
+Write-Log "`nVERIFICATION COMMANDS:" "INFO"
+Write-Log "# Check agent status on all servers" "INFO"
+Write-Log "Get-Service $DatadogServiceName -ComputerName <server-name>" "INFO"
+Write-Log "`n# Verify configuration on target server" "INFO"
+Write-Log "Invoke-Command -ComputerName <server> -ScriptBlock { & 'C:\Program Files\Datadog\Datadog Agent\bin\agent.exe' status }" "INFO"
+Write-Log "`n# Check recent agent logs" "INFO"
+Write-Log "Get-Content '\\<server>\c$\ProgramData\Datadog\logs\agent.log' -Tail 20" "INFO"
+Write-Log "`nFor support and troubleshooting, refer to the README.md file." "INFO"
+Write-Log "========================================" "INFO"
 
 function Clear-TempDirectories {
     param([string[]]$TempDirectories)

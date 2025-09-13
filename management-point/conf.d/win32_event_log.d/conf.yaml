@@ -1,53 +1,11 @@
-# Windows Event Log Configuration for SCCM Management Point
-# Monitors critical Windows, IIS, WMI, SQL Server, and SCCM Management Point events
-# Updated with pattern-based filtering for critical event IDs worth alerting on
-#
-# CRITICAL EVENT IDs MONITORED FOR MANAGEMENT POINT:
-#
-# SYSTEM EVENTS:
-# - 2: System startup events
-# - 41: System rebooted without cleanly shutting down
-# - 1074: System shutdown/restart initiated
-# - 6005/6006: Event log service started/stopped
-# - 6008: Unexpected system shutdown
-# - 6009/6013: System startup/shutdown events
-# - 7036: Service state changes (start/stop)
-# - 10016: DCOM permission errors (common on SCCM servers)
-# - 10028: DCOM server start failures
-# - 10009: DCOM server termination
-#
-# APPLICATION EVENTS:
-# - 1000: Application error
-# - 1001: Application hang
-# - 1104: SMS_MP_Control_Manager critical error
-# - 1309: IIS configuration error
-# - 2268: IIS HTTP errors
-# - 5612: SQL Server related events
-# - 18456: SQL Server login failed
-# - 18452: SQL Server connection failed
-#
-# WMI EVENTS:
-# - 63: WMI provider registration warnings
-# - 5858: WMI activity errors (critical for SCCM)
-# - 5857: WMI provider errors
-# - 5859: WMI provider host process errors
-# - 10: WMI provider load failures
-#
-# SECURITY EVENTS:
-# - 4625: Failed logon attempt
-# - 4648: Logon using explicit credentials
-# - 4771: Kerberos pre-authentication failed
-# - 4776: Domain controller attempted to validate credentials
-#
-# IIS OPERATIONAL EVENTS:
-# - 1309/1325/1359: IIS configuration and authentication errors
-# - 2268-2280: HTTP protocol errors and failures
-# - 1200-1210: IIS authentication errors
+# Windows Event Log Configuration for SCCM Management Point (Simplified LCD)
+# Focuses on essential Management Point and client communication errors
+# Uses proven pattern format that works in peer configurations
 
 init_config:
 
 logs:
-  # System Event Log - Critical system events, DCOM errors, and service issues
+  # System Event Log - Core system and service failures critical to MP
   - type: windows_event
     channel_path: System
     source: windows.events
@@ -58,15 +16,9 @@ logs:
     log_processing_rules:
       - type: include_at_match
         name: critical_system_events
-        pattern: '"EventID":"(2|41|1074|6005|6006|6008|6009|6013|7036)'
-      - type: include_at_match
-        name: dcom_errors
-        pattern: '"EventID":"(10016|10028|10009)'
-      - type: include_at_match
-        name: service_control_events
-        pattern: '"EventID":"(7000|7001|7009|7011|7022|7023|7024|7026|7031|7032|7034)'
+        pattern: '"EventID":"(7000|7001|7031|7034|7036|10016|6008)"'
 
-  # Application Event Log - SCCM Management Point, SQL Server, and critical application errors
+  # Application Event Log - SCCM MP and SQL connection errors only
   - type: windows_event
     channel_path: Application
     source: windows.events
@@ -76,22 +28,19 @@ logs:
       - role:sccm-management-point
     log_processing_rules:
       - type: include_at_match
-        name: sccm_management_point_events
-        pattern: '"EventID":"(1104|1105|1106|1107|1108|1109|1110|1111|1112|1113|1114|1115)'
+        name: sccm_mp_component_errors
+        pattern: '"EventID":"(1104|1105|1106|1107|1108)"'
       - type: include_at_match
-        name: sql_server_connection_errors
-        pattern: '"EventID":"(5612|18456|18452|18451|18453|18454|18455|18470|18471|18482|18483)'
+        name: sql_connection_errors
+        pattern: '"EventID":"(18456|18452|5612)"'
       - type: include_at_match
-        name: critical_application_errors
-        pattern: '"EventID":"(1000|1001|1002|1004|1008|1026|1033|1034)'
+        name: wmi_activity_errors
+        pattern: '"EventID":"(5858|5857|5859)"'
       - type: include_at_match
-        name: iis_application_errors
-        pattern: '"EventID":"(1309|1325|1332|1359|2268|2269|2270|2271|2272|2273|2274|2275)'
-      - type: include_at_match
-        name: certificate_errors
-        pattern: '"EventID":"(1007|1008|1010|1011|1012|1014|1015|1016|1017|1018)'
+        name: service_errors
+        pattern: '"EventID":"(1000|1026|1033)"'
 
-  # Security Event Log - Authentication and privilege events
+  # Security Event Log - Authentication failures affecting MP clients
   - type: windows_event
     channel_path: Security
     source: windows.events
@@ -101,110 +50,5 @@ logs:
       - role:sccm-management-point
     log_processing_rules:
       - type: include_at_match
-        name: authentication_failures
-        pattern: '"EventID":"(4625|4648|4771|4776|4777|4820|4821|4822|4823|4824)'
-      - type: include_at_match
-        name: privilege_escalation_events
-        pattern: '"EventID":"(4672|4673|4674|4728|4732|4735|4737|4740|4755|4756|4794)'
-      - type: include_at_match
-        name: audit_policy_changes
-        pattern: '"EventID":"(1102|4618|4649|4719|4765|4766|4897|4964|5124)'
-      - type: include_at_match
-        name: account_management_events
-        pattern: '"EventID":"(4720|4722|4723|4724|4725|4726|4738|4781|4798|4799)'
-
-  # WMI Activity Events - Critical for SCCM Management Point functionality
-  - type: windows_event
-    channel_path: Microsoft-Windows-WMI-Activity/Operational
-    source: windows.events
-    service: sccm-management-point
-    tags:
-      - source:wmi-activity
-      - role:sccm-management-point
-    log_processing_rules:
-      - type: include_at_match
-        name: wmi_provider_errors
-        pattern: '"EventID":"(63|5858|5857|5859|10|11|12|13|14|15)'
-      - type: include_at_match
-        name: wmi_connection_errors
-        pattern: '"EventID":"(5612|5613|5614|5615|5616|5617|5618|5619|5620)'
-
-  # IIS HTTP Errors and Authentication Issues
-  - type: windows_event
-    channel_path: Microsoft-Windows-IIS-W3SVC/Operational
-    source: windows.events
-    service: sccm-management-point
-    tags:
-      - source:iis-operational
-      - role:sccm-management-point
-    log_processing_rules:
-      - type: include_at_match
-        name: iis_http_errors
-        pattern: '"EventID":"(1309|1325|1359|2268|2269|2270|2271|2272|2273|2274|2275|2276|2277|2278|2279|2280)'
-      - type: include_at_match
-        name: iis_authentication_errors
-        pattern: '"EventID":"(1200|1201|1202|1203|1204|1205|1206|1207|1208|1209|1210)'
-      - type: include_at_match
-        name: iis_application_pool_errors
-        pattern: '"EventID":"(5002|5003|5004|5005|5006|5007|5008|5009|5010|5011|5012)'
-
-  # SQL Server Events - Database connectivity and performance issues
-  - type: windows_event
-    channel_path: Application
-    source: windows.events
-    service: sccm-management-point
-    tags:
-      - source:sql-server
-      - role:sccm-management-point
-    log_processing_rules:
-      - type: include_at_match
-        name: sql_login_failures
-        pattern: '"EventID":"(18456|18452|18451|18453|18454|18455)'
-      - type: include_at_match
-        name: sql_connection_issues
-        pattern: '"EventID":"(18470|18471|18482|18483|18486|18487|18488|18489)'
-      - type: include_at_match
-        name: sql_database_errors
-        pattern: '"EventID":"(823|824|825|832|833|834|835|836|837|838|839)'
-
-  # Microsoft Defender Antivirus Events
-  - type: windows_event
-    channel_path: Microsoft-Windows-Windows Defender/Operational
-    source: windows.events
-    service: sccm-management-point
-    tags:
-      - source:windows-defender
-      - role:sccm-management-point
-    log_processing_rules:
-      - type: include_at_match
-        name: defender_malware_detection
-        pattern: '"EventID":"(1006|1007|1008|1009|1116|1117|1118|1119)'
-      - type: include_at_match
-        name: defender_scan_issues
-        pattern: '"EventID":"(1002|1003|1005|1012|1015)'
-
-  # PowerShell Security Events
-  - type: windows_event
-    channel_path: Microsoft-Windows-PowerShell/Operational
-    source: windows.events
-    service: sccm-management-point
-    tags:
-      - source:powershell-operational
-      - role:sccm-management-point
-    log_processing_rules:
-      - type: include_at_match
-        name: powershell_security_events
-        pattern: '"EventID":"(4103|4104|4105|4106)'
-
-  # Certificate Services Events - Important for SCCM PKI
-  - type: windows_event
-    channel_path: Microsoft-Windows-CertificateServicesClient-Lifecycle-System/Operational
-    source: windows.events
-    service: sccm-management-point
-    tags:
-      - source:certificate-services
-      - role:sccm-management-point
-    log_processing_rules:
-      - type: include_at_match
-        name: certificate_lifecycle_errors
-        pattern: '"EventID":"(1001|1002|1003|1004|1005|1006|1007|1008|1009|1010)'
+        name: auth_failures
+        pattern: '"EventID":"(4625|4771|4776)"'

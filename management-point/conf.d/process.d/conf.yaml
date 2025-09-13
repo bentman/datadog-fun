@@ -4,32 +4,74 @@
 init_config:
 
 instances:
-  # IIS Worker Process - Critical for Management Point
-  - name: w3wp
+  # IIS Worker Process - Critical for client request handling
+  - name: iis_worker
     search_string: ['w3wp.exe']
+    exact_match: false
     tags:
       - process:iis-worker
+      - service:iis
       - role:sccm-management-point
     thresholds:
-      critical: [1, 10]  # At least 1, max 10 processes
-      warning: [1, 5]
+      critical: [1, 20, 5m]  # Client-facing IIS, higher load expected
+      warning: [1, 10, 5m]
     
+  # SCCM Management Point Host - Core MP functionality
+  - name: sms_mp_host
+    search_string: ['SMS_MP_HOST.exe']
+    exact_match: false
+    tags:
+      - process:sccm-mp-host
+      - service:sccm-mp
+      - role:sccm-management-point
+    thresholds:
+      critical: [1, 1, 5m]  # Should be exactly 1 running
+      warning: [1, 1, 5m]
+    
+  # SMS Service Executive - SCCM operations engine
+  - name: sms_service_executive
+    search_string: ['SMS_SERVICE_EXECUTIVE.exe']
+    exact_match: false
+    tags:
+      - process:sccm-service-executive
+      - service:sccm-core
+      - role:sccm-management-point
+    thresholds:
+      critical: [1, 1, 5m]  # Core SCCM service
+      warning: [1, 1, 5m]
+    
+  # SCCM Provider Monitor - Provider service health
+  - name: sms_provider_monitor
+    search_string: ['SMS_PROVIDER_MONITOR.exe']
+    exact_match: false
+    tags:
+      - process:sccm-provider-monitor
+      - service:sccm-provider
+      - role:sccm-management-point
+    thresholds:
+      critical: [1, 1, 5m]  # Should be exactly 1 running
+      warning: [1, 1, 5m]
+
   # WMI Provider Host - Critical for client communication
-  - name: wmiprvse
+  - name: wmi_provider_host
     search_string: ['wmiprvse.exe']
+    exact_match: false
     tags:
       - process:wmi-provider
+      - service:wmi
       - role:sccm-management-point
     thresholds:
-      critical: [1, 20]  # At least 1, max 20 processes
-      warning: [1, 10]
+      critical: [1, 25, 5m]  # MP has higher WMI load than DP
+      warning: [1, 15, 5m]
     
-  # IIS Admin Service
-  - name: inetinfo
-    search_string: ['inetinfo.exe']
+  # SMS Parent Host (if hierarchical site architecture)
+  - name: sms_parent_host
+    search_string: ['SMS_PARENT_HOST.exe']
+    exact_match: false
     tags:
-      - process:iis-admin
+      - process:sccm-parent-host
+      - service:sccm-parent
       - role:sccm-management-point
     thresholds:
-      critical: [1, 1]  # Exactly 1 process should be running
-      warning: [1, 1]
+      critical: [0, 1, 5m]  # Optional for hierarchical sites
+      warning: [0, 1, 5m]

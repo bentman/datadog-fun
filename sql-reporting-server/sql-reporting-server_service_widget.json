@@ -13,7 +13,7 @@
           }
         }
       ],
-      "title": "SQL Server Reporting Services Core State",
+      "title": "Services - SSRS Core State",
       "title_size": "16",
       "title_align": "left",
       "yaxis": {
@@ -46,7 +46,7 @@
           }
         }
       ],
-      "title": "SQL Server Services State",
+      "title": "Services - SQL Server State",
       "title_size": "16",
       "title_align": "left",
       "yaxis": {
@@ -79,7 +79,7 @@
           }
         }
       ],
-      "title": "Web Infrastructure Services State",
+      "title": "Services - Web Infrastructure State",
       "title_size": "16",
       "title_align": "left",
       "yaxis": {
@@ -112,7 +112,7 @@
           }
         }
       ],
-      "title": "Windows Infrastructure Services State",
+      "title": "Services - Windows Infrastructure State",
       "title_size": "16",
       "title_align": "left",
       "yaxis": {
@@ -145,7 +145,7 @@
           }
         }
       ],
-      "title": "Application Pool Services State",
+      "title": "Services - Application Pools State",
       "title_size": "16",
       "title_align": "left",
       "yaxis": {

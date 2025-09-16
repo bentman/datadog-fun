@@ -362,5 +362,203 @@
         "height": 4
       }
     }
+    ,
+    {
+      "id": 7,
+      "definition": {
+        "type": "note",
+        "content": "## 📝 Critical Service Monitoring",
+        "background_color": "gray",
+        "font_size": "18",
+        "text_align": "center",
+        "vertical_align": "center",
+        "show_tick": false,
+        "has_padding": true
+      },
+      "layout": { "x": 0, "y": 15, "width": 12, "height": 1 }
+    },
+    {
+      "id": 13,
+      "definition": {
+        "title": "System Uptime (days)",
+        "title_size": "16",
+        "title_align": "left",
+        "show_legend": true,
+        "legend_layout": "horizontal",
+        "legend_columns": ["avg", "min", "max", "value"],
+        "type": "timeseries",
+        "requests": [
+          {
+            "formulas": [{ "formula": "query1 / 86400" }],
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "query1",
+                "query": "avg:system.uptime{$host} by {host}"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": {
+              "palette": "dog_classic",
+              "order_by": "values",
+              "line_type": "solid",
+              "line_width": "normal"
+            },
+            "display_type": "line"
+          }
+        ]
+      },
+      "layout": { "x": 0, "y": 12, "width": 3, "height": 3 }
+    },
+    {
+      "id": 218960433621520,
+      "definition": {
+        "title": "SCCM Site Server (Warning & Error)",
+        "title_size": "16",
+        "title_align": "left",
+        "requests": [
+          {
+            "response_format": "event_list",
+            "query": {
+              "data_source": "logs_stream",
+              "query_string": "status:(error OR warning)",
+              "indexes": [],
+              "storage": "hot"
+            },
+            "columns": [
+              { "field": "status_line", "width": "auto" },
+              { "field": "timestamp", "width": "auto" },
+              { "field": "host", "width": "auto" },
+              { "field": "service", "width": "auto" },
+              { "field": "status", "width": "auto" },
+              { "field": "@evt.id", "width": "auto" },
+              { "field": "content", "width": "auto" }
+            ]
+          }
+        ],
+        "type": "list_stream"
+      },
+      "layout": { "x": 0, "y": 17, "width": 12, "height": 3 }
+    },
+    {
+      "id": 1622973864910649,
+      "definition": {
+        "title": "SCCM SQL DB Server (Warning & Error)",
+        "title_size": "16",
+        "title_align": "left",
+        "requests": [
+          {
+            "response_format": "event_list",
+            "query": {
+              "data_source": "logs_stream",
+              "query_string": "status:(error OR warning)",
+              "indexes": [],
+              "storage": "hot"
+            },
+            "columns": [
+              { "field": "status_line", "width": "auto" },
+              { "field": "timestamp", "width": "auto" },
+              { "field": "host", "width": "auto" },
+              { "field": "service", "width": "auto" },
+              { "field": "status", "width": "auto" },
+              { "field": "@evt.id", "width": "auto" },
+              { "field": "content", "width": "auto" }
+            ]
+          }
+        ],
+        "type": "list_stream"
+      },
+      "layout": { "x": 0, "y": 20, "width": 12, "height": 3 }
+    },
+    {
+      "id": 7073628582266450,
+      "definition": {
+        "title": "SCCM Management Point (Warning & Error)",
+        "title_size": "16",
+        "title_align": "left",
+        "requests": [
+          {
+            "response_format": "event_list",
+            "query": {
+              "data_source": "logs_stream",
+              "query_string": "status:(error OR warning)",
+              "indexes": [],
+              "storage": "hot"
+            },
+            "columns": [
+              { "field": "status_line", "width": "auto" },
+              { "field": "timestamp", "width": "auto" },
+              { "field": "host", "width": "auto" },
+              { "field": "service", "width": "auto" },
+              { "field": "status", "width": "auto" },
+              { "field": "@evt.id", "width": "auto" },
+              { "field": "content", "width": "auto" }
+            ]
+          }
+        ],
+        "type": "list_stream"
+      },
+      "layout": { "x": 0, "y": 23, "width": 12, "height": 3 }
+    },
+    {
+      "id": 4403943211861702,
+      "definition": {
+        "title": "SCCM Distribution Point (Warning & Error)",
+        "title_size": "16",
+        "title_align": "left",
+        "requests": [
+          {
+            "response_format": "event_list",
+            "query": {
+              "data_source": "logs_stream",
+              "query_string": "status:(error OR warning)",
+              "indexes": [],
+              "storage": "hot"
+            },
+            "columns": [
+              { "field": "status_line", "width": "auto" },
+              { "field": "timestamp", "width": "auto" },
+              { "field": "host", "width": "auto" },
+              { "field": "service", "width": "auto" },
+              { "field": "status", "width": "auto" },
+              { "field": "@evt.id", "width": "auto" },
+              { "field": "content", "width": "auto" }
+            ]
+          }
+        ],
+        "type": "list_stream"
+      },
+      "layout": { "x": 0, "y": 26, "width": 12, "height": 3 }
+    },
+    {
+      "id": 109529361229459,
+      "definition": {
+        "title": "SCCM Sql Reporting Server (Warning & Error)",
+        "title_size": "16",
+        "title_align": "left",
+        "requests": [
+          {
+            "response_format": "event_list",
+            "query": {
+              "data_source": "logs_stream",
+              "query_string": "status:(error OR warning)",
+              "indexes": [],
+              "storage": "hot"
+            },
+            "columns": [
+              { "field": "status_line", "width": "auto" },
+              { "field": "timestamp", "width": "auto" },
+              { "field": "host", "width": "auto" },
+              { "field": "service", "width": "auto" },
+              { "field": "status", "width": "auto" },
+              { "field": "@evt.id", "width": "auto" },
+              { "field": "content", "width": "auto" }
+            ]
+          }
+        ],
+        "type": "list_stream"
+      },
+      "layout": { "x": 0, "y": 29, "width": 12, "height": 3 }
+    }
   ]
 }

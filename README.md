@@ -49,6 +49,8 @@ All SQL Server connections use Windows Authentication (`Trusted_Connection=yes`)
 - [Project_Details.md](Project_Details.md) - Comprehensive project information and setup guide
 - [Project_Components.md](Project_Components.md) - Detailed component descriptions and structure
 
+Note: dashboards/windows-server-health.json updated to include per-role Event Log sections and standardized service widgets. Environment-specific template variables were removed for deployment readiness.
+
 ## Contributing
 
 1. Fork the repository

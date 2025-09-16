@@ -4,15 +4,23 @@
       "type": "log_stream",
       "query": "source:windows.events channel_path:System role:sccm-sql-server status:(warning OR error) @EventID:(7000 OR 7001 OR 7031 OR 7034 OR 7036 OR 6008)",
       "columns": ["timestamp", "host", "service", "status", "EventID", "message"],
-      "title": "System Critical Events"
+      "title": "System - Critical Events"
     }
   },
   {
     "definition": {
       "type": "log_stream",
-      "query": "source:windows.events channel_path:Application role:sccm-sql-server status:(warning OR error) @EventID:(17061 OR 17062 OR 18456 OR 18452)",
+      "query": "source:windows.events channel_path:Application role:sccm-sql-server status:(warning OR error) @EventID:(17061 OR 17062)",
       "columns": ["timestamp", "host", "service", "status", "EventID", "message"],
-      "title": "Application SQL Service Failures"
+      "title": "Application - SQL Service Failures"
+    }
+  },
+  {
+    "definition": {
+      "type": "log_stream",
+      "query": "source:windows.events channel_path:Application role:sccm-sql-server status:(warning OR error) @EventID:(18456 OR 18452)",
+      "columns": ["timestamp", "host", "service", "status", "EventID", "message"],
+      "title": "Application - SQL Authentication Errors"
     }
   },
   {
@@ -20,7 +28,7 @@
       "type": "log_stream",
       "query": "source:windows.events channel_path:Security role:sccm-sql-server status:(warning OR error) @EventID:(4625 OR 4771 OR 4776)",
       "columns": ["timestamp", "host", "service", "status", "EventID", "message"],
-      "title": "Security Auth Failures"
+      "title": "Security - Authentication Failures"
     }
   }
 ]

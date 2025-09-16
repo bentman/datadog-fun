@@ -413,152 +413,258 @@
     {
       "id": 218960433621520,
       "definition": {
-        "title": "SCCM Site Server (Warning & Error)",
+        "title": "Event Logs - SCCM Site Server - System (Warning & Error)",
         "title_size": "16",
         "title_align": "left",
-        "requests": [
-          {
-            "response_format": "event_list",
-            "query": {
-              "data_source": "logs_stream",
-              "query_string": "status:(error OR warning)",
-              "indexes": [],
-              "storage": "hot"
-            },
-            "columns": [
-              { "field": "status_line", "width": "auto" },
-              { "field": "timestamp", "width": "auto" },
-              { "field": "host", "width": "auto" },
-              { "field": "service", "width": "auto" },
-              { "field": "status", "width": "auto" },
-              { "field": "@evt.id", "width": "auto" },
-              { "field": "content", "width": "auto" }
-            ]
-          }
-        ],
-        "type": "list_stream"
+        "type": "log_stream",
+        "query": "source:windows.events channel_path:System role:sccm-site-server status:(warning OR error) @EventID:(7000 OR 7001 OR 7031 OR 7034 OR 7036 OR 6008)",
+        "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
       },
       "layout": { "x": 0, "y": 17, "width": 12, "height": 3 }
     },
     {
-      "id": 1622973864910649,
+      "id": 218960433621521,
       "definition": {
-        "title": "SCCM SQL DB Server (Warning & Error)",
+        "title": "Event Logs - SCCM Site Server - SCCM Component Errors (Warning & Error)",
         "title_size": "16",
         "title_align": "left",
-        "requests": [
-          {
-            "response_format": "event_list",
-            "query": {
-              "data_source": "logs_stream",
-              "query_string": "status:(error OR warning)",
-              "indexes": [],
-              "storage": "hot"
-            },
-            "columns": [
-              { "field": "status_line", "width": "auto" },
-              { "field": "timestamp", "width": "auto" },
-              { "field": "host", "width": "auto" },
-              { "field": "service", "width": "auto" },
-              { "field": "status", "width": "auto" },
-              { "field": "@evt.id", "width": "auto" },
-              { "field": "content", "width": "auto" }
-            ]
-          }
-        ],
-        "type": "list_stream"
+        "type": "log_stream",
+        "query": "source:windows.events channel_path:Application role:sccm-site-server status:(warning OR error) @EventID:(4909 OR 4912 OR 4913 OR 4915 OR 1016 OR 1037)",
+        "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
       },
       "layout": { "x": 0, "y": 20, "width": 12, "height": 3 }
     },
     {
-      "id": 7073628582266450,
+      "id": 218960433621522,
       "definition": {
-        "title": "SCCM Management Point (Warning & Error)",
+        "title": "Event Logs - SCCM Site Server - WMI/Notification Errors (Warning & Error)",
         "title_size": "16",
         "title_align": "left",
-        "requests": [
-          {
-            "response_format": "event_list",
-            "query": {
-              "data_source": "logs_stream",
-              "query_string": "status:(error OR warning)",
-              "indexes": [],
-              "storage": "hot"
-            },
-            "columns": [
-              { "field": "status_line", "width": "auto" },
-              { "field": "timestamp", "width": "auto" },
-              { "field": "host", "width": "auto" },
-              { "field": "service", "width": "auto" },
-              { "field": "status", "width": "auto" },
-              { "field": "@evt.id", "width": "auto" },
-              { "field": "content", "width": "auto" }
-            ]
-          }
-        ],
-        "type": "list_stream"
+        "type": "log_stream",
+        "query": "source:windows.events channel_path:Application role:sccm-site-server status:(warning OR error) @EventID:(5858 OR 5857 OR 5859)",
+        "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
       },
       "layout": { "x": 0, "y": 23, "width": 12, "height": 3 }
     },
     {
-      "id": 4403943211861702,
+      "id": 218960433621523,
       "definition": {
-        "title": "SCCM Distribution Point (Warning & Error)",
+        "title": "Event Logs - SCCM Site Server - SQL Connection Errors (Warning & Error)",
         "title_size": "16",
         "title_align": "left",
-        "requests": [
-          {
-            "response_format": "event_list",
-            "query": {
-              "data_source": "logs_stream",
-              "query_string": "status:(error OR warning)",
-              "indexes": [],
-              "storage": "hot"
-            },
-            "columns": [
-              { "field": "status_line", "width": "auto" },
-              { "field": "timestamp", "width": "auto" },
-              { "field": "host", "width": "auto" },
-              { "field": "service", "width": "auto" },
-              { "field": "status", "width": "auto" },
-              { "field": "@evt.id", "width": "auto" },
-              { "field": "content", "width": "auto" }
-            ]
-          }
-        ],
-        "type": "list_stream"
+        "type": "log_stream",
+        "query": "source:windows.events channel_path:Application role:sccm-site-server status:(warning OR error) @EventID:(18456 OR 18452 OR 5612)",
+        "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
       },
       "layout": { "x": 0, "y": 26, "width": 12, "height": 3 }
     },
     {
-      "id": 109529361229459,
+      "id": 218960433621524,
       "definition": {
-        "title": "SCCM Sql Reporting Server (Warning & Error)",
+        "title": "Event Logs - SCCM Site Server - Application Errors (Warning & Error)",
         "title_size": "16",
         "title_align": "left",
-        "requests": [
-          {
-            "response_format": "event_list",
-            "query": {
-              "data_source": "logs_stream",
-              "query_string": "status:(error OR warning)",
-              "indexes": [],
-              "storage": "hot"
-            },
-            "columns": [
-              { "field": "status_line", "width": "auto" },
-              { "field": "timestamp", "width": "auto" },
-              { "field": "host", "width": "auto" },
-              { "field": "service", "width": "auto" },
-              { "field": "status", "width": "auto" },
-              { "field": "@evt.id", "width": "auto" },
-              { "field": "content", "width": "auto" }
-            ]
-          }
-        ],
-        "type": "list_stream"
+        "type": "log_stream",
+        "query": "source:windows.events channel_path:Application role:sccm-site-server status:(warning OR error) @EventID:(1000 OR 1026 OR 1033)",
+        "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
       },
       "layout": { "x": 0, "y": 29, "width": 12, "height": 3 }
+    },
+
+    {
+      "id": 1622973864910649,
+      "definition": {
+        "title": "Event Logs - SCCM SQL DB Server - System (Warning & Error)",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "log_stream",
+        "query": "source:windows.events channel_path:System role:sccm-sql-server status:(warning OR error) @EventID:(7000 OR 7001 OR 7031 OR 7034 OR 7036 OR 6008)",
+        "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
+      },
+      "layout": { "x": 0, "y": 32, "width": 12, "height": 3 }
+    },
+    {
+      "id": 1622973864910650,
+      "definition": {
+        "title": "Event Logs - SCCM SQL DB Server - SQL Service Failures (Warning & Error)",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "log_stream",
+        "query": "source:windows.events channel_path:Application role:sccm-sql-server status:(warning OR error) @EventID:(17061 OR 17062)",
+        "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
+      },
+      "layout": { "x": 0, "y": 35, "width": 12, "height": 3 }
+    },
+    {
+      "id": 1622973864910651,
+      "definition": {
+        "title": "Event Logs - SCCM SQL DB Server - SQL Authentication Errors (Warning & Error)",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "log_stream",
+        "query": "source:windows.events channel_path:Application role:sccm-sql-server status:(warning OR error) @EventID:(18456 OR 18452)",
+        "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
+      },
+      "layout": { "x": 0, "y": 38, "width": 12, "height": 3 }
+    },
+    {
+      "id": 1622973864910652,
+      "definition": {
+        "title": "Event Logs - SCCM SQL DB Server - Security - Authentication Failures (Warning & Error)",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "log_stream",
+        "query": "source:windows.events channel_path:Security role:sccm-sql-server status:(warning OR error) @EventID:(4625 OR 4771 OR 4776)",
+        "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
+      },
+      "layout": { "x": 0, "y": 41, "width": 12, "height": 3 }
+    },
+
+    {
+      "id": 7073628582266450,
+      "definition": {
+        "title": "Event Logs - SCCM Management Point - System (Warning & Error)",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "log_stream",
+        "query": "source:windows.events channel_path:System role:sccm-management-point status:(warning OR error) @EventID:(7000 OR 7001 OR 7031 OR 7034 OR 7036 OR 10016 OR 6008)",
+        "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
+      },
+      "layout": { "x": 0, "y": 44, "width": 12, "height": 3 }
+    },
+    {
+      "id": 7073628582266451,
+      "definition": {
+        "title": "Event Logs - SCCM Management Point - SCCM Component Errors (Warning & Error)",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "log_stream",
+        "query": "source:windows.events channel_path:Application role:sccm-management-point status:(warning OR error) @EventID:(1104 OR 1105 OR 1106 OR 1107 OR 1108)",
+        "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
+      },
+      "layout": { "x": 0, "y": 47, "width": 12, "height": 3 }
+    },
+    {
+      "id": 7073628582266452,
+      "definition": {
+        "title": "Event Logs - SCCM Management Point - SQL Connection Errors (Warning & Error)",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "log_stream",
+        "query": "source:windows.events channel_path:Application role:sccm-management-point status:(warning OR error) @EventID:(18456 OR 18452 OR 5612)",
+        "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
+      },
+      "layout": { "x": 0, "y": 50, "width": 12, "height": 3 }
+    },
+    {
+      "id": 7073628582266453,
+      "definition": {
+        "title": "Event Logs - SCCM Management Point - WMI/Notification Errors (Warning & Error)",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "log_stream",
+        "query": "source:windows.events channel_path:Application role:sccm-management-point status:(warning OR error) @EventID:(5858 OR 5857 OR 5859)",
+        "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
+      },
+      "layout": { "x": 0, "y": 53, "width": 12, "height": 3 }
+    },
+    {
+      "id": 7073628582266454,
+      "definition": {
+        "title": "Event Logs - SCCM Management Point - Application Errors (Warning & Error)",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "log_stream",
+        "query": "source:windows.events channel_path:Application role:sccm-management-point status:(warning OR error) @EventID:(1000 OR 1026 OR 1033)",
+        "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
+      },
+      "layout": { "x": 0, "y": 56, "width": 12, "height": 3 }
+    },
+
+    {
+      "id": 4403943211861702,
+      "definition": {
+        "title": "Event Logs - SCCM Distribution Point - System (Warning & Error)",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "log_stream",
+        "query": "source:windows.events channel_path:System role:sccm-distribution-point status:(warning OR error) @EventID:(7000 OR 7001 OR 7031 OR 7034 OR 7036 OR 10016 OR 6008)",
+        "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
+      },
+      "layout": { "x": 0, "y": 59, "width": 12, "height": 3 }
+    },
+    {
+      "id": 4403943211861703,
+      "definition": {
+        "title": "Event Logs - SCCM Distribution Point - SCCM Component Errors (Warning & Error)",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "log_stream",
+        "query": "source:windows.events channel_path:Application role:sccm-distribution-point status:(warning OR error) @EventID:(2301 OR 2302 OR 2303 OR 2315 OR 2316)",
+        "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
+      },
+      "layout": { "x": 0, "y": 62, "width": 12, "height": 3 }
+    },
+    {
+      "id": 4403943211861704,
+      "definition": {
+        "title": "Event Logs - SCCM Distribution Point - IIS/HTTP Errors (Warning & Error)",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "log_stream",
+        "query": "source:windows.events channel_path:Application role:sccm-distribution-point status:(warning OR error) @EventID:(1309 OR 1325 OR 2268)",
+        "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
+      },
+      "layout": { "x": 0, "y": 65, "width": 12, "height": 3 }
+    },
+    {
+      "id": 4403943211861705,
+      "definition": {
+        "title": "Event Logs - SCCM Distribution Point - Application Errors (Warning & Error)",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "log_stream",
+        "query": "source:windows.events channel_path:Application role:sccm-distribution-point status:(warning OR error) @EventID:(1000 OR 1026 OR 1033)",
+        "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
+      },
+      "layout": { "x": 0, "y": 68, "width": 12, "height": 3 }
+    },
+
+    {
+      "id": 109529361229459,
+      "definition": {
+        "title": "Event Logs - SCCM Sql Reporting Server - System (Warning & Error)",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "log_stream",
+        "query": "source:windows.events channel_path:System role:sccm-sql-reporting-server status:(warning OR error) @EventID:(7000 OR 7001 OR 7031 OR 7034 OR 7036 OR 7032 OR 6008)",
+        "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
+      },
+      "layout": { "x": 0, "y": 71, "width": 12, "height": 3 }
+    },
+    {
+      "id": 109529361229460,
+      "definition": {
+        "title": "Event Logs - SCCM Sql Reporting Server - SSRS Errors (Warning & Error)",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "log_stream",
+        "query": "source:windows.events channel_path:Application role:sccm-sql-reporting-server status:(warning OR error) @EventID:(121 OR 133 OR 1530 OR 153)",
+        "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
+      },
+      "layout": { "x": 0, "y": 74, "width": 12, "height": 3 }
+    },
+    {
+      "id": 109529361229461,
+      "definition": {
+        "title": "Event Logs - SCCM Sql Reporting Server - SQL Connection Errors (Warning & Error)",
+        "title_size": "16",
+        "title_align": "left",
+        "type": "log_stream",
+        "query": "source:windows.events channel_path:Application role:sccm-sql-reporting-server status:(warning OR error) @EventID:(18456 OR 18452 OR 5858)",
+        "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
+      },
+      "layout": { "x": 0, "y": 77, "width": 12, "height": 3 }
     }
   ]
 }

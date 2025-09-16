@@ -1,0 +1,18 @@
+[
+  {
+    "definition": {
+      "type": "log_stream",
+      "query": "source:windows.events channel_path:System role:sccm-sql-reporting-server status:(warning OR error) @EventID:(7000 OR 7001 OR 7031 OR 7034 OR 7036 OR 7032 OR 6008)",
+      "columns": ["timestamp", "host", "service", "status", "EventID", "message"],
+      "title": "System Critical Events"
+    }
+  },
+  {
+    "definition": {
+      "type": "log_stream",
+      "query": "source:windows.events channel_path:Application role:sccm-sql-reporting-server status:(warning OR error) @EventID:(121 OR 133 OR 1530 OR 153 OR 18456 OR 18452 OR 5858)",
+      "columns": ["timestamp", "host", "service", "status", "EventID", "message"],
+      "title": "Application SSRS and SQL Errors"
+    }
+  }
+]

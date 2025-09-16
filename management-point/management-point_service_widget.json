@@ -1,0 +1,134 @@
+[
+  {
+    "definition": {
+      "type": "timeseries",
+      "requests": [
+        {
+          "q": "avg:windows.service.state{role:sccm-management-point,service_group:web-infrastructure} by {service}",
+          "display_type": "line",
+          "style": {
+            "palette": "dog_classic",
+            "line_type": "solid",
+            "line_width": "normal"
+          }
+        }
+      ],
+      "title": "Web Infrastructure Services State",
+      "title_size": "16",
+      "title_align": "left",
+      "yaxis": {
+        "min": "0",
+        "max": "4",
+        "scale": "linear",
+        "include_zero": true
+      },
+      "markers": [
+        {
+          "value": "y > 0",
+          "display_type": "warning dashed"
+        }
+      ],
+      "show_legend": true,
+      "legend_layout": "auto"
+    }
+  },
+  {
+    "definition": {
+      "type": "timeseries",
+      "requests": [
+        {
+          "q": "avg:windows.service.state{role:sccm-management-point,service_group:windows-infrastructure} by {service}",
+          "display_type": "line",
+          "style": {
+            "palette": "dog_classic",
+            "line_type": "solid",
+            "line_width": "normal"
+          }
+        }
+      ],
+      "title": "Windows Infrastructure Services State",
+      "title_size": "16",
+      "title_align": "left",
+      "yaxis": {
+        "min": "0",
+        "max": "4",
+        "scale": "linear",
+        "include_zero": true
+      },
+      "markers": [
+        {
+          "value": "y > 0",
+          "display_type": "warning dashed"
+        }
+      ],
+      "show_legend": true,
+      "legend_layout": "auto"
+    }
+  },
+  {
+    "definition": {
+      "type": "timeseries",
+      "requests": [
+        {
+          "q": "avg:windows.service.state{role:sccm-management-point,service_group:sccm-management-point} by {service}",
+          "display_type": "line",
+          "style": {
+            "palette": "dog_classic",
+            "line_type": "solid",
+            "line_width": "normal"
+          }
+        }
+      ],
+      "title": "SCCM Management Point Services State",
+      "title_size": "16",
+      "title_align": "left",
+      "yaxis": {
+        "min": "0",
+        "max": "4",
+        "scale": "linear",
+        "include_zero": true
+      },
+      "markers": [
+        {
+          "value": "y > 0",
+          "display_type": "warning dashed"
+        }
+      ],
+      "show_legend": true,
+      "legend_layout": "auto"
+    }
+  },
+  {
+    "definition": {
+      "type": "timeseries",
+      "requests": [
+        {
+          "q": "avg:windows.service.state{role:sccm-management-point,service_group:security-ssl} by {service}",
+          "display_type": "line",
+          "style": {
+            "palette": "dog_classic",
+            "line_type": "solid",
+            "line_width": "normal"
+          }
+        }
+      ],
+      "title": "Security and SSL Services State",
+      "title_size": "16",
+      "title_align": "left",
+      "yaxis": {
+        "min": "0",
+        "max": "4",
+        "scale": "linear",
+        "include_zero": true
+      },
+      "markers": [
+        {
+          "value": "y > 0",
+          "display_type": "warning dashed"
+        }
+      ],
+      "show_legend": true,
+      "legend_layout": "auto"
+    }
+  }
+]

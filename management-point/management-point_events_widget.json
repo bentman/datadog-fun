@@ -1,0 +1,26 @@
+[
+  {
+    "definition": {
+      "type": "log_stream",
+      "query": "source:windows.events channel_path:System role:sccm-management-point status:(warning OR error) @EventID:(7000 OR 7001 OR 7031 OR 7034 OR 7036 OR 10016 OR 6008)",
+      "columns": ["timestamp", "host", "service", "status", "EventID", "message"],
+      "title": "System Critical Events"
+    }
+  },
+  {
+    "definition": {
+      "type": "log_stream",
+      "query": "source:windows.events channel_path:Application role:sccm-management-point status:(warning OR error) @EventID:(1104 OR 1105 OR 1106 OR 1107 OR 1108 OR 18456 OR 18452 OR 5612 OR 5858 OR 5857 OR 5859 OR 1000 OR 1026 OR 1033)",
+      "columns": ["timestamp", "host", "service", "status", "EventID", "message"],
+      "title": "Application SCCM MP and SQL Errors"
+    }
+  },
+  {
+    "definition": {
+      "type": "log_stream",
+      "query": "source:windows.events channel_path:Security role:sccm-management-point status:(warning OR error) @EventID:(4625 OR 4771 OR 4776)",
+      "columns": ["timestamp", "host", "service", "status", "EventID", "message"],
+      "title": "Security Auth Failures"
+    }
+  }
+]

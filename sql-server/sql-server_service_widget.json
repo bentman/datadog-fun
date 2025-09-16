@@ -1,0 +1,101 @@
+[
+  {
+    "definition": {
+      "type": "timeseries",
+      "requests": [
+        {
+          "q": "avg:windows.service.state{role:sccm-sql-server,service_group:sql-server-core} by {service}",
+          "display_type": "line",
+          "style": {
+            "palette": "dog_classic",
+            "line_type": "solid",
+            "line_width": "normal"
+          }
+        }
+      ],
+      "title": "Core SQL Server Services State",
+      "title_size": "16",
+      "title_align": "left",
+      "yaxis": {
+        "min": "0",
+        "max": "4",
+        "scale": "linear",
+        "include_zero": true
+      },
+      "markers": [
+        {
+          "value": "y > 0",
+          "display_type": "warning dashed"
+        }
+      ],
+      "show_legend": true,
+      "legend_layout": "auto"
+    }
+  },
+  {
+    "definition": {
+      "type": "timeseries",
+      "requests": [
+        {
+          "q": "avg:windows.service.state{role:sccm-sql-server,service_group:sql-server-support} by {service}",
+          "display_type": "line",
+          "style": {
+            "palette": "dog_classic",
+            "line_type": "solid",
+            "line_width": "normal"
+          }
+        }
+      ],
+      "title": "SQL Server Support Services State",
+      "title_size": "16",
+      "title_align": "left",
+      "yaxis": {
+        "min": "0",
+        "max": "4",
+        "scale": "linear",
+        "include_zero": true
+      },
+      "markers": [
+        {
+          "value": "y > 0",
+          "display_type": "warning dashed"
+        }
+      ],
+      "show_legend": true,
+      "legend_layout": "auto"
+    }
+  },
+  {
+    "definition": {
+      "type": "timeseries",
+      "requests": [
+        {
+          "q": "avg:windows.service.state{role:sccm-sql-server,service_group:windows-infrastructure} by {service}",
+          "display_type": "line",
+          "style": {
+            "palette": "dog_classic",
+            "line_type": "solid",
+            "line_width": "normal"
+          }
+        }
+      ],
+      "title": "Windows Infrastructure Services State",
+      "title_size": "16",
+      "title_align": "left",
+      "yaxis": {
+        "min": "0",
+        "max": "4",
+        "scale": "linear",
+        "include_zero": true
+      },
+      "markers": [
+        {
+          "value": "y > 0",
+          "display_type": "warning dashed"
+        }
+      ],
+      "show_legend": true,
+      "legend_layout": "auto"
+    }
+  }
+]

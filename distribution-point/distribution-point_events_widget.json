@@ -1,0 +1,26 @@
+[
+  {
+    "definition": {
+      "type": "log_stream",
+      "query": "source:windows.events channel_path:System role:sccm-distribution-point status:(warning OR error) @EventID:(7000 OR 7001 OR 7031 OR 7034 OR 7036 OR 10016 OR 6008)",
+      "columns": ["timestamp", "host", "service", "status", "EventID", "message"],
+      "title": "System Critical Events"
+    }
+  },
+  {
+    "definition": {
+      "type": "log_stream",
+      "query": "source:windows.events channel_path:Application role:sccm-distribution-point status:(warning OR error) @EventID:(2301 OR 2302 OR 2303 OR 2315 OR 2316 OR 1309 OR 1325 OR 2268 OR 1000 OR 1026 OR 1033)",
+      "columns": ["timestamp", "host", "service", "status", "EventID", "message"],
+      "title": "Application SCCM DP and IIS Errors"
+    }
+  },
+  {
+    "definition": {
+      "type": "log_stream",
+      "query": "source:windows.events channel_path:Security role:sccm-distribution-point status:(warning OR error) @EventID:(4625 OR 4771 OR 4776)",
+      "columns": ["timestamp", "host", "service", "status", "EventID", "message"],
+      "title": "Security Auth Failures"
+    }
+  }
+]

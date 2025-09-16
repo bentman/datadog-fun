@@ -1,0 +1,18 @@
+[
+  {
+    "definition": {
+      "type": "log_stream",
+      "query": "source:windows.events channel_path:System role:sccm-site-server status:(warning OR error) @EventID:(7000 OR 7001 OR 7031 OR 7034 OR 7036 OR 6008)",
+      "columns": ["timestamp", "host", "service", "status", "EventID", "message"],
+      "title": "System Critical Events"
+    }
+  },
+  {
+    "definition": {
+      "type": "log_stream",
+      "query": "source:windows.events channel_path:Application role:sccm-site-server status:(warning OR error) @EventID:(4909 OR 4912 OR 4913 OR 4915 OR 1016 OR 1037 OR 5858 OR 5857 OR 5859 OR 1000 OR 1026 OR 1033 OR 18456 OR 18452 OR 5612)",
+      "columns": ["timestamp", "host", "service", "status", "EventID", "message"],
+      "title": "Application SCCM Site and SQL Errors"
+    }
+  }
+]

@@ -1,4 +1,5 @@
-[
+{
+  "widgets": [
   {
     "definition": {
       "type": "timeseries",
@@ -131,4 +132,5 @@
       "legend_layout": "auto"
     }
   }
-]
+  ]
+}

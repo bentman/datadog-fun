@@ -104,6 +104,8 @@ Pre-built Datadog dashboard template for SCCM SQL Server monitoring. Includes da
 ### windows-server-health.json
 Comprehensive Windows Server health dashboard template. Features system performance metrics, service status, event log summaries, and infrastructure health indicators with role-based filtering and alerting integration.
 
+Note: Merged new_dashboard.json layouts. Event Log widgets converted to per-role log_stream widgets and titles standardized. Removed environment-specific template variables for portability.
+
 ## Common Components
 
 ### recommended-thresholds.yaml

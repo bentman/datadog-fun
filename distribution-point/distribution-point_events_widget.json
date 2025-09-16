@@ -10,9 +10,25 @@
   {
     "definition": {
       "type": "log_stream",
-      "query": "source:windows.events channel_path:Application role:sccm-distribution-point status:(warning OR error) @EventID:(2301 OR 2302 OR 2303 OR 2315 OR 2316 OR 1309 OR 1325 OR 2268 OR 1000 OR 1026 OR 1033)",
+      "query": "source:windows.events channel_path:Application role:sccm-distribution-point status:(warning OR error) @EventID:(2301 OR 2302 OR 2303 OR 2315 OR 2316)",
       "columns": ["timestamp", "host", "service", "status", "EventID", "message"],
-      "title": "Application SCCM DP and IIS Errors"
+      "title": "Application - SCCM Distribution Point Errors"
+    }
+  },
+  {
+    "definition": {
+      "type": "log_stream",
+      "query": "source:windows.events channel_path:Application role:sccm-distribution-point status:(warning OR error) @EventID:(1309 OR 1325 OR 2268)",
+      "columns": ["timestamp", "host", "service", "status", "EventID", "message"],
+      "title": "Application - IIS Errors"
+    }
+  },
+  {
+    "definition": {
+      "type": "log_stream",
+      "query": "source:windows.events channel_path:Application role:sccm-distribution-point status:(warning OR error) @EventID:(1000 OR 1026 OR 1033)",
+      "columns": ["timestamp", "host", "service", "status", "EventID", "message"],
+      "title": "Application - Generic App Errors"
     }
   },
   {
@@ -20,7 +36,7 @@
       "type": "log_stream",
       "query": "source:windows.events channel_path:Security role:sccm-distribution-point status:(warning OR error) @EventID:(4625 OR 4771 OR 4776)",
       "columns": ["timestamp", "host", "service", "status", "EventID", "message"],
-      "title": "Security Auth Failures"
+      "title": "Security - Authentication Failures"
     }
   }
 ]

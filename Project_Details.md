@@ -245,7 +245,7 @@ memory_usage:
 ### Dashboard Customization
 Import and customize the provided dashboard templates:
 - `dashboards/sccm-sql-applications.json`
-- `dashboards/windows-server-health.json`
+- `dashboards/windows-server-health.json` (includes merged event widgets, per-role Event Log subsections, and standardized service widget titles)
 
 Use Datadog's dashboard editor to modify widgets, add custom metrics, and adjust layouts.
 

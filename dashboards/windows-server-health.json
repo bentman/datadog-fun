@@ -470,6 +470,21 @@
       },
       "layout": { "x": 0, "y": 29, "width": 12, "height": 3 }
     },
+    {
+      "id": 9000002,
+      "definition": {
+        "type": "note",
+        "content": "## SCCM SQL DB Server Event Logs",
+        "background_color": "gray",
+        "font_size": "16",
+        "text_align": "center",
+        "vertical_align": "center",
+        "show_tick": false,
+        "has_padding": true
+      },
+      "layout": { "x": 0, "y": 31, "width": 12, "height": 1 }
+    },
+
 
     {
       "id": 1622973864910649,
@@ -506,6 +521,20 @@
         "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
       },
       "layout": { "x": 0, "y": 38, "width": 12, "height": 3 }
+    },
+    {
+      "id": 9000003,
+      "definition": {
+        "type": "note",
+        "content": "## SCCM Management Point Event Logs",
+        "background_color": "gray",
+        "font_size": "16",
+        "text_align": "center",
+        "vertical_align": "center",
+        "show_tick": false,
+        "has_padding": true
+      },
+      "layout": { "x": 0, "y": 43, "width": 12, "height": 1 }
     },
     {
       "id": 1622973864910652,

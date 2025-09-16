@@ -13,7 +13,7 @@
           }
         }
       ],
-      "title": "Core SCCM Services State",
+      "title": "Services - Core SCCM State",
       "title_size": "16",
       "title_align": "left",
       "yaxis": {
@@ -46,7 +46,7 @@
           }
         }
       ],
-      "title": "Web & Infrastructure Services State",
+      "title": "Services - Web & Infrastructure State",
       "title_size": "16",
       "title_align": "left",
       "yaxis": {
@@ -79,7 +79,7 @@
           }
         }
       ],
-      "title": "Optional SCCM Services State",
+      "title": "Services - Optional SCCM State",
       "title_size": "16",
       "title_align": "left",
       "yaxis": {

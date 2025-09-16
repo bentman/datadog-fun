@@ -13,7 +13,7 @@
           }
         }
       ],
-      "title": "Core SQL Server Services State",
+      "title": "Services - Core SQL Server State",
       "title_size": "16",
       "title_align": "left",
       "yaxis": {
@@ -46,7 +46,7 @@
           }
         }
       ],
-      "title": "SQL Server Support Services State",
+      "title": "Services - SQL Server Support State",
       "title_size": "16",
       "title_align": "left",
       "yaxis": {
@@ -79,7 +79,7 @@
           }
         }
       ],
-      "title": "Windows Infrastructure Services State",
+      "title": "Services - Windows Infrastructure State",
       "title_size": "16",
       "title_align": "left",
       "yaxis": {

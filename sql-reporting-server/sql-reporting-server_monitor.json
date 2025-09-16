@@ -1,0 +1,15 @@
+{
+  "name": "SQL Reporting Server Event Log Errors",
+  "type": "log alert",
+  "query": "logs(\"source:windows.events role:sccm-sql-reporting-server status:error\").index(\"*\").rollup(\"count\").last(\"5m\") > 5",
+  "message": "Warning: {{value}} errors in 5m @dl\n\nAlert: {{value}} errors in 5m @dl\n\nRecovered: Errors back to normal @dl",
+  "tags": ["role:sccm-sql-reporting-server"],
+  "options": {
+    "thresholds": {
+      "critical": 10,
+      "warning": 5
+    },
+    "notify_no_data": false,
+    "enable_logs_sample": true
+  }
+}

@@ -2,7 +2,7 @@
   {
     "name": "SQL Server Service State - Core",
     "type": "service check",
-    "query": "check(\"windows_service.state\").over(\"role:sccm-sql-server\",\"service_group:sql-server-core\").by(\"service\").last(\"5m\") != \"OK\"",
+    "query": "check(\"windows_service.state\").over(\"role:sccm-sql-server\",\"service_group:sccm-sql-server-core\").by(\"service\").last(\"5m\") != \"OK\"",
     "message": "{{#is_alert}}Service {{service.name}} on {{host.name}} is not running (group: sql-server-core).{{/is_alert}}\n{{#is_no_data}}No data received for windows_service.state in the last {{no_data_timeframe}} minutes.{{/is_no_data}}",
     "tags": ["role:sccm-sql-server", "sccmrole:sccm-sql", "approle:sccm-sqldb-srv"],
     "options": {
@@ -17,7 +17,7 @@
   {
     "name": "SQL Server Service State - Support",
     "type": "service check",
-    "query": "check(\"windows_service.state\").over(\"role:sccm-sql-server\",\"service_group:sql-server-support\").by(\"service\").last(\"5m\") != \"OK\"",
+    "query": "check(\"windows_service.state\").over(\"role:sccm-sql-server\",\"service_group:sccm-sql-server-support\").by(\"service\").last(\"5m\") != \"OK\"",
     "message": "{{#is_alert}}Service {{service.name}} on {{host.name}} is not running (group: sql-server-support).{{/is_alert}}\n{{#is_no_data}}No data received for windows_service.state in the last {{no_data_timeframe}} minutes.{{/is_no_data}}",
     "tags": ["role:sccm-sql-server", "sccmrole:sccm-sql", "approle:sccm-sqldb-srv"],
     "options": {
@@ -32,7 +32,7 @@
   {
     "name": "SQL Server Service State - Windows Infrastructure",
     "type": "service check",
-    "query": "check(\"windows_service.state\").over(\"role:sccm-sql-server\",\"service_group:windows-infrastructure\").by(\"service\").last(\"5m\") != \"OK\"",
+    "query": "check(\"windows_service.state\").over(\"role:sccm-sql-server\",\"service_group:sccm-windows-infrastructure\").by(\"service\").last(\"5m\") != \"OK\"",
     "message": "{{#is_alert}}Service {{service.name}} on {{host.name}} is not running (group: windows-infrastructure).{{/is_alert}}\n{{#is_no_data}}No data received for windows_service.state in the last {{no_data_timeframe}} minutes.{{/is_no_data}}",
     "tags": ["role:sccm-sql-server", "sccmrole:sccm-sql", "approle:sccm-sqldb-srv"],
     "options": {

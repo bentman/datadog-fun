@@ -10,8 +10,7 @@ instances:
       - W3SVC
     tags:
       - role:sccm-distribution-point
-      - service_group:web-infrastructure
-      - environment:production
+      - service_group:sccm-web-infrastructure
     windows_service_startup_type_tag: true
     collect_display_name_as_tag: true
     disable_legacy_service_tag: true
@@ -22,8 +21,7 @@ instances:
       - BITS
     tags:
       - role:sccm-distribution-point
-      - service_group:windows-infrastructure
-      - environment:production
+      - service_group:sccm-windows-infrastructure
     windows_service_startup_type_tag: true
     collect_display_name_as_tag: true
     disable_legacy_service_tag: true
@@ -34,8 +32,7 @@ instances:
       - PeerDistSvc
     tags:
       - role:sccm-distribution-point
-      - service_group:content-distribution
-      - environment:production
+      - service_group:sccm-content-distribution
     windows_service_startup_type_tag: true
     collect_display_name_as_tag: true
     disable_legacy_service_tag: true

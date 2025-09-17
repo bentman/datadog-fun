@@ -12,7 +12,6 @@ instances:
     tags:
       - role:sccm-site-server
       - service_group:sccm-core
-      - environment:production
     windows_service_startup_type_tag: true
     collect_display_name_as_tag: true
     disable_legacy_service_tag: true
@@ -25,8 +24,7 @@ instances:
       - BITS
     tags:
       - role:sccm-site-server
-      - service_group:web-infrastructure
-      - environment:production
+      - service_group:sccm-web-infrastructure
     windows_service_startup_type_tag: true
     collect_display_name_as_tag: true
     disable_legacy_service_tag: true

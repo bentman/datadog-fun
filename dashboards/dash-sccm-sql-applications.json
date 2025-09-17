@@ -1,0 +1,247 @@
+{
+  "title": "SCCM Applications - Service & Events",
+  "description": "Role Service Health and Role Events. Filter by application and domain.",
+  "layout_type": "ordered",
+  "reflow_type": "fixed",
+  "template_variables": [
+    {
+      "name": "applicationid",
+      "prefix": "applicationid",
+      "available_values": ["SYS-1234"],
+      "default": "SYS-1234"
+    },
+    {
+      "name": "domain",
+      "prefix": "domain",
+      "available_values": ["Corp", "QA"],
+      "default": "Corp"
+    }
+  ],
+  "widgets": [
+    {
+      "definition": {
+        "type": "note",
+        "content": "# Role Service Health",
+        "background_color": "gray",
+        "font_size": "16",
+        "text_align": "left",
+        "vertical_align": "center",
+        "show_tick": false,
+        "has_padding": true
+      },
+      "layout": { "x": 0, "y": 0, "width": 12, "height": 1 }
+    },
+
+    {
+      "definition": { "type": "note", "content": "Site Server", "background_color": "blue", "font_size": "14", "text_align": "left", "vertical_align": "center", "show_tick": false, "has_padding": true },
+      "layout": { "x": 0, "y": 1, "width": 12, "height": 1 }
+    },
+    {
+      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-site-server", "service_group:sccm-core"], "title": "Site Server Services (Core)", "title_size": "16", "title_align": "left", "show_summary": true },
+      "layout": { "x": 0, "y": 2, "width": 6, "height": 2 }
+    },
+    {
+      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-site-server", "service_group:sccm-web-infrastructure"], "title": "Site Server Services (Web)", "title_size": "16", "title_align": "left", "show_summary": true },
+      "layout": { "x": 6, "y": 2, "width": 6, "height": 2 }
+    },
+
+    {
+      "definition": { "type": "note", "content": "SQL DB Server", "background_color": "blue", "font_size": "14", "text_align": "left", "vertical_align": "center", "show_tick": false, "has_padding": true },
+      "layout": { "x": 0, "y": 4, "width": 12, "height": 1 }
+    },
+    {
+      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-sql-server", "service_group:sccm-sql-server-core"], "title": "SQL DB Services (Core)", "title_size": "16", "title_align": "left", "show_summary": true },
+      "layout": { "x": 0, "y": 5, "width": 6, "height": 2 }
+    },
+    {
+      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-sql-server", "service_group:sccm-sql-server-support"], "title": "SQL DB Services (Support)", "title_size": "16", "title_align": "left", "show_summary": true },
+      "layout": { "x": 6, "y": 5, "width": 6, "height": 2 }
+    },
+    {
+      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-sql-server", "service_group:sccm-windows-infrastructure"], "title": "SQL DB Services (Windows)", "title_size": "16", "title_align": "left", "show_summary": true },
+      "layout": { "x": 0, "y": 7, "width": 12, "height": 2 }
+    },
+
+    {
+      "definition": { "type": "note", "content": "Management Point", "background_color": "blue", "font_size": "14", "text_align": "left", "vertical_align": "center", "show_tick": false, "has_padding": true },
+      "layout": { "x": 0, "y": 9, "width": 12, "height": 1 }
+    },
+    {
+      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-management-point", "service_group:sccm-web-infrastructure"], "title": "MP Services (Web)", "title_size": "16", "title_align": "left", "show_summary": true },
+      "layout": { "x": 0, "y": 10, "width": 6, "height": 2 }
+    },
+    {
+      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-management-point", "service_group:sccm-windows-infrastructure"], "title": "MP Services (Windows)", "title_size": "16", "title_align": "left", "show_summary": true },
+      "layout": { "x": 6, "y": 10, "width": 6, "height": 2 }
+    },
+    {
+      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-management-point", "service_group:sccm-security-ssl"], "title": "MP Services (Security/SSL)", "title_size": "16", "title_align": "left", "show_summary": true },
+      "layout": { "x": 0, "y": 12, "width": 12, "height": 2 }
+    },
+
+    {
+      "definition": { "type": "note", "content": "Distribution Points", "background_color": "blue", "font_size": "14", "text_align": "left", "vertical_align": "center", "show_tick": false, "has_padding": true },
+      "layout": { "x": 0, "y": 14, "width": 12, "height": 1 }
+    },
+    {
+      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-distribution-point", "service_group:sccm-web-infrastructure"], "title": "DP Services (Web)", "title_size": "16", "title_align": "left", "show_summary": true },
+      "layout": { "x": 0, "y": 15, "width": 6, "height": 2 }
+    },
+    {
+      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-distribution-point", "service_group:sccm-windows-infrastructure"], "title": "DP Services (Windows)", "title_size": "16", "title_align": "left", "show_summary": true },
+      "layout": { "x": 6, "y": 15, "width": 6, "height": 2 }
+    },
+    {
+      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-distribution-point", "service_group:sccm-distribution-point"], "title": "DP Services (SCCM)", "title_size": "16", "title_align": "left", "show_summary": true },
+      "layout": { "x": 0, "y": 17, "width": 6, "height": 2 }
+    },
+    {
+      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-distribution-point", "service_group:sccm-content-distribution"], "title": "DP Services (Content)", "title_size": "16", "title_align": "left", "show_summary": true },
+      "layout": { "x": 6, "y": 17, "width": 6, "height": 2 }
+    },
+
+    {
+      "definition": { "type": "note", "content": "SQL Reporting", "background_color": "blue", "font_size": "14", "text_align": "left", "vertical_align": "center", "show_tick": false, "has_padding": true },
+      "layout": { "x": 0, "y": 19, "width": 12, "height": 1 }
+    },
+    {
+      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-sql-reporting-server", "service_group:sccm-ssrs-core"], "title": "Reporting Services (SSRS Core)", "title_size": "16", "title_align": "left", "show_summary": true },
+      "layout": { "x": 0, "y": 20, "width": 6, "height": 2 }
+    },
+    {
+      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-sql-reporting-server", "service_group:sccm-sql-server-local"], "title": "Reporting Services (Local SQL)", "title_size": "16", "title_align": "left", "show_summary": true },
+      "layout": { "x": 6, "y": 20, "width": 6, "height": 2 }
+    },
+    {
+      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-sql-reporting-server", "service_group:sccm-wsus-core"], "title": "Reporting Services (WSUS)", "title_size": "16", "title_align": "left", "show_summary": true },
+      "layout": { "x": 0, "y": 22, "width": 6, "height": 2 }
+    },
+    {
+      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-sql-reporting-server", "service_group:sccm-web-infrastructure"], "title": "Reporting Services (Web)", "title_size": "16", "title_align": "left", "show_summary": true },
+      "layout": { "x": 6, "y": 22, "width": 6, "height": 2 }
+    },
+
+    {
+      "definition": {
+        "type": "note",
+        "content": "# Role Events",
+        "background_color": "gray",
+        "font_size": "16",
+        "text_align": "left",
+        "vertical_align": "center",
+        "show_tick": false,
+        "has_padding": true
+      },
+      "layout": { "x": 0, "y": 24, "width": 12, "height": 1 }
+    },
+
+    {
+      "definition": { "type": "note", "content": "Site Server", "background_color": "blue", "font_size": "14", "text_align": "left", "vertical_align": "center", "show_tick": false, "has_padding": true },
+      "layout": { "x": 0, "y": 25, "width": 12, "height": 1 }
+    },
+    {
+      "definition": { "type": "log_stream", "query": "source:windows.events channel:System $applicationid $domain role:sccm-site-server status:(warning OR error) @evt.id:(7000 OR 7001 OR 7031 OR 7034 OR 7036 OR 6008)", "columns": ["timestamp","host","service","status","evt.id","message"], "title": "Site Server - System" },
+      "layout": { "x": 0, "y": 26, "width": 12, "height": 2 }
+    },
+    {
+      "definition": { "type": "log_stream", "query": "source:windows.events channel:Application $applicationid $domain role:sccm-site-server status:(warning OR error) @evt.id:(4909 OR 4912 OR 4913 OR 4915 OR 1016 OR 1037)", "columns": ["timestamp","host","service","status","evt.id","message"], "title": "Site Server - Component Manager" },
+      "layout": { "x": 0, "y": 28, "width": 12, "height": 2 }
+    },
+    {
+      "definition": { "type": "log_stream", "query": "source:windows.events channel:Application $applicationid $domain role:sccm-site-server status:(warning OR error) @evt.id:(5858 OR 5857 OR 5859)", "columns": ["timestamp","host","service","status","evt.id","message"], "title": "Site Server - WMI/Notification" },
+      "layout": { "x": 0, "y": 30, "width": 12, "height": 2 }
+    },
+    {
+      "definition": { "type": "log_stream", "query": "source:windows.events channel:Application $applicationid $domain role:sccm-site-server status:(warning OR error) @evt.id:(1000 OR 1026 OR 1033)", "columns": ["timestamp","host","service","status","evt.id","message"], "title": "Site Server - App Errors" },
+      "layout": { "x": 0, "y": 32, "width": 12, "height": 2 }
+    },
+    {
+      "definition": { "type": "log_stream", "query": "source:windows.events channel:Application $applicationid $domain role:sccm-site-server status:(warning OR error) @evt.id:(18456 OR 18452 OR 5612)", "columns": ["timestamp","host","service","status","evt.id","message"], "title": "Site Server - SQL Connection" },
+      "layout": { "x": 0, "y": 34, "width": 12, "height": 2 }
+    },
+
+    {
+      "definition": { "type": "note", "content": "SQL DB Server", "background_color": "blue", "font_size": "14", "text_align": "left", "vertical_align": "center", "show_tick": false, "has_padding": true },
+      "layout": { "x": 0, "y": 36, "width": 12, "height": 1 }
+    },
+    {
+      "definition": { "type": "log_stream", "query": "source:windows.events channel:System $applicationid $domain role:sccm-sql-server status:(warning OR error) @evt.id:(7000 OR 7001 OR 7031 OR 7034 OR 7036 OR 6008)", "columns": ["timestamp","host","service","status","evt.id","message"], "title": "SQL DB - System" },
+      "layout": { "x": 0, "y": 37, "width": 12, "height": 2 }
+    },
+    {
+      "definition": { "type": "log_stream", "query": "source:windows.events channel:Application $applicationid $domain role:sccm-sql-server status:(warning OR error) @evt.id:(17061 OR 17062)", "columns": ["timestamp","host","service","status","evt.id","message"], "title": "SQL DB - Service Failures" },
+      "layout": { "x": 0, "y": 39, "width": 12, "height": 2 }
+    },
+    {
+      "definition": { "type": "log_stream", "query": "source:windows.events channel:Application $applicationid $domain role:sccm-sql-server status:(warning OR error) @evt.id:(18456 OR 18452)", "columns": ["timestamp","host","service","status","evt.id","message"], "title": "SQL DB - Auth Errors" },
+      "layout": { "x": 0, "y": 41, "width": 12, "height": 2 }
+    },
+    {
+      "definition": { "type": "log_stream", "query": "source:windows.events channel:Security $applicationid $domain role:sccm-sql-server status:(warning OR error) @evt.id:(4625 OR 4771 OR 4776)", "columns": ["timestamp","host","service","status","evt.id","message"], "title": "SQL DB - Security Auth Failures" },
+      "layout": { "x": 0, "y": 43, "width": 12, "height": 2 }
+    },
+
+    {
+      "definition": { "type": "note", "content": "Management Point", "background_color": "blue", "font_size": "14", "text_align": "left", "vertical_align": "center", "show_tick": false, "has_padding": true },
+      "layout": { "x": 0, "y": 45, "width": 12, "height": 1 }
+    },
+    {
+      "definition": { "type": "log_stream", "query": "source:windows.events channel:System $applicationid $domain role:sccm-management-point status:(warning OR error) @evt.id:(7000 OR 7001 OR 7031 OR 7034 OR 7036 OR 10016 OR 6008)", "columns": ["timestamp","host","service","status","evt.id","message"], "title": "MP - System" },
+      "layout": { "x": 0, "y": 46, "width": 12, "height": 2 }
+    },
+    {
+      "definition": { "type": "log_stream", "query": "source:windows.events channel:Application $applicationid $domain role:sccm-management-point status:(warning OR error) @evt.id:(1104 OR 1105 OR 1106 OR 1107 OR 1108)", "columns": ["timestamp","host","service","status","evt.id","message"], "title": "MP - Component Errors" },
+      "layout": { "x": 0, "y": 48, "width": 12, "height": 2 }
+    },
+    {
+      "definition": { "type": "log_stream", "query": "source:windows.events channel:Application $applicationid $domain role:sccm-management-point status:(warning OR error) @evt.id:(18456 OR 18452 OR 5612)", "columns": ["timestamp","host","service","status","evt.id","message"], "title": "MP - SQL Connection" },
+      "layout": { "x": 0, "y": 50, "width": 12, "height": 2 }
+    },
+    {
+      "definition": { "type": "log_stream", "query": "source:windows.events channel:Application $applicationid $domain role:sccm-management-point status:(warning OR error) @evt.id:(5858 OR 5857 OR 5859)", "columns": ["timestamp","host","service","status","evt.id","message"], "title": "MP - WMI/Notification" },
+      "layout": { "x": 0, "y": 52, "width": 12, "height": 2 }
+    },
+    {
+      "definition": { "type": "log_stream", "query": "source:windows.events channel:Application $applicationid $domain role:sccm-management-point status:(warning OR error) @evt.id:(1000 OR 1026 OR 1033)", "columns": ["timestamp","host","service","status","evt.id","message"], "title": "MP - App Errors" },
+      "layout": { "x": 0, "y": 54, "width": 12, "height": 2 }
+    },
+
+    {
+      "definition": { "type": "note", "content": "Distribution Points", "background_color": "blue", "font_size": "14", "text_align": "left", "vertical_align": "center", "show_tick": false, "has_padding": true },
+      "layout": { "x": 0, "y": 56, "width": 12, "height": 1 }
+    },
+    {
+      "definition": { "type": "log_stream", "query": "source:windows.events channel:System $applicationid $domain role:sccm-distribution-point status:(warning OR error) @evt.id:(7000 OR 7001 OR 7031 OR 7034 OR 7036 OR 10016 OR 6008)", "columns": ["timestamp","host","service","status","evt.id","message"], "title": "DP - System" },
+      "layout": { "x": 0, "y": 57, "width": 12, "height": 2 }
+    },
+    {
+      "definition": { "type": "log_stream", "query": "source:windows.events channel:Application $applicationid $domain role:sccm-distribution-point status:(warning OR error) @evt.id:(2301 OR 2302 OR 2303 OR 2315 OR 2316)", "columns": ["timestamp","host","service","status","evt.id","message"], "title": "DP - Component Errors" },
+      "layout": { "x": 0, "y": 59, "width": 12, "height": 2 }
+    },
+    {
+      "definition": { "type": "log_stream", "query": "source:windows.events channel:Application $applicationid $domain role:sccm-distribution-point status:(warning OR error) @evt.id:(1309 OR 1325 OR 2268)", "columns": ["timestamp","host","service","status","evt.id","message"], "title": "DP - IIS Errors" },
+      "layout": { "x": 0, "y": 61, "width": 12, "height": 2 }
+    },
+    {
+      "definition": { "type": "log_stream", "query": "source:windows.events channel:Application $applicationid $domain role:sccm-distribution-point status:(warning OR error) @evt.id:(1000 OR 1026 OR 1033)", "columns": ["timestamp","host","service","status","evt.id","message"], "title": "DP - App Errors" },
+      "layout": { "x": 0, "y": 63, "width": 12, "height": 2 }
+    },
+
+    {
+      "definition": { "type": "note", "content": "SQL Reporting", "background_color": "blue", "font_size": "14", "text_align": "left", "vertical_align": "center", "show_tick": false, "has_padding": true },
+      "layout": { "x": 0, "y": 65, "width": 12, "height": 1 }
+    },
+    {
+      "definition": { "type": "log_stream", "query": "source:windows.events channel:System $applicationid $domain role:sccm-sql-reporting-server status:(warning OR error) @evt.id:(7000 OR 7001 OR 7031 OR 7034 OR 7036 OR 7032 OR 6008)", "columns": ["timestamp","host","service","status","evt.id","message"], "title": "Reporting - System" },
+      "layout": { "x": 0, "y": 66, "width": 12, "height": 2 }
+    },
+    {
+      "definition": { "type": "log_stream", "query": "source:windows.events channel:Application $applicationid $domain role:sccm-sql-reporting-server status:(warning OR error) @evt.id:(121 OR 133 OR 1530 OR 153)", "columns": ["timestamp","host","service","status","evt.id","message"], "title": "Reporting - SSRS Errors" },
+      "layout": { "x": 0, "y": 68, "width": 12, "height": 2 }
+    },
+    {
+      "definition": { "type": "log_stream", "query": "source:windows.events channel:Application $applicationid $domain role:sccm-sql-reporting-server status:(warning OR error) @evt.id:(18456 OR 18452 OR 5858)", "columns": ["timestamp","host","service","status","evt.id","message"], "title": "Reporting - SQL Connection" },
+      "layout": { "x": 0, "y": 70, "width": 12, "height": 2 }
+    }
+  ]
+}

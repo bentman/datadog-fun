@@ -2,7 +2,7 @@
   {
     "name": "Reporting Service State - SSRS Core",
     "type": "service check",
-    "query": "check(\"windows_service.state\").over(\"role:sccm-sql-reporting-server\",\"service_group:ssrs-core\").by(\"service\").last(\"5m\") != \"OK\"",
+    "query": "check(\"windows_service.state\").over(\"role:sccm-sql-reporting-server\",\"service_group:sccm-ssrs-core\").by(\"service\").last(\"5m\") != \"OK\"",
     "message": "{{#is_alert}}Service {{service.name}} on {{host.name}} is not running (group: ssrs-core).{{/is_alert}}\n{{#is_no_data}}No data received for windows_service.state in the last {{no_data_timeframe}} minutes.{{/is_no_data}}",
     "tags": ["role:sccm-sql-reporting-server", "sccmrole:sccm-sql", "approle:sccm-reporting-srv"],
     "options": {
@@ -17,7 +17,7 @@
   {
     "name": "Reporting Service State - Local SQL Server",
     "type": "service check",
-    "query": "check(\"windows_service.state\").over(\"role:sccm-sql-reporting-server\",\"service_group:sql-server-local\").by(\"service\").last(\"5m\") != \"OK\"",
+    "query": "check(\"windows_service.state\").over(\"role:sccm-sql-reporting-server\",\"service_group:sccm-sql-server-local\").by(\"service\").last(\"5m\") != \"OK\"",
     "message": "{{#is_alert}}Service {{service.name}} on {{host.name}} is not running (group: sql-server-local).{{/is_alert}}\n{{#is_no_data}}No data received for windows_service.state in the last {{no_data_timeframe}} minutes.{{/is_no_data}}",
     "tags": ["role:sccm-sql-reporting-server", "sccmrole:sccm-sql", "approle:sccm-reporting-srv"],
     "options": {
@@ -32,7 +32,7 @@
   {
     "name": "Reporting Service State - WSUS Core",
     "type": "service check",
-    "query": "check(\"windows_service.state\").over(\"role:sccm-sql-reporting-server\",\"service_group:wsus-core\").by(\"service\").last(\"5m\") != \"OK\"",
+    "query": "check(\"windows_service.state\").over(\"role:sccm-sql-reporting-server\",\"service_group:sccm-wsus-core\").by(\"service\").last(\"5m\") != \"OK\"",
     "message": "{{#is_alert}}Service {{service.name}} on {{host.name}} is not running (group: wsus-core).{{/is_alert}}\n{{#is_no_data}}No data received for windows_service.state in the last {{no_data_timeframe}} minutes.{{/is_no_data}}",
     "tags": ["role:sccm-sql-reporting-server", "sccmrole:sccm-sql", "approle:sccm-reporting-srv"],
     "options": {
@@ -47,7 +47,7 @@
   {
     "name": "Reporting Service State - Web Infrastructure",
     "type": "service check",
-    "query": "check(\"windows_service.state\").over(\"role:sccm-sql-reporting-server\",\"service_group:web-infrastructure\").by(\"service\").last(\"5m\") != \"OK\"",
+    "query": "check(\"windows_service.state\").over(\"role:sccm-sql-reporting-server\",\"service_group:sccm-web-infrastructure\").by(\"service\").last(\"5m\") != \"OK\"",
     "message": "{{#is_alert}}Service {{service.name}} on {{host.name}} is not running (group: web-infrastructure).{{/is_alert}}\n{{#is_no_data}}No data received for windows_service.state in the last {{no_data_timeframe}} minutes.{{/is_no_data}}",
     "tags": ["role:sccm-sql-reporting-server", "sccmrole:sccm-sql", "approle:sccm-reporting-srv"],
     "options": {
@@ -62,7 +62,7 @@
   {
     "name": "Reporting Service State - Windows Infrastructure",
     "type": "service check",
-    "query": "check(\"windows_service.state\").over(\"role:sccm-sql-reporting-server\",\"service_group:windows-infrastructure\").by(\"service\").last(\"5m\") != \"OK\"",
+    "query": "check(\"windows_service.state\").over(\"role:sccm-sql-reporting-server\",\"service_group:sccm-windows-infrastructure\").by(\"service\").last(\"5m\") != \"OK\"",
     "message": "{{#is_alert}}Service {{service.name}} on {{host.name}} is not running (group: windows-infrastructure).{{/is_alert}}\n{{#is_no_data}}No data received for windows_service.state in the last {{no_data_timeframe}} minutes.{{/is_no_data}}",
     "tags": ["role:sccm-sql-reporting-server", "sccmrole:sccm-sql", "approle:sccm-reporting-srv"],
     "options": {
@@ -77,7 +77,7 @@
   {
     "name": "Reporting Service State - IIS Application Pools",
     "type": "service check",
-    "query": "check(\"windows_service.state\").over(\"role:sccm-sql-reporting-server\",\"service_group:iis-application-pools\").by(\"service\").last(\"5m\") != \"OK\"",
+    "query": "check(\"windows_service.state\").over(\"role:sccm-sql-reporting-server\",\"service_group:sccm-iis-application-pools\").by(\"service\").last(\"5m\") != \"OK\"",
     "message": "{{#is_alert}}Service {{service.name}} on {{host.name}} is not running (group: iis-application-pools).{{/is_alert}}\n{{#is_no_data}}No data received for windows_service.state in the last {{no_data_timeframe}} minutes.{{/is_no_data}}",
     "tags": ["role:sccm-sql-reporting-server", "sccmrole:sccm-sql", "approle:sccm-reporting-srv"],
     "options": {

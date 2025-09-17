@@ -20,7 +20,7 @@ This monitoring solution provides comprehensive observability for Microsoft Syst
   ```powershell
   .\Deploy-DatadogConfigs.ps1
   ```
-- Optional: import `*_monitor.json` per role into Datadog as monitors.
+- Optional: import `dashboards/monitor-*.json` into Datadog as monitors.
 - Dashboards/widgets and conf.d are aligned to work out-of-the-box.
 
 ## Prerequisites
@@ -143,13 +143,14 @@ Test-NetConnection -ComputerName <SQL_SERVER> -Port 1433
 ## Monitors and Widgets (Included)
 
 - Service widgets per role: `check_status` targeting `windows_service.state`, grouped by `role` and `service_group`
+- service_group tags are namespaced as `sccm-*` (e.g., `sccm-web-infrastructure`, `sccm-sql-server-core`)
 - Log widgets per role: `log_stream` queries using normalized `channel` and `@evt.id`
-- Monitor JSON per role (import if desired):
-  - `distribution-point/distribution-point_monitor.json`
-  - `management-point/management-point_monitor.json`
-  - `site-server/site-server_monitor.json`
-  - `sql-server/sql-server_monitor.json`
-  - `sql-reporting-server/sql-reporting-server_monitor.json`
+- Monitors JSON (import if desired) in dashboards/:
+  - `dashboards/monitor-site-server.json`
+  - `dashboards/monitor-management-point.json`
+  - `dashboards/monitor-distribution-point.json`
+  - `dashboards/monitor-sql-server.json`
+  - `dashboards/monitor-sql-reporting-server.json`
 
 ## Monitoring Configuration
 
@@ -177,8 +178,10 @@ Test-NetConnection -ComputerName <SQL_SERVER> -Port 1433
 ## Configuration Alignment Notes
 
 - `windows_service.d` emits service checks (no metrics). Dashboards and monitors use the `windows_service.state` service check.
+- service_group tags are namespaced as `sccm-*` (e.g., `sccm-web-infrastructure`, `sccm-sql-server-core`).
 - Event inputs use `channel_path` and `"EventID"` matching rules; Datadog pipelines normalize to `channel` and `evt.id`, which are used in widgets/monitors.
 - Legacy `process.d` is neutralized (`instances: []`) to avoid double collection. Process Agent handles process visibility.
+- Removed hard-coded `environment:production` tags from agent configs; scope with dashboard template variables (`$applicationid`, `$domain`) instead.
 - SQL Reporting Server now includes `wmi_check.d` for consistent host/IIS telemetry across roles.
 
 ## Security Implementation
@@ -273,10 +276,19 @@ memory_usage:
 
 ### Dashboard Customization
 Import and customize the provided dashboard templates:
-- `dashboards/sccm-sql-applications.json`
+- `dashboards/dash-sccm-sql-applications.json`
 - `dashboards/windows-server-health.json` (includes merged event widgets, per-role Event Log subsections, and standardized service widget titles)
 
 Use Datadog's dashboard editor to modify widgets, add custom metrics, and adjust layouts.
+
+## Dashboard Import Notes
+- The provided dashboard JSON files omit per-widget "id" fields to avoid import collisions during import.
+- If you import JSON that includes widget "id" fields and encounter errors, remove those "id" fields and retry.
+- Ensure the dashboard "layout_type" and "reflow_type" are supported by your account (these templates use layout_type: ordered and reflow_type: fixed).
+- Import options:
+  - UI: Dashboards → New Dashboard → Import JSON
+  - API: POST /api/v1/dashboard with the full JSON payload
+- After import, confirm template variables "applicationid" and "domain" default/value options match your tag usage.
 
 ## Maintenance
 

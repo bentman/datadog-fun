@@ -7,7 +7,6 @@ site: datadoghq.com
 hostname: YOUR_SCCM_MANAGEMENT_POINT_HOSTNAME
 tags:
   - role:sccm-management-point
-  - environment:production
   - datacenter:azure
   - sccmrole:sccm-srv
   - approle:sccm-mp-srv

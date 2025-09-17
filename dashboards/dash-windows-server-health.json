@@ -1,0 +1,369 @@
+{
+  "title": "Windows Server Health",
+  "description": "CPU, Memory, Disk, Network. Filter by application and domain.",
+  "layout_type": "ordered",
+  "reflow_type": "fixed",
+  "template_variables": [
+    {
+      "name": "applicationid",
+      "prefix": "applicationid",
+      "available_values": ["SYS-1234"],
+      "default": "SYS-1234"
+    },
+    {
+      "name": "domain",
+      "prefix": "domain",
+      "available_values": ["Corp", "QA"],
+      "default": "Corp"
+    }
+  ],
+  "widgets": [
+    {
+      "definition": {
+        "type": "note",
+        "content": "# 🖥️ Windows Server Health Dashboard\n\n**Basic system health monitoring for Windows servers**\n\n📊 **CPU Usage**: System CPU utilization by host  \n🧠 **Memory Usage**: Memory utilization and availability  \n💾 **Disk Performance**: Disk space utilization  \n🌐 **Network Activity**: Network bytes sent/received  \n⏰ **Time Sync**: NTP offset monitoring  \n\n*Use the filters above to focus on specific servers*",
+        "background_color": "green",
+        "font_size": "14",
+        "text_align": "left",
+        "vertical_align": "top",
+        "show_tick": true,
+        "tick_pos": "50%",
+        "tick_edge": "bottom",
+        "has_padding": true
+      },
+      "layout": { "x": 0, "y": 0, "width": 12, "height": 3 }
+    },
+    {
+      "definition": {
+        "title": "CPU Usage - System (%)",
+        "title_size": "16",
+        "title_align": "left",
+        "show_legend": true,
+        "legend_layout": "auto",
+        "legend_columns": ["avg", "min", "max", "value"],
+        "type": "timeseries",
+        "requests": [
+          {
+            "formulas": [{ "formula": "query2" }],
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "query2",
+                "query": "avg:system.cpu.system{$applicationid,$domain} by {host}"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": {
+              "palette": "dog_classic",
+              "order_by": "values",
+              "line_type": "solid",
+              "line_width": "normal"
+            },
+            "display_type": "line"
+          }
+        ],
+        "markers": [
+          { "label": " 95% ", "value": "y = 95", "display_type": "error dashed" },
+          { "label": " 85% ", "value": "y = 85", "display_type": "warning dashed" }
+        ]
+      },
+      "layout": { "x": 0, "y": 3, "width": 6, "height": 3 }
+    },
+    {
+      "definition": {
+        "title": "Memory Available",
+        "title_size": "16",
+        "title_align": "left",
+        "show_legend": true,
+        "legend_layout": "auto",
+        "legend_columns": ["avg", "min", "max", "value"],
+        "type": "timeseries",
+        "requests": [
+          {
+            "formulas": [{ "formula": "1 - query2" }],
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "query2",
+                "query": "avg:system.mem.pct_usable{$applicationid,$domain} by {host}"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": {
+              "palette": "dog_classic",
+              "order_by": "values",
+              "line_type": "solid",
+              "line_width": "normal"
+            },
+            "display_type": "line"
+          }
+        ],
+        "markers": [
+          { "label": " 95% ", "value": "y = 0.95", "display_type": "error dashed" },
+          { "label": " 85% ", "value": "y = 0.85", "display_type": "warning dashed" }
+        ]
+      },
+      "layout": { "x": 6, "y": 3, "width": 6, "height": 3 }
+    },
+    {
+      "definition": {
+        "title": "Disk (C:) Usage (%) - OS System (SCCM Servers)",
+        "title_size": "16",
+        "title_align": "left",
+        "show_legend": true,
+        "legend_layout": "auto",
+        "legend_columns": ["avg", "min", "max", "value", "sum"],
+        "type": "timeseries",
+        "requests": [
+          {
+            "formulas": [{ "formula": "query2 / query1 * 100" }],
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "query2",
+                "query": "avg:system.disk.used{$applicationid,$domain,sccmrole:sccm-svr,device:c:} by {host}"
+              },
+              {
+                "data_source": "metrics",
+                "name": "query1",
+                "query": "avg:system.disk.total{$applicationid,$domain,sccmrole:sccm-svr,device:c:} by {host}"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": { "palette": "dog_classic", "order_by": "values", "line_type": "solid", "line_width": "normal" },
+            "display_type": "line"
+          }
+        ],
+        "markers": [
+          { "label": " 95% ", "value": "y = 95", "display_type": "error dashed" },
+          { "label": " 85% ", "value": "y = 85", "display_type": "warning dashed" }
+        ]
+      },
+      "layout": { "x": 0, "y": 6, "width": 3, "height": 3 }
+    },
+    {
+      "definition": {
+        "title": "Disk (E:) Usage (%) - Binaries (SCCM Servers)",
+        "title_size": "16",
+        "title_align": "left",
+        "show_legend": true,
+        "legend_layout": "auto",
+        "legend_columns": ["avg", "min", "max", "value", "sum"],
+        "type": "timeseries",
+        "requests": [
+          {
+            "formulas": [{ "formula": "query2 / query1 * 100" }],
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "query2",
+                "query": "avg:system.disk.used{$applicationid,$domain,sccmrole:sccm-svr,device:e:} by {host}"
+              },
+              {
+                "data_source": "metrics",
+                "name": "query1",
+                "query": "avg:system.disk.total{$applicationid,$domain,sccmrole:sccm-svr,device:e:} by {host}"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": { "palette": "dog_classic", "order_by": "values", "line_type": "solid", "line_width": "normal" },
+            "display_type": "line"
+          }
+        ],
+        "markers": [
+          { "label": " 95% ", "value": "y = 95", "display_type": "error dashed" },
+          { "label": " 85% ", "value": "y = 85", "display_type": "warning dashed" }
+        ]
+      },
+      "layout": { "x": 3, "y": 6, "width": 3, "height": 3 }
+    },
+    {
+      "definition": {
+        "title": "Disk (F:) Usage (%) - Data (SCCM Servers)",
+        "title_size": "16",
+        "title_align": "left",
+        "show_legend": true,
+        "legend_layout": "auto",
+        "legend_columns": ["avg", "min", "max", "value", "sum"],
+        "type": "timeseries",
+        "requests": [
+          {
+            "formulas": [{ "formula": "query2 / query1 * 100" }],
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "query2",
+                "query": "avg:system.disk.used{$applicationid,$domain,sccmrole:sccm-svr,device:f:} by {host}"
+              },
+              {
+                "data_source": "metrics",
+                "name": "query1",
+                "query": "avg:system.disk.total{$applicationid,$domain,sccmrole:sccm-svr,device:f:} by {host}"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": { "palette": "dog_classic", "order_by": "values", "line_type": "solid", "line_width": "normal" },
+            "display_type": "line"
+          }
+        ],
+        "markers": [
+          { "label": " 95% ", "value": "y = 95", "display_type": "error dashed" },
+          { "label": " 85% ", "value": "y = 85", "display_type": "warning dashed" }
+        ]
+      },
+      "layout": { "x": 6, "y": 6, "width": 3, "height": 3 }
+    },
+    {
+      "definition": {
+        "title": "Disk (G:) Usage (%) - Backup (SCCM Site Server)",
+        "title_size": "16",
+        "title_align": "left",
+        "show_legend": true,
+        "legend_layout": "auto",
+        "legend_columns": ["avg", "min", "max", "value", "sum"],
+        "type": "timeseries",
+        "requests": [
+          {
+            "formulas": [{ "formula": "query2 / query1 * 100" }],
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "query2",
+                "query": "avg:system.disk.used{$applicationid,$domain,sccmrole:sccm-svr,device:g:} by {host}"
+              },
+              {
+                "data_source": "metrics",
+                "name": "query1",
+                "query": "avg:system.disk.total{$applicationid,$domain,sccmrole:sccm-svr,device:g:} by {host}"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": { "palette": "dog_classic", "order_by": "values", "line_type": "solid", "line_width": "normal" },
+            "display_type": "line"
+          }
+        ],
+        "markers": [
+          { "label": " 95% ", "value": "y = 95", "display_type": "error dashed" },
+          { "label": " 85% ", "value": "y = 85", "display_type": "warning dashed" }
+        ]
+      },
+      "layout": { "x": 9, "y": 6, "width": 3, "height": 3 }
+    },
+    {
+      "definition": {
+        "title": "System Uptime (days)",
+        "title_size": "16",
+        "title_align": "left",
+        "show_legend": true,
+        "legend_layout": "horizontal",
+        "legend_columns": ["avg", "min", "max", "value"],
+        "type": "timeseries",
+        "requests": [
+          {
+            "formulas": [{ "formula": "query1 / 86400" }],
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "query1",
+                "query": "avg:system.uptime{$applicationid,$domain} by {host}"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": {
+              "palette": "dog_classic",
+              "order_by": "values",
+              "line_type": "solid",
+              "line_width": "normal"
+            },
+            "display_type": "line"
+          }
+        ]
+      },
+      "layout": { "x": 0, "y": 9, "width": 3, "height": 3 }
+    },
+    {
+      "definition": {
+        "title": "Network traffic (bytes per sec)",
+        "title_size": "16",
+        "title_align": "left",
+        "show_legend": true,
+        "legend_layout": "horizontal",
+        "legend_columns": ["avg", "min", "max", "value"],
+        "type": "timeseries",
+        "requests": [
+          {
+            "formulas": [
+              {
+                "alias": "Bytes sent",
+                "number_format": { "unit": { "type": "canonical_unit", "unit_name": "megabit", "per_unit_name": "second" } },
+                "formula": "query1"
+              },
+              {
+                "number_format": { "unit": { "type": "canonical_unit", "unit_name": "megabit", "per_unit_name": "second" } },
+                "formula": "0 + query1"
+              }
+            ],
+            "response_format": "timeseries",
+            "queries": [
+              {
+                "query": "sum:system.net.bytes_sent{$applicationid,$domain} by {host}.weighted()",
+                "data_source": "metrics",
+                "name": "query1"
+              }
+            ],
+            "style": { "palette": "dog_classic", "line_type": "solid", "line_width": "thin" },
+            "display_type": "line"
+          },
+          {
+            "formulas": [
+              {
+                "alias": "Bytes received",
+                "number_format": { "unit": { "type": "canonical_unit", "unit_name": "megabit", "per_unit_name": "second" } },
+                "formula": "0 - query1"
+              }
+            ],
+            "response_format": "timeseries",
+            "queries": [
+              {
+                "query": "sum:system.net.bytes_rcvd{$applicationid,$domain} by {host}.weighted()",
+                "data_source": "metrics",
+                "name": "query1"
+              }
+            ],
+            "style": { "palette": "dog_classic", "line_type": "solid", "line_width": "thin" },
+            "display_type": "line"
+          }
+        ],
+        "yaxis": { "include_zero": true, "scale": "linear", "min": "auto", "max": "auto" }
+      },
+      "layout": { "x": 3, "y": 9, "width": 6, "height": 3 }
+    },
+    {
+      "definition": {
+        "title": "NTP Offset in Seconds (Domain Controllers)",
+        "title_size": "16",
+        "title_align": "left",
+        "show_legend": true,
+        "legend_layout": "horizontal",
+        "legend_columns": ["avg", "min", "max", "value"],
+        "type": "timeseries",
+        "requests": [
+          {
+            "formulas": [{ "formula": "query1" }],
+            "response_format": "timeseries",
+            "queries": [
+              {
+                "query": "avg:ntp.offset{$applicationid,$domain} by {host}",
+                "data_source": "metrics",
+                "name": "query1"
+              }
+            ],
+            "style": { "palette": "dog_classic", "line_type": "solid", "line_width": "normal" },
+            "display_type": "line"
+          }
+        ]
+      },
+      "layout": { "x": 9, "y": 9, "width": 3, "height": 3 }
+    }
+  ]
+}

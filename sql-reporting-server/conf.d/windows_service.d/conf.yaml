@@ -10,8 +10,7 @@ instances:
       - SQLServerReportingServices
     tags:
       - role:sccm-sql-reporting-server
-      - service_group:ssrs-core
-      - environment:production
+      - service_group:sccm-ssrs-core
     windows_service_startup_type_tag: true
     collect_display_name_as_tag: true
     disable_legacy_service_tag: true
@@ -22,8 +21,7 @@ instances:
       - SQLSERVERAGENT
     tags:
       - role:sccm-sql-reporting-server
-      - service_group:sql-server-local
-      - environment:production
+      - service_group:sccm-sql-server-local
     windows_service_startup_type_tag: true
     collect_display_name_as_tag: true
     disable_legacy_service_tag: true
@@ -33,8 +31,7 @@ instances:
       - WSUSService
     tags:
       - role:sccm-sql-reporting-server
-      - service_group:wsus-core
-      - environment:production
+      - service_group:sccm-wsus-core
     windows_service_startup_type_tag: true
     collect_display_name_as_tag: true
     disable_legacy_service_tag: true
@@ -44,8 +41,7 @@ instances:
       - W3SVC
     tags:
       - role:sccm-sql-reporting-server
-      - service_group:web-infrastructure
-      - environment:production
+      - service_group:sccm-web-infrastructure
     windows_service_startup_type_tag: true
     collect_display_name_as_tag: true
     disable_legacy_service_tag: true
@@ -56,8 +52,7 @@ instances:
       - WinRM
     tags:
       - role:sccm-sql-reporting-server
-      - service_group:windows-infrastructure
-      - environment:production
+      - service_group:sccm-windows-infrastructure
     windows_service_startup_type_tag: true
     collect_display_name_as_tag: true
     disable_legacy_service_tag: true
@@ -67,8 +62,7 @@ instances:
       - WAS
     tags:
       - role:sccm-sql-reporting-server
-      - service_group:iis-application-pools
-      - environment:production
+      - service_group:sccm-iis-application-pools
     windows_service_startup_type_tag: true
     collect_display_name_as_tag: true
     disable_legacy_service_tag: true

@@ -2,7 +2,7 @@
   {
     "name": "DP Service State - Web Infrastructure (W3SVC)",
     "type": "service check",
-    "query": "check(\"windows_service.state\").over(\"role:sccm-distribution-point\",\"service_group:web-infrastructure\").by(\"service\").last(\"5m\") != \"OK\"",
+    "query": "check(\"windows_service.state\").over(\"role:sccm-distribution-point\",\"service_group:sccm-web-infrastructure\").by(\"service\").last(\"5m\") != \"OK\"",
     "message": "{{#is_alert}}Service {{service.name}} on {{host.name}} is not running (group: web-infrastructure).{{/is_alert}}\n{{#is_no_data}}No data received for windows_service.state in the last {{no_data_timeframe}} minutes.{{/is_no_data}}",
     "tags": ["role:sccm-distribution-point", "sccmrole:sccm-srv", "approle:sccm-dp-srv"],
     "options": {
@@ -17,7 +17,7 @@
   {
     "name": "DP Service State - Windows Infrastructure",
     "type": "service check",
-    "query": "check(\"windows_service.state\").over(\"role:sccm-distribution-point\",\"service_group:windows-infrastructure\").by(\"service\").last(\"5m\") != \"OK\"",
+    "query": "check(\"windows_service.state\").over(\"role:sccm-distribution-point\",\"service_group:sccm-windows-infrastructure\").by(\"service\").last(\"5m\") != \"OK\"",
     "message": "{{#is_alert}}Service {{service.name}} on {{host.name}} is not running (group: windows-infrastructure).{{/is_alert}}\n{{#is_no_data}}No data received for windows_service.state in the last {{no_data_timeframe}} minutes.{{/is_no_data}}",
     "tags": ["role:sccm-distribution-point", "sccmrole:sccm-srv", "approle:sccm-dp-srv"],
     "options": {
@@ -32,7 +32,7 @@
   {
     "name": "DP Service State - Content Distribution",
     "type": "service check",
-    "query": "check(\"windows_service.state\").over(\"role:sccm-distribution-point\",\"service_group:content-distribution\").by(\"service\").last(\"5m\") != \"OK\"",
+    "query": "check(\"windows_service.state\").over(\"role:sccm-distribution-point\",\"service_group:sccm-content-distribution\").by(\"service\").last(\"5m\") != \"OK\"",
     "message": "{{#is_alert}}Service {{service.name}} on {{host.name}} is not running (group: content-distribution).{{/is_alert}}\n{{#is_no_data}}No data received for windows_service.state in the last {{no_data_timeframe}} minutes.{{/is_no_data}}",
     "tags": ["role:sccm-distribution-point", "sccmrole:sccm-srv", "approle:sccm-dp-srv"],
     "options": {

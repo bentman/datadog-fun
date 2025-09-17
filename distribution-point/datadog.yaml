@@ -7,7 +7,6 @@ site: datadoghq.com
 hostname: YOUR_SCCM_DISTRIBUTION_POINT_HOSTNAME
 tags:
   - role:sccm-distribution-point
-  - environment:production
   - datacenter:azure
   - sccmrole:sccm-srv
   - approle:sccm-dp-srv

@@ -11,8 +11,7 @@ instances:
       - SQLSERVERAGENT
     tags:
       - role:sccm-sql-server
-      - service_group:sql-server-core
-      - environment:production
+      - service_group:sccm-sql-server-core
     windows_service_startup_type_tag: true
     collect_display_name_as_tag: true
     disable_legacy_service_tag: true
@@ -24,8 +23,7 @@ instances:
       - MSDTC
     tags:
       - role:sccm-sql-server
-      - service_group:sql-server-support
-      - environment:production
+      - service_group:sccm-sql-server-support
     windows_service_startup_type_tag: true
     collect_display_name_as_tag: true
     disable_legacy_service_tag: true
@@ -36,8 +34,7 @@ instances:
       - WinRM
     tags:
       - role:sccm-sql-server
-      - service_group:windows-infrastructure
-      - environment:production
+      - service_group:sccm-windows-infrastructure
     windows_service_startup_type_tag: true
     collect_display_name_as_tag: true
     disable_legacy_service_tag: true

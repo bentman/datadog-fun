@@ -7,7 +7,6 @@ site: datadoghq.com
 hostname: YOUR_SCCM_SITE_SERVER_HOSTNAME
 tags:
   - role:sccm-site-server
-  - environment:production
   - datacenter:azure
   - sccmrole:sccm-srv
   - approle:sccm-site-srv

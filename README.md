@@ -17,18 +17,25 @@ Comprehensive Datadog monitoring configurations for Microsoft System Center Conf
 - SQL Server: Database performance monitoring with Windows Authentication
 - SQL Reporting Server: SSRS monitoring with Windows Authentication
 
-## Monitors and Widgets (Ready to Use)
+## Monitors and Dashboards (Ready to Use)
 
-- Service widgets: check_status targeting windows_service.state, grouped by role and service_group
-- Log widgets: log_stream queries aligned to channel and @evt.id (Datadog-normalized attributes)
-- Role-based monitor JSONs (per directory):
-  - distribution-point/distribution-point_monitor.json
-  - management-point/management-point_monitor.json
-  - site-server/site-server_monitor.json
-  - sql-server/sql-server_monitor.json
-  - sql-reporting-server/sql-reporting-server_monitor.json
+- Dashboards (templates in dashboards/):
+  - dash-sccm-sql-unified-dashboard.json
+  - dash-sccm-sql-applications.json
+  - dash-windows-server-health.json
+- Monitors (JSON in dashboards/, prefixed monitor-*.json):
+  - dashboards/monitor-site-server.json
+  - dashboards/monitor-management-point.json
+  - dashboards/monitor-distribution-point.json
+  - dashboards/monitor-sql-server.json
+  - dashboards/monitor-sql-reporting-server.json
+- Conventions:
+  - Service widgets/monitors use windows_service.state grouped by role and service_group
+  - service_group values are namespaced as sccm-* (e.g., sccm-web-infrastructure, sccm-sql-server-core)
+  - Log widgets/monitors use normalized channel and @evt.id attributes
+  - Dashboards filter by $applicationid and $domain template variables (no hard-coded environment tags)
 
-Optional: import these monitors into Datadog via the Monitors API or UI (Create monitor from JSON).
+Optional: import these monitors via the Datadog UI (Create monitor from JSON) or Monitors API.
 
 ## Quick Start
 
@@ -48,33 +55,55 @@ All SQL Server connections use Windows Authentication (`Trusted_Connection=yes`)
 ## Repository Structure
 
 ```
+datadog-fun/
 ├── site-server/
 │   ├── datadog.yaml
-│   ├── site-server_service_widget.json
-│   ├── site-server_events_widget.json
-│   └── site-server_monitor.json
+│   └── conf.d/
+│       ├── windows_service.d/
+│       ├── win32_event_log.d/
+│       ├── wmi_check.d/
+│       └── iis.d/
 ├── management-point/
 │   ├── datadog.yaml
-│   ├── management-point_service_widget.json
-│   ├── management-point_events_widget.json
-│   └── management-point_monitor.json
+│   └── conf.d/
+│       ├── windows_service.d/
+│       ├── win32_event_log.d/
+│       ├── wmi_check.d/
+│       └── iis.d/
 ├── distribution-point/
 │   ├── datadog.yaml
-│   ├── distribution-point_service_widget.json
-│   ├── distribution-point_events_widget.json
-│   └── distribution-point_monitor.json
+│   └── conf.d/
+│       ├── windows_service.d/
+│       ├── win32_event_log.d/
+│       ├── wmi_check.d/
+│       └── iis.d/
 ├── sql-server/
 │   ├── datadog.yaml
-│   ├── sql-server_service_widget.json
-│   ├── sql-server_events_widget.json
-│   └── sql-server_monitor.json
+│   └── conf.d/
+│       ├── windows_service.d/
+│       ├── win32_event_log.d/
+│       ├── wmi_check.d/
+│       └── sqlserver.d/
 ├── sql-reporting-server/
 │   ├── datadog.yaml
-│   ├── sql-reporting-server_service_widget.json
-│   ├── sql-reporting-server_events_widget.json
-│   └── sql-reporting-server_monitor.json
+│   └── conf.d/
+│       ├── windows_service.d/
+│       ├── win32_event_log.d/
+│       ├── wmi_check.d/
+│       └── sqlserver.d/
 ├── dashboards/
+│   ├── dash-sccm-sql-unified-dashboard.json
+│   ├── dash-sccm-sql-applications.json
+│   ├── dash-windows-server-health.json
+│   ├── monitor-site-server.json
+│   ├── monitor-management-point.json
+│   ├── monitor-distribution-point.json
+│   ├── monitor-sql-server.json
+│   └── monitor-sql-reporting-server.json
 ├── common/
+│   ├── recommended-thresholds.yaml
+│   └── system-probe.yaml
+├── servers.json
 └── Deploy-DatadogConfigs.ps1
 ```
 

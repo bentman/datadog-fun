@@ -2,7 +2,7 @@
   {
     "name": "MP Service State - Web Infrastructure",
     "type": "service check",
-    "query": "check(\"windows_service.state\").over(\"role:sccm-management-point\",\"service_group:web-infrastructure\").by(\"service\").last(\"5m\") != \"OK\"",
+    "query": "check(\"windows_service.state\").over(\"role:sccm-management-point\",\"service_group:sccm-web-infrastructure\").by(\"service\").last(\"5m\") != \"OK\"",
     "message": "{{#is_alert}}Service {{service.name}} on {{host.name}} is not running (group: web-infrastructure).{{/is_alert}}\n{{#is_no_data}}No data received for windows_service.state in the last {{no_data_timeframe}} minutes.{{/is_no_data}}",
     "tags": ["role:sccm-management-point", "sccmrole:sccm-srv", "approle:sccm-mp-srv"],
     "options": {
@@ -17,7 +17,7 @@
   {
     "name": "MP Service State - Windows Infrastructure",
     "type": "service check",
-    "query": "check(\"windows_service.state\").over(\"role:sccm-management-point\",\"service_group:windows-infrastructure\").by(\"service\").last(\"5m\") != \"OK\"",
+    "query": "check(\"windows_service.state\").over(\"role:sccm-management-point\",\"service_group:sccm-windows-infrastructure\").by(\"service\").last(\"5m\") != \"OK\"",
     "message": "{{#is_alert}}Service {{service.name}} on {{host.name}} is not running (group: windows-infrastructure).{{/is_alert}}\n{{#is_no_data}}No data received for windows_service.state in the last {{no_data_timeframe}} minutes.{{/is_no_data}}",
     "tags": ["role:sccm-management-point", "sccmrole:sccm-srv", "approle:sccm-mp-srv"],
     "options": {
@@ -32,7 +32,7 @@
   {
     "name": "MP Service State - Security and SSL",
     "type": "service check",
-    "query": "check(\"windows_service.state\").over(\"role:sccm-management-point\",\"service_group:security-ssl\").by(\"service\").last(\"5m\") != \"OK\"",
+    "query": "check(\"windows_service.state\").over(\"role:sccm-management-point\",\"service_group:sccm-security-ssl\").by(\"service\").last(\"5m\") != \"OK\"",
     "message": "{{#is_alert}}Service {{service.name}} on {{host.name}} is not running (group: security-ssl).{{/is_alert}}\n{{#is_no_data}}No data received for windows_service.state in the last {{no_data_timeframe}} minutes.{{/is_no_data}}",
     "tags": ["role:sccm-management-point", "sccmrole:sccm-srv", "approle:sccm-mp-srv"],
     "options": {

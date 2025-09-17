@@ -7,8 +7,7 @@ init_config:
 instances:
   # SQL Server Reporting Services Core
   - services:
-      - ReportServer
-      - ReportServerTempDB
+      - SQLServerReportingServices
     tags:
       - role:sccm-sql-reporting-server
       - service_group:ssrs-core
@@ -29,10 +28,20 @@ instances:
     collect_display_name_as_tag: true
     disable_legacy_service_tag: true
 
+  # WSUS Core Services
+  - services:
+      - WSUSService
+    tags:
+      - role:sccm-sql-reporting-server
+      - service_group:wsus-core
+      - environment:production
+    windows_service_startup_type_tag: true
+    collect_display_name_as_tag: true
+    disable_legacy_service_tag: true
+
   # Web Infrastructure Services (IIS) - For Report Manager and Web Service
   - services:
       - W3SVC
-      - IISADMIN
     tags:
       - role:sccm-sql-reporting-server
       - service_group:web-infrastructure

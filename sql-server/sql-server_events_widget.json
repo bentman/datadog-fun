@@ -2,33 +2,25 @@
   {
     "definition": {
       "type": "log_stream",
-      "query": "source:windows.events channel_path:System role:sccm-sql-server status:(warning OR error) @EventID:(7000 OR 7001 OR 7031 OR 7034 OR 7036 OR 6008)",
-      "columns": ["timestamp", "host", "service", "status", "EventID", "message"],
-      "title": "System - Critical Events"
+      "query": "source:windows.events channel:System role:sccm-sql-server status:(warning OR error) @evt.id:(7000 OR 7001 OR 7031 OR 7034 OR 7036 OR 6008)",
+      "columns": ["timestamp", "host", "service", "status", "evt.id", "message"],
+      "title": "System Critical Events"
     }
   },
   {
     "definition": {
       "type": "log_stream",
-      "query": "source:windows.events channel_path:Application role:sccm-sql-server status:(warning OR error) @EventID:(17061 OR 17062)",
-      "columns": ["timestamp", "host", "service", "status", "EventID", "message"],
-      "title": "Application - SQL Service Failures"
+      "query": "source:windows.events channel:Application role:sccm-sql-server status:(warning OR error) @evt.id:(17061 OR 17062 OR 18456 OR 18452)",
+      "columns": ["timestamp", "host", "service", "status", "evt.id", "message"],
+      "title": "Application SQL Service Failures"
     }
   },
   {
     "definition": {
       "type": "log_stream",
-      "query": "source:windows.events channel_path:Application role:sccm-sql-server status:(warning OR error) @EventID:(18456 OR 18452)",
-      "columns": ["timestamp", "host", "service", "status", "EventID", "message"],
-      "title": "Application - SQL Authentication Errors"
-    }
-  },
-  {
-    "definition": {
-      "type": "log_stream",
-      "query": "source:windows.events channel_path:Security role:sccm-sql-server status:(warning OR error) @EventID:(4625 OR 4771 OR 4776)",
-      "columns": ["timestamp", "host", "service", "status", "EventID", "message"],
-      "title": "Security - Authentication Failures"
+      "query": "source:windows.events channel:Security role:sccm-sql-server status:(warning OR error) @evt.id:(4625 OR 4771 OR 4776)",
+      "columns": ["timestamp", "host", "service", "status", "evt.id", "message"],
+      "title": "Security Auth Failures"
     }
   }
 ]

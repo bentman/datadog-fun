@@ -2,48 +2,48 @@
   {
     "definition": {
       "type": "log_stream",
-      "query": "source:windows.events channel_path:System role:sccm-management-point status:(warning OR error) @EventID:(7000 OR 7001 OR 7031 OR 7034 OR 7036 OR 10016 OR 6008)",
-      "columns": ["timestamp", "host", "service", "status", "EventID", "message"],
+      "query": "source:windows.events channel:System role:sccm-management-point status:(warning OR error) @evt.id:(7000 OR 7001 OR 7031 OR 7034 OR 7036 OR 10016 OR 6008)",
+      "columns": ["timestamp", "host", "service", "status", "evt.id", "message"],
       "title": "System - Critical Events"
     }
   },
   {
     "definition": {
       "type": "log_stream",
-      "query": "source:windows.events channel_path:Application role:sccm-management-point status:(warning OR error) @EventID:(1104 OR 1105 OR 1106 OR 1107 OR 1108)",
-      "columns": ["timestamp", "host", "service", "status", "EventID", "message"],
+      "query": "source:windows.events channel:Application role:sccm-management-point status:(warning OR error) @evt.id:(1104 OR 1105 OR 1106 OR 1107 OR 1108)",
+      "columns": ["timestamp", "host", "service", "status", "evt.id", "message"],
       "title": "Application - SCCM MP Component Errors"
     }
   },
   {
     "definition": {
       "type": "log_stream",
-      "query": "source:windows.events channel_path:Application role:sccm-management-point status:(warning OR error) @EventID:(18456 OR 18452 OR 5612)",
-      "columns": ["timestamp", "host", "service", "status", "EventID", "message"],
+      "query": "source:windows.events channel:Application role:sccm-management-point status:(warning OR error) @evt.id:(18456 OR 18452 OR 5612)",
+      "columns": ["timestamp", "host", "service", "status", "evt.id", "message"],
       "title": "Application - SQL Connection Errors"
     }
   },
   {
     "definition": {
       "type": "log_stream",
-      "query": "source:windows.events channel_path:Application role:sccm-management-point status:(warning OR error) @EventID:(5858 OR 5857 OR 5859)",
-      "columns": ["timestamp", "host", "service", "status", "EventID", "message"],
+      "query": "source:windows.events channel:Application role:sccm-management-point status:(warning OR error) @evt.id:(5858 OR 5857 OR 5859)",
+      "columns": ["timestamp", "host", "service", "status", "evt.id", "message"],
       "title": "Application - WMI / Notification Errors"
     }
   },
   {
     "definition": {
       "type": "log_stream",
-      "query": "source:windows.events channel_path:Application role:sccm-management-point status:(warning OR error) @EventID:(1000 OR 1026 OR 1033)",
-      "columns": ["timestamp", "host", "service", "status", "EventID", "message"],
+      "query": "source:windows.events channel:Application role:sccm-management-point status:(warning OR error) @evt.id:(1000 OR 1026 OR 1033)",
+      "columns": ["timestamp", "host", "service", "status", "evt.id", "message"],
       "title": "Application - Generic App Errors"
     }
   },
   {
     "definition": {
       "type": "log_stream",
-      "query": "source:windows.events channel_path:Security role:sccm-management-point status:(warning OR error) @EventID:(4625 OR 4771 OR 4776)",
-      "columns": ["timestamp", "host", "service", "status", "EventID", "message"],
+      "query": "source:windows.events channel:Security role:sccm-management-point status:(warning OR error) @evt.id:(4625 OR 4771 OR 4776)",
+      "columns": ["timestamp", "host", "service", "status", "evt.id", "message"],
       "title": "Security - Authentication Failures"
     }
   }

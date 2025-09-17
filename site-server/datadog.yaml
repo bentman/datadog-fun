@@ -9,6 +9,8 @@ tags:
   - role:sccm-site-server
   - environment:production
   - datacenter:azure
+  - sccmrole:sccm-srv
+  - approle:sccm-site-srv
 
 # Logging Configuration
 logs_enabled: true
@@ -16,7 +18,7 @@ log_level: INFO
 
 # Process Agent Configuration
 process_config:
-  enabled: "true"
+  enabled: true
 
 # Network Performance Monitoring
 network_config:

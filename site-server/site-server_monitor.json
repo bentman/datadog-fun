@@ -1,15 +1,102 @@
-{
-  "name": "Site Server Event Log Errors",
-  "type": "log alert",
-  "query": "logs(\"source:windows.events role:sccm-site-server status:error\").index(\"*\").rollup(\"count\").last(\"5m\") > 5",
-  "message": "Warning: {{value}} errors in 5m @dl\n\nAlert: {{value}} errors in 5m @dl\n\nRecovered: Errors back to normal @dl",
-  "tags": ["role:sccm-site-server"],
-  "options": {
-    "thresholds": {
-      "critical": 10,
-      "warning": 5
-    },
-    "notify_no_data": false,
-    "enable_logs_sample": true
+[
+  {
+    "name": "Site Server Service State - SCCM Core",
+    "type": "service check",
+    "query": "check(\"windows_service.state\").over(\"role:sccm-site-server\",\"service_group:sccm-core\").by(\"service\").last(\"5m\") != \"OK\"",
+    "message": "{{#is_alert}}Service {{service.name}} on {{host.name}} is not running (group: sccm-core).{{/is_alert}}\n{{#is_no_data}}No data received for windows_service.state in the last {{no_data_timeframe}} minutes.{{/is_no_data}}",
+    "tags": ["role:sccm-site-server", "sccmrole:sccm-srv", "approle:sccm-site-srv"],
+    "options": {
+      "notify_no_data": true,
+      "no_data_timeframe": 10,
+      "renotify_interval": 60,
+      "evaluation_delay": 120,
+      "new_host_delay": 300,
+      "include_tags": true
+    }
+  },
+  {
+    "name": "Site Server Service State - Web & Infrastructure",
+    "type": "service check",
+    "query": "check(\"windows_service.state\").over(\"role:sccm-site-server\",\"service_group:web-infrastructure\").by(\"service\").last(\"5m\") != \"OK\"",
+    "message": "{{#is_alert}}Service {{service.name}} on {{host.name}} is not running (group: web-infrastructure).{{/is_alert}}\n{{#is_no_data}}No data received for windows_service.state in the last {{no_data_timeframe}} minutes.{{/is_no_data}}",
+    "tags": ["role:sccm-site-server", "sccmrole:sccm-srv", "approle:sccm-site-srv"],
+    "options": {
+      "notify_no_data": true,
+      "no_data_timeframe": 10,
+      "renotify_interval": 60,
+      "evaluation_delay": 120,
+      "new_host_delay": 300,
+      "include_tags": true
+    }
+  },
+  {
+    "name": "Site Server Logs - System Critical Events",
+    "type": "log alert",
+    "query": "logs(\"source:windows.events channel:System role:sccm-site-server @evt.id:(7000 OR 7001 OR 7031 OR 7034 OR 7036 OR 6008)\").index(\"*\").rollup(\"count\").last(\"5m\") > 0",
+    "message": "{{#is_alert}}System critical events detected on site servers. Investigate in Logs Explorer.{{/is_alert}}",
+    "tags": ["role:sccm-site-server", "sccmrole:sccm-srv", "approle:sccm-site-srv"],
+    "options": {
+      "thresholds": { "critical": 1 },
+      "notify_no_data": false,
+      "renotify_interval": 60,
+      "evaluation_delay": 120,
+      "enable_logs_sample": true
+    }
+  },
+  {
+    "name": "Site Server Logs - Site Component Manager Errors",
+    "type": "log alert",
+    "query": "logs(\"source:windows.events channel:Application role:sccm-site-server @evt.id:(4909 OR 4912 OR 4913 OR 4915 OR 1016 OR 1037)\").index(\"*\").rollup(\"count\").last(\"5m\") > 0",
+    "message": "{{#is_alert}}Site Component Manager errors detected on site servers. Investigate in Logs Explorer.{{/is_alert}}",
+    "tags": ["role:sccm-site-server", "sccmrole:sccm-srv", "approle:sccm-site-srv"],
+    "options": {
+      "thresholds": { "critical": 1 },
+      "notify_no_data": false,
+      "renotify_interval": 60,
+      "evaluation_delay": 120,
+      "enable_logs_sample": true
+    }
+  },
+  {
+    "name": "Site Server Logs - Notification / WMI Errors",
+    "type": "log alert",
+    "query": "logs(\"source:windows.events channel:Application role:sccm-site-server @evt.id:(5858 OR 5857 OR 5859)\").index(\"*\").rollup(\"count\").last(\"5m\") > 0",
+    "message": "{{#is_alert}}WMI/Notification errors detected on site servers. Investigate in Logs Explorer.{{/is_alert}}",
+    "tags": ["role:sccm-site-server", "sccmrole:sccm-srv", "approle:sccm-site-srv"],
+    "options": {
+      "thresholds": { "critical": 1 },
+      "notify_no_data": false,
+      "renotify_interval": 60,
+      "evaluation_delay": 120,
+      "enable_logs_sample": true
+    }
+  },
+  {
+    "name": "Site Server Logs - Application Errors (Generic)",
+    "type": "log alert",
+    "query": "logs(\"source:windows.events channel:Application role:sccm-site-server @evt.id:(1000 OR 1026 OR 1033)\").index(\"*\").rollup(\"count\").last(\"5m\") > 0",
+    "message": "{{#is_alert}}Generic application errors detected on site servers. Investigate in Logs Explorer.{{/is_alert}}",
+    "tags": ["role:sccm-site-server", "sccmrole:sccm-srv", "approle:sccm-site-srv"],
+    "options": {
+      "thresholds": { "critical": 1 },
+      "notify_no_data": false,
+      "renotify_interval": 60,
+      "evaluation_delay": 120,
+      "enable_logs_sample": true
+    }
+  },
+  {
+    "name": "Site Server Logs - SQL Connection Errors",
+    "type": "log alert",
+    "query": "logs(\"source:windows.events channel:Application role:sccm-site-server @evt.id:(18456 OR 18452 OR 5612)\").index(\"*\").rollup(\"count\").last(\"5m\") > 0",
+    "message": "{{#is_alert}}SQL connection/authentication errors detected on site servers. Investigate in Logs Explorer.{{/is_alert}}",
+    "tags": ["role:sccm-site-server", "sccmrole:sccm-srv", "approle:sccm-site-srv"],
+    "options": {
+      "thresholds": { "critical": 1 },
+      "notify_no_data": false,
+      "renotify_interval": 60,
+      "evaluation_delay": 120,
+      "enable_logs_sample": true
+    }
   }
-}
+]

@@ -30,18 +30,3 @@ instances:
     windows_service_startup_type_tag: true
     collect_display_name_as_tag: true
     disable_legacy_service_tag: true
-
-  # Optional SCCM Services (may not be present on all site servers)
-  - services:
-      - SMS_MP_CONTROL_MANAGER
-      - SMS_DP_MONITOR
-      - SMS_WSUS_SYNC_MANAGER
-      - SMS_WSUS_CONTROL_MANAGER
-      - SMS_NOTIFICATION_SERVER
-    tags:
-      - role:sccm-site-server
-      - service_group:sccm-optional
-      - environment:production
-    windows_service_startup_type_tag: true
-    collect_display_name_as_tag: true
-    disable_legacy_service_tag: true

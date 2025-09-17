@@ -286,8 +286,19 @@ function Update-ConfigurationFiles {
             }
             Write-Log "Created backup of $backupCount files at $backupPath"
         }
-        # Copy new configurations
-        Copy-Item -Path "$SourcePath\*" -Destination $remotePath -Recurse -Verbose -Force
+        # Copy new configurations (datadog.yaml and conf.d only)
+        $srcYaml = Join-Path $SourcePath "datadog.yaml"
+        if (Test-Path $srcYaml) {
+            Copy-Item -Path $srcYaml -Destination $remotePath -Force -Verbose
+        }
+        $srcConf = Join-Path $SourcePath "conf.d"
+        $dstConf = Join-Path $remotePath "conf.d"
+        if (Test-Path $srcConf) {
+            if (-not (Test-Path $dstConf)) {
+                New-Item -ItemType Directory -Path $dstConf -Force | Out-Null
+            }
+            Copy-Item -Path "$srcConf\*" -Destination $dstConf -Recurse -Force -Verbose
+        }
         Write-Log "Successfully deployed configuration to $TargetServer" "SUCCESS"
         return $true
     }
@@ -389,6 +400,19 @@ function Restart-DatadogAgent {
         $servicesAfter = Get-Service -ComputerName $TargetServer | Where-Object { $_.Name -like "datadog*" }
         foreach ($svc in $servicesAfter) {
             Write-Log "$($svc.Name): $($svc.Status)" "INFO"
+        }
+
+        # Optional: invoke agent status to validate integrations
+        try {
+            Invoke-Command -ComputerName $TargetServer -ScriptBlock {
+                & "C:\Program Files\Datadog\Datadog Agent\bin\agent.exe" status | Out-String | ForEach-Object {
+                    $_.Split([Environment]::NewLine) | Select-Object -First 1
+                }
+            } -ErrorAction SilentlyContinue | Out-Null
+            Write-Log "Invoked agent status on $TargetServer" "INFO"
+        }
+        catch {
+            Write-Log "Could not invoke agent status on $($TargetServer): $($_.Exception.Message)" "WARNING"
         }
 
         return $true
@@ -556,9 +580,11 @@ try {
     Write-Log "`n========================================" "INFO"
     Write-Log "DEPLOYMENT RESULTS" "INFO"
     Write-Log "========================================" "INFO"
+    $failedCount = $totalServers - $successfulDeployments
+    $level = if ($failedCount -gt 0) { "ERROR" } else { "INFO" }
     Write-Log "Total Servers: $totalServers" "INFO"
     Write-Log "Successful Deployments: $successfulDeployments" "SUCCESS"
-    Write-Log "Failed Deployments: $($totalServers - $successfulDeployments)" $(if ($totalServers - $successfulDeployments -gt 0) { "ERROR" } else { "INFO" })
+    Write-Log "Failed Deployments: $failedCount" $level
     Write-Log ""
 
     # Show detailed results

@@ -1,699 +1,166 @@
 {
-  "title": "Windows Server Health - System Metrics Overview",
-  "description": "Basic Windows Server health monitoring dashboard focusing on core system metrics: CPU, Memory, Disk, Network, and Event Logs.",
+  "title": "Windows Server Health",
+  "description": "CPU, Memory, Disk, Network. Filter by environment.",
+  "layout_type": "ordered",
+  "reflow_type": "fixed",
   "template_variables": [
     {
-      "name": "host",
-      "prefix": "host",
-      "available_values": [],
-      "default": "*"
+      "name": "environment",
+      "prefix": "environment",
+      "available_values": ["production", "qa"],
+      "default": "production"
     }
   ],
-  "layout_type": "ordered",
   "widgets": [
     {
       "id": 0,
       "definition": {
         "type": "note",
-        "content": "# 🖥️ Windows Server Health Dashboard\n\n**Basic system health monitoring for Windows servers**\n\n📊 **CPU Usage**: System CPU utilization by host\n🧠 **Memory Usage**: Memory utilization by host\n💾 **Disk Usage**: Disk utilization by host\n🌐 **Network Activity**: Network bytes received/sent by host\n📝 **Event Logs**: Windows Event Log monitoring (Info, Warning, Error)\n⏰ **Time Sync**: NTP offset monitoring\n\n*Use the host filter above to focus on specific servers*",
-        "background_color": "vivid_green",
+        "content": "# CPU, Memory, Disk, Network",
+        "background_color": "green",
         "font_size": "14",
         "text_align": "left",
         "vertical_align": "top",
-        "show_tick": true,
-        "tick_pos": "50%",
-        "tick_edge": "bottom",
+        "show_tick": false,
         "has_padding": true
       },
-      "layout": {
-        "x": 0,
-        "y": 0,
-        "width": 12,
-        "height": 3
-      }
+      "layout": { "x": 0, "y": 0, "width": 12, "height": 2 }
     },
+
     {
       "id": 1,
       "definition": {
         "type": "timeseries",
-        "requests": [
-          {
-            "q": "avg:system.cpu.pct_processor_time{$host} by {host}",
-            "display_type": "line",
-            "style": {
-              "palette": "dog_classic",
-              "line_type": "solid",
-              "line_width": "normal"
-            }
-          }
-        ],
-        "title": "CPU Usage (%)",
+        "title": "CPU (5m)",
         "title_size": "16",
         "title_align": "left",
-        "yaxis": {
-          "min": "0",
-          "max": "100",
-          "scale": "linear",
-          "label": "",
-          "include_zero": true
-        },
-        "markers": [
-          {
-            "value": "y = 85",
-            "display_type": "warning dashed"
-          },
-          {
-            "value": "y = 95",
-            "display_type": "error dashed"
-          }
-        ],
         "show_legend": true,
         "legend_layout": "auto",
-        "legend_columns": ["avg", "min", "max", "value"]
+        "legend_columns": ["avg", "min", "max", "value"],
+        "requests": [
+          {
+            "formulas": [{ "formula": "query2" }],
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "query2",
+                "query": "avg:system.cpu.system{environment:$environment} by {host}"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": { "palette": "dog_classic", "line_type": "solid", "line_width": "normal" },
+            "display_type": "line"
+          }
+        ],
+        "markers": [
+          { "value": "y = 85", "display_type": "warning dashed" },
+          { "value": "y = 95", "display_type": "error dashed" }
+        ]
       },
-      "layout": {
-        "x": 0,
-        "y": 3,
-        "width": 6,
-        "height": 3
-      }
+      "layout": { "x": 0, "y": 2, "width": 6, "height": 3 }
     },
+
     {
       "id": 2,
       "definition": {
         "type": "timeseries",
-        "requests": [
-          {
-            "q": "100 - avg:system.mem.pct_usable{$host} by {host}",
-            "display_type": "line",
-            "style": {
-              "palette": "purple",
-              "line_type": "solid",
-              "line_width": "normal"
-            }
-          }
-        ],
-        "title": "Memory Usage (%)",
+        "title": "Memory",
         "title_size": "16",
         "title_align": "left",
-        "yaxis": {
-          "min": "0",
-          "max": "100",
-          "scale": "linear",
-          "label": "",
-          "include_zero": true
-        },
-        "markers": [
-          {
-            "value": "y = 85",
-            "display_type": "warning dashed"
-          },
-          {
-            "value": "y = 95",
-            "display_type": "error dashed"
-          }
-        ],
         "show_legend": true,
         "legend_layout": "auto",
-        "legend_columns": ["avg", "min", "max", "value"]
+        "legend_columns": ["avg", "min", "max", "value"],
+        "requests": [
+          {
+            "formulas": [{ "formula": "1 - query2" }],
+            "queries": [
+              {
+                "data_source": "metrics",
+                "name": "query2",
+                "query": "avg:system.mem.pct_usable{environment:$environment} by {host}"
+              }
+            ],
+            "response_format": "timeseries",
+            "style": { "palette": "dog_classic", "line_type": "solid", "line_width": "normal" },
+            "display_type": "line"
+          }
+        ],
+        "markers": [
+          { "value": "y = 0.85", "display_type": "warning dashed" },
+          { "value": "y = 0.95", "display_type": "error dashed" }
+        ]
       },
-      "layout": {
-        "x": 6,
-        "y": 3,
-        "width": 6,
-        "height": 3
-      }
+      "layout": { "x": 6, "y": 2, "width": 6, "height": 3 }
     },
+
     {
       "id": 3,
       "definition": {
         "type": "timeseries",
-        "requests": [
-          {
-            "q": "avg:system.disk.in_use{$host} by {host}",
-            "display_type": "line",
-            "style": {
-              "palette": "orange",
-              "line_type": "solid",
-              "line_width": "normal"
-            }
-          }
-        ],
-        "title": "Disk Usage (%)",
+        "title": "Disk",
         "title_size": "16",
         "title_align": "left",
-        "yaxis": {
-          "min": "0",
-          "max": "100",
-          "scale": "linear",
-          "label": "",
-          "include_zero": true
-        },
-        "markers": [
-          {
-            "value": "y = 85",
-            "display_type": "warning dashed"
-          },
-          {
-            "value": "y = 95",
-            "display_type": "error dashed"
-          }
-        ],
         "show_legend": true,
         "legend_layout": "auto",
-        "legend_columns": ["avg", "min", "max", "value"]
+        "legend_columns": ["avg", "min", "max", "value"],
+        "requests": [
+          {
+            "q": "avg:system.disk.in_use{environment:$environment} by {host}",
+            "display_type": "line",
+            "style": { "palette": "orange", "line_type": "solid", "line_width": "normal" }
+          }
+        ],
+        "yaxis": { "min": "0", "max": "100", "scale": "linear", "include_zero": true },
+        "markers": [
+          { "value": "y = 85", "display_type": "warning dashed" },
+          { "value": "y = 95", "display_type": "error dashed" }
+        ]
       },
-      "layout": {
-        "x": 0,
-        "y": 6,
-        "width": 6,
-        "height": 3
-      }
+      "layout": { "x": 0, "y": 5, "width": 6, "height": 3 }
     },
+
     {
       "id": 4,
       "definition": {
         "type": "timeseries",
-        "requests": [
-          {
-            "q": "avg:system.net.bytes_rcvd{$host} by {host}",
-            "display_type": "line",
-            "style": {
-              "palette": "green",
-              "line_type": "solid",
-              "line_width": "normal"
-            }
-          }
-        ],
-        "title": "Network Received (Bytes)",
+        "title": "Network (bytes in)",
         "title_size": "16",
         "title_align": "left",
-        "yaxis": {
-          "scale": "linear",
-          "include_zero": true
-        },
         "show_legend": true,
         "legend_layout": "auto",
-        "legend_columns": ["avg", "min", "max", "value"]
+        "legend_columns": ["avg", "min", "max", "value"],
+        "requests": [
+          {
+            "q": "avg:system.net.bytes_rcvd{environment:$environment} by {host}",
+            "display_type": "line",
+            "style": { "palette": "green", "line_type": "solid", "line_width": "normal" }
+          }
+        ],
+        "yaxis": { "scale": "linear", "include_zero": true }
       },
-      "layout": {
-        "x": 6,
-        "y": 6,
-        "width": 6,
-        "height": 3
-      }
+      "layout": { "x": 6, "y": 5, "width": 6, "height": 3 }
     },
+
     {
       "id": 5,
       "definition": {
         "type": "timeseries",
-        "requests": [
-          {
-            "q": "avg:system.net.bytes_sent{$host} by {host}",
-            "display_type": "line",
-            "style": {
-              "palette": "blue",
-              "line_type": "solid",
-              "line_width": "normal"
-            }
-          }
-        ],
-        "title": "Network Sent (Bytes)",
+        "title": "Network (bytes out)",
         "title_size": "16",
         "title_align": "left",
-        "yaxis": {
-          "scale": "linear",
-          "include_zero": true
-        },
         "show_legend": true,
         "legend_layout": "auto",
-        "legend_columns": ["avg", "min", "max", "value"]
-      },
-      "layout": {
-        "x": 0,
-        "y": 9,
-        "width": 6,
-        "height": 3
-      }
-    },
-    {
-      "id": 6,
-      "definition": {
-        "type": "timeseries",
-        "requests": [
-          {
-            "q": "avg:ntp.offset{$host} by {host}",
-            "display_type": "line",
-            "style": {
-              "palette": "warm",
-              "line_type": "solid",
-              "line_width": "normal"
-            }
-          }
-        ],
-        "title": "NTP Offset (ms)",
-        "title_size": "16",
-        "title_align": "left",
-        "yaxis": {
-          "scale": "linear"
-        },
-        "show_legend": true,
-        "legend_layout": "auto",
-        "legend_columns": ["avg", "min", "max", "value"]
-      },
-      "layout": {
-        "x": 6,
-        "y": 9,
-        "width": 6,
-        "height": 3
-      }
-    },
-    {
-      "id": 7,
-      "definition": {
-        "type": "query_table",
-        "requests": [
-          {
-            "q": "avg:system.disk.free{$host} by {host,device}",
-            "aggregator": "avg",
-            "limit": 50,
-            "order": "desc"
-          }
-        ],
-        "title": "Free Disk Space by Host and Device (GB)",
-        "title_size": "16",
-        "title_align": "left",
-        "has_search_bar": "auto"
-      },
-      "layout": {
-        "x": 0,
-        "y": 12,
-        "width": 12,
-        "height": 3
-      }
-    },
-    {
-      "id": 8,
-      "definition": {
-        "type": "note",
-        "content": "## 📝 Event Log Monitoring",
-        "background_color": "gray",
-        "font_size": "18",
-        "text_align": "center",
-        "vertical_align": "center",
-        "show_tick": false,
-        "has_padding": true
-      },
-      "layout": {
-        "x": 0,
-        "y": 15,
-        "width": 12,
-        "height": 1
-      }
-    },
-    {
-      "id": 9,
-      "definition": {
-        "type": "event_stream",
-        "query": "sources:windows.events status:info $host",
-        "event_size": "s",
-        "title": "Event Logs - Info Events",
-        "title_size": "16",
-        "title_align": "left"
-      },
-      "layout": {
-        "x": 0,
-        "y": 16,
-        "width": 4,
-        "height": 4
-      }
-    },
-    {
-      "id": 10,
-      "definition": {
-        "type": "event_stream",
-        "query": "sources:windows.events status:warning $host",
-        "event_size": "s",
-        "title": "Event Logs - Warning Events",
-        "title_size": "16",
-        "title_align": "left"
-      },
-      "layout": {
-        "x": 4,
-        "y": 16,
-        "width": 4,
-        "height": 4
-      }
-    },
-    {
-      "id": 11,
-      "definition": {
-        "type": "event_stream",
-        "query": "sources:windows.events status:error $host",
-        "event_size": "s",
-        "title": "Event Logs - Error Events",
-        "title_size": "16",
-        "title_align": "left"
-      },
-      "layout": {
-        "x": 8,
-        "y": 16,
-        "width": 4,
-        "height": 4
-      }
-    }
-    ,
-    {
-      "id": 7,
-      "definition": {
-        "type": "note",
-        "content": "## 📝 Critical Service Monitoring",
-        "background_color": "gray",
-        "font_size": "18",
-        "text_align": "center",
-        "vertical_align": "center",
-        "show_tick": false,
-        "has_padding": true
-      },
-      "layout": { "x": 0, "y": 15, "width": 12, "height": 1 }
-    },
-    {
-      "id": 13,
-      "definition": {
-        "title": "System Uptime (days)",
-        "title_size": "16",
-        "title_align": "left",
-        "show_legend": true,
-        "legend_layout": "horizontal",
         "legend_columns": ["avg", "min", "max", "value"],
-        "type": "timeseries",
         "requests": [
           {
-            "formulas": [{ "formula": "query1 / 86400" }],
-            "queries": [
-              {
-                "data_source": "metrics",
-                "name": "query1",
-                "query": "avg:system.uptime{$host} by {host}"
-              }
-            ],
-            "response_format": "timeseries",
-            "style": {
-              "palette": "dog_classic",
-              "order_by": "values",
-              "line_type": "solid",
-              "line_width": "normal"
-            },
-            "display_type": "line"
+            "q": "avg:system.net.bytes_sent{environment:$environment} by {host}",
+            "display_type": "line",
+            "style": { "palette": "blue", "line_type": "solid", "line_width": "normal" }
           }
-        ]
+        ],
+        "yaxis": { "scale": "linear", "include_zero": true }
       },
-      "layout": { "x": 0, "y": 12, "width": 3, "height": 3 }
-    },
-    {
-      "id": 218960433621520,
-      "definition": {
-        "title": "Event Logs - SCCM Site Server - System (Warning & Error)",
-        "title_size": "16",
-        "title_align": "left",
-        "type": "log_stream",
-        "query": "source:windows.events channel_path:System role:sccm-site-server status:(warning OR error) @EventID:(7000 OR 7001 OR 7031 OR 7034 OR 7036 OR 6008)",
-        "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
-      },
-      "layout": { "x": 0, "y": 17, "width": 12, "height": 3 }
-    },
-    {
-      "id": 218960433621521,
-      "definition": {
-        "title": "Event Logs - SCCM Site Server - SCCM Component Errors (Warning & Error)",
-        "title_size": "16",
-        "title_align": "left",
-        "type": "log_stream",
-        "query": "source:windows.events channel_path:Application role:sccm-site-server status:(warning OR error) @EventID:(4909 OR 4912 OR 4913 OR 4915 OR 1016 OR 1037)",
-        "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
-      },
-      "layout": { "x": 0, "y": 20, "width": 12, "height": 3 }
-    },
-    {
-      "id": 218960433621522,
-      "definition": {
-        "title": "Event Logs - SCCM Site Server - WMI/Notification Errors (Warning & Error)",
-        "title_size": "16",
-        "title_align": "left",
-        "type": "log_stream",
-        "query": "source:windows.events channel_path:Application role:sccm-site-server status:(warning OR error) @EventID:(5858 OR 5857 OR 5859)",
-        "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
-      },
-      "layout": { "x": 0, "y": 23, "width": 12, "height": 3 }
-    },
-    {
-      "id": 218960433621523,
-      "definition": {
-        "title": "Event Logs - SCCM Site Server - SQL Connection Errors (Warning & Error)",
-        "title_size": "16",
-        "title_align": "left",
-        "type": "log_stream",
-        "query": "source:windows.events channel_path:Application role:sccm-site-server status:(warning OR error) @EventID:(18456 OR 18452 OR 5612)",
-        "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
-      },
-      "layout": { "x": 0, "y": 26, "width": 12, "height": 3 }
-    },
-    {
-      "id": 218960433621524,
-      "definition": {
-        "title": "Event Logs - SCCM Site Server - Application Errors (Warning & Error)",
-        "title_size": "16",
-        "title_align": "left",
-        "type": "log_stream",
-        "query": "source:windows.events channel_path:Application role:sccm-site-server status:(warning OR error) @EventID:(1000 OR 1026 OR 1033)",
-        "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
-      },
-      "layout": { "x": 0, "y": 29, "width": 12, "height": 3 }
-    },
-    {
-      "id": 9000002,
-      "definition": {
-        "type": "note",
-        "content": "## SCCM SQL DB Server Event Logs",
-        "background_color": "gray",
-        "font_size": "16",
-        "text_align": "center",
-        "vertical_align": "center",
-        "show_tick": false,
-        "has_padding": true
-      },
-      "layout": { "x": 0, "y": 31, "width": 12, "height": 1 }
-    },
-
-
-    {
-      "id": 1622973864910649,
-      "definition": {
-        "title": "Event Logs - SCCM SQL DB Server - System (Warning & Error)",
-        "title_size": "16",
-        "title_align": "left",
-        "type": "log_stream",
-        "query": "source:windows.events channel_path:System role:sccm-sql-server status:(warning OR error) @EventID:(7000 OR 7001 OR 7031 OR 7034 OR 7036 OR 6008)",
-        "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
-      },
-      "layout": { "x": 0, "y": 32, "width": 12, "height": 3 }
-    },
-    {
-      "id": 1622973864910650,
-      "definition": {
-        "title": "Event Logs - SCCM SQL DB Server - SQL Service Failures (Warning & Error)",
-        "title_size": "16",
-        "title_align": "left",
-        "type": "log_stream",
-        "query": "source:windows.events channel_path:Application role:sccm-sql-server status:(warning OR error) @EventID:(17061 OR 17062)",
-        "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
-      },
-      "layout": { "x": 0, "y": 35, "width": 12, "height": 3 }
-    },
-    {
-      "id": 1622973864910651,
-      "definition": {
-        "title": "Event Logs - SCCM SQL DB Server - SQL Authentication Errors (Warning & Error)",
-        "title_size": "16",
-        "title_align": "left",
-        "type": "log_stream",
-        "query": "source:windows.events channel_path:Application role:sccm-sql-server status:(warning OR error) @EventID:(18456 OR 18452)",
-        "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
-      },
-      "layout": { "x": 0, "y": 38, "width": 12, "height": 3 }
-    },
-    {
-      "id": 9000003,
-      "definition": {
-        "type": "note",
-        "content": "## SCCM Management Point Event Logs",
-        "background_color": "gray",
-        "font_size": "16",
-        "text_align": "center",
-        "vertical_align": "center",
-        "show_tick": false,
-        "has_padding": true
-      },
-      "layout": { "x": 0, "y": 43, "width": 12, "height": 1 }
-    },
-    {
-      "id": 1622973864910652,
-      "definition": {
-        "title": "Event Logs - SCCM SQL DB Server - Security - Authentication Failures (Warning & Error)",
-        "title_size": "16",
-        "title_align": "left",
-        "type": "log_stream",
-        "query": "source:windows.events channel_path:Security role:sccm-sql-server status:(warning OR error) @EventID:(4625 OR 4771 OR 4776)",
-        "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
-      },
-      "layout": { "x": 0, "y": 41, "width": 12, "height": 3 }
-    },
-
-    {
-      "id": 7073628582266450,
-      "definition": {
-        "title": "Event Logs - SCCM Management Point - System (Warning & Error)",
-        "title_size": "16",
-        "title_align": "left",
-        "type": "log_stream",
-        "query": "source:windows.events channel_path:System role:sccm-management-point status:(warning OR error) @EventID:(7000 OR 7001 OR 7031 OR 7034 OR 7036 OR 10016 OR 6008)",
-        "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
-      },
-      "layout": { "x": 0, "y": 44, "width": 12, "height": 3 }
-    },
-    {
-      "id": 7073628582266451,
-      "definition": {
-        "title": "Event Logs - SCCM Management Point - SCCM Component Errors (Warning & Error)",
-        "title_size": "16",
-        "title_align": "left",
-        "type": "log_stream",
-        "query": "source:windows.events channel_path:Application role:sccm-management-point status:(warning OR error) @EventID:(1104 OR 1105 OR 1106 OR 1107 OR 1108)",
-        "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
-      },
-      "layout": { "x": 0, "y": 47, "width": 12, "height": 3 }
-    },
-    {
-      "id": 7073628582266452,
-      "definition": {
-        "title": "Event Logs - SCCM Management Point - SQL Connection Errors (Warning & Error)",
-        "title_size": "16",
-        "title_align": "left",
-        "type": "log_stream",
-        "query": "source:windows.events channel_path:Application role:sccm-management-point status:(warning OR error) @EventID:(18456 OR 18452 OR 5612)",
-        "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
-      },
-      "layout": { "x": 0, "y": 50, "width": 12, "height": 3 }
-    },
-    {
-      "id": 7073628582266453,
-      "definition": {
-        "title": "Event Logs - SCCM Management Point - WMI/Notification Errors (Warning & Error)",
-        "title_size": "16",
-        "title_align": "left",
-        "type": "log_stream",
-        "query": "source:windows.events channel_path:Application role:sccm-management-point status:(warning OR error) @EventID:(5858 OR 5857 OR 5859)",
-        "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
-      },
-      "layout": { "x": 0, "y": 53, "width": 12, "height": 3 }
-    },
-    {
-      "id": 7073628582266454,
-      "definition": {
-        "title": "Event Logs - SCCM Management Point - Application Errors (Warning & Error)",
-        "title_size": "16",
-        "title_align": "left",
-        "type": "log_stream",
-        "query": "source:windows.events channel_path:Application role:sccm-management-point status:(warning OR error) @EventID:(1000 OR 1026 OR 1033)",
-        "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
-      },
-      "layout": { "x": 0, "y": 56, "width": 12, "height": 3 }
-    },
-
-    {
-      "id": 4403943211861702,
-      "definition": {
-        "title": "Event Logs - SCCM Distribution Point - System (Warning & Error)",
-        "title_size": "16",
-        "title_align": "left",
-        "type": "log_stream",
-        "query": "source:windows.events channel_path:System role:sccm-distribution-point status:(warning OR error) @EventID:(7000 OR 7001 OR 7031 OR 7034 OR 7036 OR 10016 OR 6008)",
-        "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
-      },
-      "layout": { "x": 0, "y": 59, "width": 12, "height": 3 }
-    },
-    {
-      "id": 4403943211861703,
-      "definition": {
-        "title": "Event Logs - SCCM Distribution Point - SCCM Component Errors (Warning & Error)",
-        "title_size": "16",
-        "title_align": "left",
-        "type": "log_stream",
-        "query": "source:windows.events channel_path:Application role:sccm-distribution-point status:(warning OR error) @EventID:(2301 OR 2302 OR 2303 OR 2315 OR 2316)",
-        "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
-      },
-      "layout": { "x": 0, "y": 62, "width": 12, "height": 3 }
-    },
-    {
-      "id": 4403943211861704,
-      "definition": {
-        "title": "Event Logs - SCCM Distribution Point - IIS/HTTP Errors (Warning & Error)",
-        "title_size": "16",
-        "title_align": "left",
-        "type": "log_stream",
-        "query": "source:windows.events channel_path:Application role:sccm-distribution-point status:(warning OR error) @EventID:(1309 OR 1325 OR 2268)",
-        "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
-      },
-      "layout": { "x": 0, "y": 65, "width": 12, "height": 3 }
-    },
-    {
-      "id": 4403943211861705,
-      "definition": {
-        "title": "Event Logs - SCCM Distribution Point - Application Errors (Warning & Error)",
-        "title_size": "16",
-        "title_align": "left",
-        "type": "log_stream",
-        "query": "source:windows.events channel_path:Application role:sccm-distribution-point status:(warning OR error) @EventID:(1000 OR 1026 OR 1033)",
-        "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
-      },
-      "layout": { "x": 0, "y": 68, "width": 12, "height": 3 }
-    },
-
-    {
-      "id": 109529361229459,
-      "definition": {
-        "title": "Event Logs - SCCM Sql Reporting Server - System (Warning & Error)",
-        "title_size": "16",
-        "title_align": "left",
-        "type": "log_stream",
-        "query": "source:windows.events channel_path:System role:sccm-sql-reporting-server status:(warning OR error) @EventID:(7000 OR 7001 OR 7031 OR 7034 OR 7036 OR 7032 OR 6008)",
-        "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
-      },
-      "layout": { "x": 0, "y": 71, "width": 12, "height": 3 }
-    },
-    {
-      "id": 109529361229460,
-      "definition": {
-        "title": "Event Logs - SCCM Sql Reporting Server - SSRS Errors (Warning & Error)",
-        "title_size": "16",
-        "title_align": "left",
-        "type": "log_stream",
-        "query": "source:windows.events channel_path:Application role:sccm-sql-reporting-server status:(warning OR error) @EventID:(121 OR 133 OR 1530 OR 153)",
-        "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
-      },
-      "layout": { "x": 0, "y": 74, "width": 12, "height": 3 }
-    },
-    {
-      "id": 109529361229461,
-      "definition": {
-        "title": "Event Logs - SCCM Sql Reporting Server - SQL Connection Errors (Warning & Error)",
-        "title_size": "16",
-        "title_align": "left",
-        "type": "log_stream",
-        "query": "source:windows.events channel_path:Application role:sccm-sql-reporting-server status:(warning OR error) @EventID:(18456 OR 18452 OR 5858)",
-        "columns": ["timestamp", "host", "service", "status", "EventID", "message"]
-      },
-      "layout": { "x": 0, "y": 77, "width": 12, "height": 3 }
+      "layout": { "x": 0, "y": 8, "width": 12, "height": 3 }
     }
   ]
 }

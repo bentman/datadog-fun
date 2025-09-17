@@ -1,15 +1,131 @@
-{
-  "name": "Management Point Event Log Errors",
-  "type": "log alert",
-  "query": "logs(\"source:windows.events role:sccm-management-point status:error\").index(\"*\").rollup(\"count\").last(\"5m\") > 5",
-  "message": "Warning: {{value}} errors in 5m @dl\n\nAlert: {{value}} errors in 5m @dl\n\nRecovered: Errors back to normal @dl",
-  "tags": ["role:sccm-management-point"],
-  "options": {
-    "thresholds": {
-      "critical": 10,
-      "warning": 5
-    },
-    "notify_no_data": false,
-    "enable_logs_sample": true
+[
+  {
+    "name": "MP Service State - Web Infrastructure",
+    "type": "service check",
+    "query": "check(\"windows_service.state\").over(\"role:sccm-management-point\",\"service_group:web-infrastructure\").by(\"service\").last(\"5m\") != \"OK\"",
+    "message": "{{#is_alert}}Service {{service.name}} on {{host.name}} is not running (group: web-infrastructure).{{/is_alert}}\n{{#is_no_data}}No data received for windows_service.state in the last {{no_data_timeframe}} minutes.{{/is_no_data}}",
+    "tags": ["role:sccm-management-point", "sccmrole:sccm-srv", "approle:sccm-mp-srv"],
+    "options": {
+      "notify_no_data": true,
+      "no_data_timeframe": 10,
+      "renotify_interval": 60,
+      "evaluation_delay": 120,
+      "new_host_delay": 300,
+      "include_tags": true
+    }
+  },
+  {
+    "name": "MP Service State - Windows Infrastructure",
+    "type": "service check",
+    "query": "check(\"windows_service.state\").over(\"role:sccm-management-point\",\"service_group:windows-infrastructure\").by(\"service\").last(\"5m\") != \"OK\"",
+    "message": "{{#is_alert}}Service {{service.name}} on {{host.name}} is not running (group: windows-infrastructure).{{/is_alert}}\n{{#is_no_data}}No data received for windows_service.state in the last {{no_data_timeframe}} minutes.{{/is_no_data}}",
+    "tags": ["role:sccm-management-point", "sccmrole:sccm-srv", "approle:sccm-mp-srv"],
+    "options": {
+      "notify_no_data": true,
+      "no_data_timeframe": 10,
+      "renotify_interval": 60,
+      "evaluation_delay": 120,
+      "new_host_delay": 300,
+      "include_tags": true
+    }
+  },
+  {
+    "name": "MP Service State - Security and SSL",
+    "type": "service check",
+    "query": "check(\"windows_service.state\").over(\"role:sccm-management-point\",\"service_group:security-ssl\").by(\"service\").last(\"5m\") != \"OK\"",
+    "message": "{{#is_alert}}Service {{service.name}} on {{host.name}} is not running (group: security-ssl).{{/is_alert}}\n{{#is_no_data}}No data received for windows_service.state in the last {{no_data_timeframe}} minutes.{{/is_no_data}}",
+    "tags": ["role:sccm-management-point", "sccmrole:sccm-srv", "approle:sccm-mp-srv"],
+    "options": {
+      "notify_no_data": true,
+      "no_data_timeframe": 10,
+      "renotify_interval": 60,
+      "evaluation_delay": 120,
+      "new_host_delay": 300,
+      "include_tags": true
+    }
+  },
+  {
+    "name": "MP Logs - System Critical Events",
+    "type": "log alert",
+    "query": "logs(\"source:windows.events channel:System role:sccm-management-point @evt.id:(7000 OR 7001 OR 7031 OR 7034 OR 7036 OR 10016 OR 6008)\").index(\"*\").rollup(\"count\").last(\"5m\") > 0",
+    "message": "{{#is_alert}}System critical events detected on management points. Investigate in Logs Explorer.{{/is_alert}}",
+    "tags": ["role:sccm-management-point", "sccmrole:sccm-srv", "approle:sccm-mp-srv"],
+    "options": {
+      "thresholds": { "critical": 1 },
+      "notify_no_data": false,
+      "renotify_interval": 60,
+      "evaluation_delay": 120,
+      "enable_logs_sample": true
+    }
+  },
+  {
+    "name": "MP Logs - Application Errors (MP Components)",
+    "type": "log alert",
+    "query": "logs(\"source:windows.events channel:Application role:sccm-management-point @evt.id:(1104 OR 1105 OR 1106 OR 1107 OR 1108)\").index(\"*\").rollup(\"count\").last(\"5m\") > 0",
+    "message": "{{#is_alert}}SCCM Management Point component errors detected. Investigate in Logs Explorer.{{/is_alert}}",
+    "tags": ["role:sccm-management-point", "sccmrole:sccm-srv", "approle:sccm-mp-srv"],
+    "options": {
+      "thresholds": { "critical": 1 },
+      "notify_no_data": false,
+      "renotify_interval": 60,
+      "evaluation_delay": 120,
+      "enable_logs_sample": true
+    }
+  },
+  {
+    "name": "MP Logs - SQL Connection Errors",
+    "type": "log alert",
+    "query": "logs(\"source:windows.events channel:Application role:sccm-management-point @evt.id:(18456 OR 18452 OR 5612)\").index(\"*\").rollup(\"count\").last(\"5m\") > 0",
+    "message": "{{#is_alert}}SQL connection/authentication errors detected on management points. Investigate in Logs Explorer.{{/is_alert}}",
+    "tags": ["role:sccm-management-point", "sccmrole:sccm-srv", "approle:sccm-mp-srv"],
+    "options": {
+      "thresholds": { "critical": 1 },
+      "notify_no_data": false,
+      "renotify_interval": 60,
+      "evaluation_delay": 120,
+      "enable_logs_sample": true
+    }
+  },
+  {
+    "name": "MP Logs - WMI / Notification Errors",
+    "type": "log alert",
+    "query": "logs(\"source:windows.events channel:Application role:sccm-management-point @evt.id:(5858 OR 5857 OR 5859)\").index(\"*\").rollup(\"count\").last(\"5m\") > 0",
+    "message": "{{#is_alert}}WMI/Notification errors detected on management points. Investigate in Logs Explorer.{{/is_alert}}",
+    "tags": ["role:sccm-management-point", "sccmrole:sccm-srv", "approle:sccm-mp-srv"],
+    "options": {
+      "thresholds": { "critical": 1 },
+      "notify_no_data": false,
+      "renotify_interval": 60,
+      "evaluation_delay": 120,
+      "enable_logs_sample": true
+    }
+  },
+  {
+    "name": "MP Logs - Application Errors (Generic)",
+    "type": "log alert",
+    "query": "logs(\"source:windows.events channel:Application role:sccm-management-point @evt.id:(1000 OR 1026 OR 1033)\").index(\"*\").rollup(\"count\").last(\"5m\") > 0",
+    "message": "{{#is_alert}}Generic application errors detected on management points. Investigate in Logs Explorer.{{/is_alert}}",
+    "tags": ["role:sccm-management-point", "sccmrole:sccm-srv", "approle:sccm-mp-srv"],
+    "options": {
+      "thresholds": { "critical": 1 },
+      "notify_no_data": false,
+      "renotify_interval": 60,
+      "evaluation_delay": 120,
+      "enable_logs_sample": true
+    }
+  },
+  {
+    "name": "MP Logs - Security Authentication Failures",
+    "type": "log alert",
+    "query": "logs(\"source:windows.events channel:Security role:sccm-management-point @evt.id:(4625 OR 4771 OR 4776)\").index(\"*\").rollup(\"count\").last(\"5m\") > 0",
+    "message": "{{#is_alert}}Security authentication failures detected on management points. Investigate in Logs Explorer.{{/is_alert}}",
+    "tags": ["role:sccm-management-point", "sccmrole:sccm-srv", "approle:sccm-mp-srv"],
+    "options": {
+      "thresholds": { "critical": 1 },
+      "notify_no_data": false,
+      "renotify_interval": 60,
+      "evaluation_delay": 120,
+      "enable_logs_sample": true
+    }
   }
-}
+]

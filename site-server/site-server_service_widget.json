@@ -1,101 +1,26 @@
 [
   {
     "definition": {
-      "type": "timeseries",
-      "requests": [
-        {
-          "q": "avg:windows.service.state{role:sccm-site-server,service_group:sccm-core} by {service}",
-          "display_type": "line",
-          "style": {
-            "palette": "dog_classic",
-            "line_type": "solid",
-            "line_width": "normal"
-          }
-        }
-      ],
-      "title": "Services - Core SCCM State",
+      "type": "check_status",
+      "check": "windows_service.state",
+      "grouping": "cluster",
+      "tags": ["role:sccm-site-server", "service_group:sccm-core"],
+      "title": "Services - SCCM Core State",
       "title_size": "16",
       "title_align": "left",
-      "yaxis": {
-        "min": "0",
-        "max": "4",
-        "scale": "linear",
-        "include_zero": true
-      },
-      "markers": [
-        {
-          "value": "y > 0",
-          "display_type": "warning dashed"
-        }
-      ],
-      "show_legend": true,
-      "legend_layout": "auto"
+      "show_summary": true
     }
   },
   {
     "definition": {
-      "type": "timeseries",
-      "requests": [
-        {
-          "q": "avg:windows.service.state{role:sccm-site-server,service_group:web-infrastructure} by {service}",
-          "display_type": "line",
-          "style": {
-            "palette": "dog_classic",
-            "line_type": "solid",
-            "line_width": "normal"
-          }
-        }
-      ],
+      "type": "check_status",
+      "check": "windows_service.state",
+      "grouping": "cluster",
+      "tags": ["role:sccm-site-server", "service_group:web-infrastructure"],
       "title": "Services - Web & Infrastructure State",
       "title_size": "16",
       "title_align": "left",
-      "yaxis": {
-        "min": "0",
-        "max": "4",
-        "scale": "linear",
-        "include_zero": true
-      },
-      "markers": [
-        {
-          "value": "y > 0",
-          "display_type": "warning dashed"
-        }
-      ],
-      "show_legend": true,
-      "legend_layout": "auto"
-    }
-  },
-  {
-    "definition": {
-      "type": "timeseries",
-      "requests": [
-        {
-          "q": "avg:windows.service.state{role:sccm-site-server,service_group:sccm-optional} by {service}",
-          "display_type": "line",
-          "style": {
-            "palette": "dog_classic",
-            "line_type": "solid",
-            "line_width": "normal"
-          }
-        }
-      ],
-      "title": "Services - Optional SCCM State",
-      "title_size": "16",
-      "title_align": "left",
-      "yaxis": {
-        "min": "0",
-        "max": "4",
-        "scale": "linear",
-        "include_zero": true
-      },
-      "markers": [
-        {
-          "value": "y > 0",
-          "display_type": "warning dashed"
-        }
-      ],
-      "show_legend": true,
-      "legend_layout": "auto"
+      "show_summary": true
     }
   }
 ]

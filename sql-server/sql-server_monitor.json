@@ -1,15 +1,89 @@
-{
-  "name": "SQL Server Event Log Errors",
-  "type": "log alert",
-  "query": "logs(\"source:windows.events role:sccm-sql-server status:error\").index(\"*\").rollup(\"count\").last(\"5m\") > 5",
-  "message": "Warning: {{value}} errors in 5m @dl\n\nAlert: {{value}} errors in 5m @dl\n\nRecovered: Errors back to normal @dl",
-  "tags": ["role:sccm-sql-server"],
-  "options": {
-    "thresholds": {
-      "critical": 10,
-      "warning": 5
-    },
-    "notify_no_data": false,
-    "enable_logs_sample": true
+[
+  {
+    "name": "SQL Server Service State - Core",
+    "type": "service check",
+    "query": "check(\"windows_service.state\").over(\"role:sccm-sql-server\",\"service_group:sql-server-core\").by(\"service\").last(\"5m\") != \"OK\"",
+    "message": "{{#is_alert}}Service {{service.name}} on {{host.name}} is not running (group: sql-server-core).{{/is_alert}}\n{{#is_no_data}}No data received for windows_service.state in the last {{no_data_timeframe}} minutes.{{/is_no_data}}",
+    "tags": ["role:sccm-sql-server", "sccmrole:sccm-sql", "approle:sccm-sqldb-srv"],
+    "options": {
+      "notify_no_data": true,
+      "no_data_timeframe": 10,
+      "renotify_interval": 60,
+      "evaluation_delay": 120,
+      "new_host_delay": 300,
+      "include_tags": true
+    }
+  },
+  {
+    "name": "SQL Server Service State - Support",
+    "type": "service check",
+    "query": "check(\"windows_service.state\").over(\"role:sccm-sql-server\",\"service_group:sql-server-support\").by(\"service\").last(\"5m\") != \"OK\"",
+    "message": "{{#is_alert}}Service {{service.name}} on {{host.name}} is not running (group: sql-server-support).{{/is_alert}}\n{{#is_no_data}}No data received for windows_service.state in the last {{no_data_timeframe}} minutes.{{/is_no_data}}",
+    "tags": ["role:sccm-sql-server", "sccmrole:sccm-sql", "approle:sccm-sqldb-srv"],
+    "options": {
+      "notify_no_data": true,
+      "no_data_timeframe": 10,
+      "renotify_interval": 60,
+      "evaluation_delay": 120,
+      "new_host_delay": 300,
+      "include_tags": true
+    }
+  },
+  {
+    "name": "SQL Server Service State - Windows Infrastructure",
+    "type": "service check",
+    "query": "check(\"windows_service.state\").over(\"role:sccm-sql-server\",\"service_group:windows-infrastructure\").by(\"service\").last(\"5m\") != \"OK\"",
+    "message": "{{#is_alert}}Service {{service.name}} on {{host.name}} is not running (group: windows-infrastructure).{{/is_alert}}\n{{#is_no_data}}No data received for windows_service.state in the last {{no_data_timeframe}} minutes.{{/is_no_data}}",
+    "tags": ["role:sccm-sql-server", "sccmrole:sccm-sql", "approle:sccm-sqldb-srv"],
+    "options": {
+      "notify_no_data": true,
+      "no_data_timeframe": 10,
+      "renotify_interval": 60,
+      "evaluation_delay": 120,
+      "new_host_delay": 300,
+      "include_tags": true
+    }
+  },
+  {
+    "name": "SQL Logs - System Critical Events",
+    "type": "log alert",
+    "query": "logs(\"source:windows.events channel:System role:sccm-sql-server @evt.id:(7000 OR 7001 OR 7031 OR 7034 OR 7036 OR 6008)\").index(\"*\").rollup(\"count\").last(\"5m\") > 0",
+    "message": "{{#is_alert}}System critical events detected on SQL servers. Investigate in Logs Explorer.{{/is_alert}}",
+    "tags": ["role:sccm-sql-server", "sccmrole:sccm-sql", "approle:sccm-sqldb-srv"],
+    "options": {
+      "thresholds": { "critical": 1 },
+      "notify_no_data": false,
+      "renotify_interval": 60,
+      "evaluation_delay": 120,
+      "enable_logs_sample": true
+    }
+  },
+  {
+    "name": "SQL Logs - SQL Service Failures",
+    "type": "log alert",
+    "query": "logs(\"source:windows.events channel:Application role:sccm-sql-server @evt.id:(17061 OR 17062 OR 18456 OR 18452)\").index(\"*\").rollup(\"count\").last(\"5m\") > 0",
+    "message": "{{#is_alert}}SQL service or authentication failures detected on SQL servers. Investigate in Logs Explorer.{{/is_alert}}",
+    "tags": ["role:sccm-sql-server", "sccmrole:sccm-sql", "approle:sccm-sqldb-srv"],
+    "options": {
+      "thresholds": { "critical": 1 },
+      "notify_no_data": false,
+      "renotify_interval": 60,
+      "evaluation_delay": 120,
+      "enable_logs_sample": true
+    }
+  },
+  {
+    "name": "SQL Logs - Security Authentication Failures",
+    "type": "log alert",
+    "query": "logs(\"source:windows.events channel:Security role:sccm-sql-server @evt.id:(4625 OR 4771 OR 4776)\").index(\"*\").rollup(\"count\").last(\"5m\") > 0",
+    "message": "{{#is_alert}}Security authentication failures detected on SQL servers. Investigate in Logs Explorer.{{/is_alert}}",
+    "tags": ["role:sccm-sql-server", "sccmrole:sccm-sql", "approle:sccm-sqldb-srv"],
+    "options": {
+      "thresholds": { "critical": 1 },
+      "notify_no_data": false,
+      "renotify_interval": 60,
+      "evaluation_delay": 120,
+      "enable_logs_sample": true
+    }
   }
-}
+]

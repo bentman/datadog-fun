@@ -8,11 +8,20 @@ This monitoring solution provides comprehensive observability for Microsoft Syst
 
 ### Key Features
 
-- **Windows Authentication**: All SQL Server connections use `Trusted_Connection=yes` eliminating credential storage
-- **Role-Specific Monitoring**: Tailored configurations for each SCCM server role
-- **Automated Deployment**: PowerShell script for consistent deployment across environments
-- **Comprehensive Coverage**: System performance, SCCM services, SQL Server health, and Windows Event Logs
-- **Industry-Standard Thresholds**: Pre-configured alerting thresholds based on best practices
+- Windows Authentication: All SQL Server connections use `Trusted_Connection=yes` eliminating credential storage
+- Role-Specific Monitoring: Tailored configurations for each SCCM server role
+- Automated Deployment: PowerShell script for consistent deployment across environments
+- Comprehensive Coverage: System performance, SCCM services, SQL Server health, and Windows Event Logs
+- Industry-Standard Thresholds: Pre-configured alerting thresholds based on best practices
+
+### Quick Instructions (Very Brief)
+
+- Update `servers.json`, set API key in each role’s `datadog.yaml`, run:
+  ```powershell
+  .\Deploy-DatadogConfigs.ps1
+  ```
+- Optional: import `*_monitor.json` per role into Datadog as monitors.
+- Dashboards/widgets and conf.d are aligned to work out-of-the-box.
 
 ## Prerequisites
 
@@ -53,9 +62,11 @@ The `Deploy-DatadogConfigs.ps1` script provides automated deployment across all 
 **Script Features:**
 - Automatic server role detection
 - Configuration backup creation
-- Service restart management
+- Service restart management (uses `agent.exe restart-service`)
 - Comprehensive logging
 - Test mode for validation
+- Copies only Agent-relevant files (`datadog.yaml` and `conf.d/*`) to `C:\ProgramData\Datadog`
+- Optional post-restart validation by invoking `agent.exe status`
 
 ### Manual Deployment
 
@@ -129,46 +140,64 @@ The script will:
 Test-NetConnection -ComputerName <SQL_SERVER> -Port 1433
 ```
 
+## Monitors and Widgets (Included)
+
+- Service widgets per role: `check_status` targeting `windows_service.state`, grouped by `role` and `service_group`
+- Log widgets per role: `log_stream` queries using normalized `channel` and `@evt.id`
+- Monitor JSON per role (import if desired):
+  - `distribution-point/distribution-point_monitor.json`
+  - `management-point/management-point_monitor.json`
+  - `site-server/site-server_monitor.json`
+  - `sql-server/sql-server_monitor.json`
+  - `sql-reporting-server/sql-reporting-server_monitor.json`
+
 ## Monitoring Configuration
 
 ### System Performance Monitoring
-- **CPU Usage**: Warning >85%, Critical >95%
-- **Memory Usage**: Warning >85%, Critical >95%
-- **Disk Space**: Warning <15% free, Critical <10% free
-- **Network Utilization**: Warning >70%, Critical >85%
+- CPU Usage: Warning >85%, Critical >95%
+- Memory Usage: Warning >85%, Critical >95%
+- Disk Space: Warning <15% free, Critical <10% free
+- Network Utilization: Warning >70%, Critical >85%
 
 ### Service Monitoring
-- **Service Status**: Critical if any monitored service is stopped
-- **System Resource Usage**: Monitor via dashboard widgets for alerting
+- Service Status: Critical if any monitored service is stopped
+- System Resource Usage: Monitor via dashboard widgets for alerting
 
 ### SQL Server Performance
-- **Cache Hit Ratio**: Warning <90%, Critical <85%
-- **Page Life Expectancy**: Warning <300sec, Critical <180sec
-- **Blocked Processes**: Warning >5, Critical >10
+- Cache Hit Ratio: Warning <90%, Critical <85%
+- Page Life Expectancy: Warning <300sec, Critical <180sec
+- Blocked Processes: Warning >5, Critical >10
 
 ### Windows Event Log Monitoring
-- **System Events**: Critical system events, service failures, DCOM errors
-- **Security Events**: Authentication failures, privilege escalation, audit changes
-- **Application Events**: SCCM-specific events, IIS errors, application crashes
-- **Operational Events**: IIS operational logs, WDS events, PowerShell security
+- System Events: Critical system events, service failures, DCOM errors
+- Security Events: Authentication failures, privilege escalation, audit changes
+- Application Events: SCCM-specific events, IIS errors, application crashes
+- Operational Events: IIS operational logs, WDS events, PowerShell security
+
+## Configuration Alignment Notes
+
+- `windows_service.d` emits service checks (no metrics). Dashboards and monitors use the `windows_service.state` service check.
+- Event inputs use `channel_path` and `"EventID"` matching rules; Datadog pipelines normalize to `channel` and `evt.id`, which are used in widgets/monitors.
+- Legacy `process.d` is neutralized (`instances: []`) to avoid double collection. Process Agent handles process visibility.
+- SQL Reporting Server now includes `wmi_check.d` for consistent host/IIS telemetry across roles.
 
 ## Security Implementation
 
 ### Windows Authentication Benefits
-- **No Stored Credentials**: Eliminates SQL Server service account passwords
-- **Integrated Security**: Leverages existing Windows security infrastructure
-- **Audit Trail**: All database access logged through Windows authentication
-- **Compliance**: Meets organizational security policy requirements
+- No Stored Credentials: Eliminates SQL Server service account passwords
+- Integrated Security: Leverages existing Windows security infrastructure
+- Audit Trail: All database access logged through Windows authentication
+- Compliance: Meets organizational security policy requirements
 
 ### Network Security
-- **Outbound HTTPS**: All Datadog communication uses encrypted HTTPS
-- **No Inbound Connections**: Agent initiates all connections to Datadog
-- **Firewall Configuration**: Only outbound port 443 required
+- Outbound HTTPS: All Datadog communication uses encrypted HTTPS
+- No Inbound Connections: Agent initiates all connections to Datadog
+- Firewall Configuration: Only outbound port 443 required
 
 ### Access Control
-- **Service Account Permissions**: Datadog Agent service account limited to minimum required permissions
-- **SQL Server Access**: Grant only necessary database read permissions
-- **File System Access**: Restrict access to configuration files
+- Service Account Permissions: Datadog Agent service account limited to minimum required permissions
+- SQL Server Access: Grant only necessary database read permissions
+- File System Access: Restrict access to configuration files
 
 ## Troubleshooting
 
@@ -199,10 +228,10 @@ Test-NetConnection -ComputerName <SQL_SERVER> -Port 1433
 4. Review and optimize custom queries
 
 ### Log Locations
-- **Datadog Agent Logs**: `C:\ProgramData\Datadog\logs\`
-- **Deployment Script Logs**: `_LOGS\` directory in script location
-- **Windows Event Logs**: Event Viewer → Applications and Services Logs
-- **SQL Server Logs**: SQL Server Management Studio → Management → SQL Server Logs
+- Datadog Agent Logs: `C:\ProgramData\Datadog\logs\`
+- Deployment Script Logs: `_LOGS\` directory in script location
+- Windows Event Logs: Event Viewer → Applications and Services Logs
+- SQL Server Logs: SQL Server Management Studio → Management → SQL Server Logs
 
 ### Performance Optimization
 
@@ -252,10 +281,10 @@ Use Datadog's dashboard editor to modify widgets, add custom metrics, and adjust
 ## Maintenance
 
 ### Regular Tasks
-- **Weekly**: Review alert notifications and adjust thresholds if needed
-- **Monthly**: Validate service account permissions and review performance metrics
-- **Quarterly**: Update monitoring configurations based on environment changes
-- **Annually**: Update Datadog Agent to latest version and review security settings
+- Weekly: Review alert notifications and adjust thresholds if needed
+- Monthly: Validate service account permissions and review performance metrics
+- Quarterly: Update monitoring configurations based on environment changes
+- Annually: Update Datadog Agent to latest version and review security settings
 
 ### Configuration Updates
 - Test changes in non-production environment first
@@ -271,10 +300,10 @@ Use Datadog's dashboard editor to modify widgets, add custom metrics, and adjust
 
 ## Support Resources
 
-- **Datadog Documentation**: https://docs.datadoghq.com/
-- **SCCM Documentation**: Microsoft System Center documentation
-- **Community Support**: Datadog Community forums
-- **Professional Services**: Datadog professional services for complex implementations
+- Datadog Documentation: https://docs.datadoghq.com/
+- SCCM Documentation: Microsoft System Center documentation
+- Community Support: Datadog Community forums
+- Professional Services: Datadog professional services for complex implementations
 
 ## Best Practices
 

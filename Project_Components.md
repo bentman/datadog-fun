@@ -7,44 +7,59 @@ This document provides a structural overview of the project components and their
 ```
 datadog-fun/
 ├── site-server/                    # Primary Site Server configuration
-│   ├── datadog.yaml               # Main agent configuration
+│   ├── datadog.yaml                # Main agent configuration
+│   ├── site-server_service_widget.json
+│   ├── site-server_events_widget.json
+│   ├── site-server_monitor.json
 │   └── conf.d/
-│       ├── windows_service.d/     # SCCM service monitoring
-│       ├── win32_event_log.d/     # Windows event log monitoring
-│       ├── wmi_check.d/          # WMI performance counters
-│       ├── process.d/            # Process monitoring
-│       └── iis.d/                # IIS web server monitoring
+│       ├── windows_service.d/      # SCCM service monitoring (service checks)
+│       ├── win32_event_log.d/      # Windows event log monitoring
+│       ├── wmi_check.d/            # WMI performance counters
+│       ├── process.d/              # Neutralized (use Process Agent)
+│       └── iis.d/                  # IIS web server monitoring
 ├── management-point/               # Management Point configuration
 │   ├── datadog.yaml
+│   ├── management-point_service_widget.json
+│   ├── management-point_events_widget.json
+│   ├── management-point_monitor.json
 │   └── conf.d/
 │       ├── windows_service.d/
 │       ├── win32_event_log.d/
 │       ├── wmi_check.d/
-│       ├── process.d/
+│       ├── process.d/              # Neutralized
 │       └── iis.d/
 ├── distribution-point/             # Distribution Point configuration
 │   ├── datadog.yaml
+│   ├── distribution-point_service_widget.json
+│   ├── distribution-point_events_widget.json
+│   ├── distribution-point_monitor.json
 │   └── conf.d/
 │       ├── windows_service.d/
 │       ├── win32_event_log.d/
 │       ├── wmi_check.d/
-│       ├── process.d/
+│       ├── process.d/              # Neutralized
 │       └── iis.d/
 ├── sql-server/                     # SQL Database Server configuration
 │   ├── datadog.yaml
+│   ├── sql-server_service_widget.json
+│   ├── sql-server_events_widget.json
+│   ├── sql-server_monitor.json
 │   └── conf.d/
 │       ├── windows_service.d/
 │       ├── win32_event_log.d/
 │       ├── wmi_check.d/
-│       ├── process.d/
-│       └── sqlserver.d/          # SQL Server monitoring
+│       ├── process.d/              # Neutralized
+│       └── sqlserver.d/            # SQL Server monitoring
 ├── sql-reporting-server/           # SQL Reporting Server configuration
 │   ├── datadog.yaml
+│   ├── sql-reporting-server_service_widget.json
+│   ├── sql-reporting-server_events_widget.json
+│   ├── sql-reporting-server_monitor.json
 │   └── conf.d/
 │       ├── windows_service.d/
 │       ├── win32_event_log.d/
 │       ├── wmi_check.d/
-│       ├── process.d/
+│       ├── process.d/              # Neutralized
 │       └── sqlserver.d/
 ├── dashboards/                     # Datadog dashboard templates
 │   ├── sccm-sql-applications.json
@@ -53,71 +68,43 @@ datadog-fun/
 │   ├── recommended-thresholds.yaml
 │   └── system-probe.yaml
 ├── servers.json                    # Server inventory configuration
-└── Deploy-DatadogConfigs.ps1      # Automated deployment script
+└── Deploy-DatadogConfigs.ps1       # Automated deployment script
 ```
 
 ## Component Descriptions
 
-### Site Server
-The primary SCCM site server handles overall site management and coordination. Monitoring provides essential service health, system performance, and event logging with LCD approach for reliable operation.
-
-### Management Point
-Serves as the primary client communication endpoint in SCCM infrastructure. Monitoring provides essential service health, IIS performance for client communications, and system metrics for reliable operation.
-
-### Distribution Point
-Handles content distribution to SCCM clients across the network. Monitoring provides essential service health, system performance with emphasis on disk and network utilization, and IIS monitoring for content distribution reliability.
-
-### SQL Server
-Hosts the SCCM database and provides core data services. Monitoring focuses on SQL Server performance metrics, database health, and system resources using Windows Authentication for security-compliant operation.
-
-### SQL Reporting Server
-Provides SCCM reporting services through SQL Server Reporting Services. Monitoring emphasizes SSRS performance, report execution, and database connectivity using Windows Authentication for secure reporting delivery.
-
-## Configuration Components
-
 ### datadog.yaml
-Main Datadog Agent configuration file containing API key, logging settings, and agent-specific parameters. Each role has customized settings for optimal performance and security including Windows Authentication configurations for SQL Server roles.
+Main Datadog Agent configuration file containing API key, logging, and agent parameters. Each role carries role and app tags; SQL roles use Windows Authentication.
 
 ### windows_service.d
-Monitors critical Windows services specific to each SCCM role. Configurations include service status checks, startup type validation, and service dependency monitoring with role-appropriate service lists and alerting thresholds.
+Monitors critical Windows services specific to each SCCM role. Emits a service check (`windows_service.state`) and no metrics. Used by:
+- Service widgets (`check_status`) grouped by `role` and `service_group`
+- Service check monitors per role/group
 
 ### win32_event_log.d
-Comprehensive Windows Event Log monitoring with pattern-based filtering for critical events. Includes system events, security events, application events, and role-specific operational events with optimized regex patterns for performance.
+Windows Event Log collection using `channel_path` and include_at_match patterns on `"EventID"`. Datadog pipelines normalize these to `channel` and `evt.id`, which are used by:
+- Per-role log_stream widgets
+- Log monitors (System/Application/Security categories)
 
 ### wmi_check.d
-Windows Management Instrumentation monitoring for system performance metrics. Covers CPU usage, memory utilization, disk space, network performance, and role-specific performance counters with industry-standard thresholds.
+Windows performance counters. Covers CPU, memory, disk, network, and IIS (and SQL-specific counters on SQL Server). Provides consistent host telemetry across roles.
 
 ### process.d
-Process-level monitoring for critical SCCM processes and applications. Includes process existence checks, resource utilization monitoring, and process performance metrics with role-specific process lists and alerting configurations.
+Legacy process check is neutralized (`instances: []`) to avoid double collection. Process visibility is provided by the Process Agent via `process_config.enabled` in `datadog.yaml`.
 
 ### iis.d
-Internet Information Services monitoring for web-enabled SCCM roles. Covers IIS performance metrics, application pool health, request processing, and HTTP error monitoring with comprehensive IIS-specific alerting and performance tracking.
+IIS monitoring for web-enabled roles with `include_per_site: true` and `include_wmi_metrics: true`. Provides per-site and aggregate metrics.
 
 ### sqlserver.d
-SQL Server monitoring for database-enabled SCCM roles using Windows Authentication. Includes database performance metrics, connection monitoring, backup status, and SCCM-specific database queries with secure authentication and comprehensive performance tracking.
+SQL Server monitoring for DB-enabled roles using Windows Authentication (`Trusted_Connection=yes`) via ODBC. DBM is disabled by default; safe custom queries and SQL/SSRS logs are included where applicable.
 
-## Dashboard Components
+## Dashboards and Monitors
 
-### sccm-sql-applications.json
-Pre-built Datadog dashboard template for SCCM SQL Server monitoring. Includes database performance widgets, connection metrics, backup status, and SCCM-specific database health indicators with customizable time ranges and filtering options.
+- Widgets (per-role):
+  - Service: `*_service_widget.json`
+  - Events: `*_events_widget.json`
+- Monitors (per-role): `*_monitor.json`
+  - Service check monitors targeting `windows_service.state`
+  - Log monitors using normalized `channel` and `@evt.id` filters
 
-### windows-server-health.json
-Comprehensive Windows Server health dashboard template. Features system performance metrics, service status, event log summaries, and infrastructure health indicators with role-based filtering and alerting integration.
-
-Note: Merged new_dashboard.json layouts. Event Log widgets converted to per-role log_stream widgets and titles standardized. Removed environment-specific template variables for portability.
-
-## Common Components
-
-### recommended-thresholds.yaml
-Industry-standard monitoring thresholds for all metrics and services. Includes CPU, memory, disk, network, and service-specific thresholds with warning and critical levels based on best practices and field experience.
-
-### system-probe.yaml
-System-level probe configuration for network and process monitoring. Provides enhanced visibility into system-level operations, network connections, and process relationships with security-focused monitoring capabilities.
-
-## Deployment Components
-
-### servers.json
-Server inventory configuration file defining SCCM infrastructure layout. Contains server hostnames, roles, descriptions, and deployment-specific parameters with support for complex multi-server environments and role-based deployments.
-
-### Deploy-DatadogConfigs.ps1
-Automated PowerShell deployment script for consistent configuration deployment. Features role detection, configuration backup, service management, and comprehensive logging with support for test mode and customizable deployment options.
+Note: Event Log widgets are per-role log_stream widgets; service widgets standardized to `check_status` on service checks. Environment-specific template variables are removed for portability.

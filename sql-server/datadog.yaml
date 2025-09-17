@@ -9,7 +9,7 @@ tags:
   - role:sccm-sql-server
   - datacenter:azure
   - sccmrole:sccm-sql
-  - approle:sccm-sqldb-srv
+  - approle:sccm-sqldb-svr
 
 # Logging Configuration
 logs_enabled: true

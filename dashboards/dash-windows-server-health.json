@@ -3,6 +3,7 @@
   "description": "CPU, Memory, Disk, Network. Filter by application and domain.",
   "layout_type": "ordered",
   "reflow_type": "fixed",
+  "notify_list": [],
   "template_variables": [
     {
       "name": "applicationid",

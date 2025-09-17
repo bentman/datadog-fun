@@ -4,7 +4,7 @@
     "type": "service check",
     "query": "check(\"windows_service.state\").over(\"role:sccm-distribution-point\",\"service_group:sccm-web-infrastructure\").by(\"service\").last(\"5m\") != \"OK\"",
     "message": "{{#is_alert}}Service {{service.name}} on {{host.name}} is not running (group: web-infrastructure).{{/is_alert}}\n{{#is_no_data}}No data received for windows_service.state in the last {{no_data_timeframe}} minutes.{{/is_no_data}}",
-    "tags": ["role:sccm-distribution-point", "sccmrole:sccm-srv", "approle:sccm-dp-srv"],
+    "tags": ["role:sccm-distribution-point", "sccmrole:sccm-svr", "approle:sccm-dp-svr"],
     "options": {
       "notify_no_data": true,
       "no_data_timeframe": 10,
@@ -19,7 +19,7 @@
     "type": "service check",
     "query": "check(\"windows_service.state\").over(\"role:sccm-distribution-point\",\"service_group:sccm-windows-infrastructure\").by(\"service\").last(\"5m\") != \"OK\"",
     "message": "{{#is_alert}}Service {{service.name}} on {{host.name}} is not running (group: windows-infrastructure).{{/is_alert}}\n{{#is_no_data}}No data received for windows_service.state in the last {{no_data_timeframe}} minutes.{{/is_no_data}}",
-    "tags": ["role:sccm-distribution-point", "sccmrole:sccm-srv", "approle:sccm-dp-srv"],
+    "tags": ["role:sccm-distribution-point", "sccmrole:sccm-svr", "approle:sccm-dp-svr"],
     "options": {
       "notify_no_data": true,
       "no_data_timeframe": 10,
@@ -34,7 +34,7 @@
     "type": "service check",
     "query": "check(\"windows_service.state\").over(\"role:sccm-distribution-point\",\"service_group:sccm-content-distribution\").by(\"service\").last(\"5m\") != \"OK\"",
     "message": "{{#is_alert}}Service {{service.name}} on {{host.name}} is not running (group: content-distribution).{{/is_alert}}\n{{#is_no_data}}No data received for windows_service.state in the last {{no_data_timeframe}} minutes.{{/is_no_data}}",
-    "tags": ["role:sccm-distribution-point", "sccmrole:sccm-srv", "approle:sccm-dp-srv"],
+    "tags": ["role:sccm-distribution-point", "sccmrole:sccm-svr", "approle:sccm-dp-svr"],
     "options": {
       "notify_no_data": true,
       "no_data_timeframe": 10,
@@ -49,7 +49,7 @@
     "type": "log alert",
     "query": "logs(\"source:windows.events channel:System role:sccm-distribution-point @evt.id:(7000 OR 7001 OR 7031 OR 7034 OR 7036 OR 10016 OR 6008)\").index(\"*\").rollup(\"count\").last(\"5m\") > 0",
     "message": "{{#is_alert}}System critical events detected on distribution points. Investigate in Logs Explorer.{{/is_alert}}",
-    "tags": ["role:sccm-distribution-point", "sccmrole:sccm-srv", "approle:sccm-dp-srv"],
+    "tags": ["role:sccm-distribution-point", "sccmrole:sccm-svr", "approle:sccm-dp-svr"],
     "options": {
       "thresholds": { "critical": 1 },
       "notify_no_data": false,
@@ -63,7 +63,7 @@
     "type": "log alert",
     "query": "logs(\"source:windows.events channel:Application role:sccm-distribution-point @evt.id:(2301 OR 2302 OR 2303 OR 2315 OR 2316)\").index(\"*\").rollup(\"count\").last(\"5m\") > 0",
     "message": "{{#is_alert}}SCCM Distribution Point application errors detected. Investigate in Logs Explorer.{{/is_alert}}",
-    "tags": ["role:sccm-distribution-point", "sccmrole:sccm-srv", "approle:sccm-dp-srv"],
+    "tags": ["role:sccm-distribution-point", "sccmrole:sccm-svr", "approle:sccm-dp-svr"],
     "options": {
       "thresholds": { "critical": 1 },
       "notify_no_data": false,
@@ -77,7 +77,7 @@
     "type": "log alert",
     "query": "logs(\"source:windows.events channel:Application role:sccm-distribution-point @evt.id:(1309 OR 1325 OR 2268)\").index(\"*\").rollup(\"count\").last(\"5m\") > 0",
     "message": "{{#is_alert}}IIS application errors detected on distribution points. Investigate in Logs Explorer.{{/is_alert}}",
-    "tags": ["role:sccm-distribution-point", "sccmrole:sccm-srv", "approle:sccm-dp-srv"],
+    "tags": ["role:sccm-distribution-point", "sccmrole:sccm-svr", "approle:sccm-dp-svr"],
     "options": {
       "thresholds": { "critical": 1 },
       "notify_no_data": false,
@@ -91,7 +91,7 @@
     "type": "log alert",
     "query": "logs(\"source:windows.events channel:Application role:sccm-distribution-point @evt.id:(1000 OR 1026 OR 1033)\").index(\"*\").rollup(\"count\").last(\"5m\") > 0",
     "message": "{{#is_alert}}Generic application errors detected on distribution points. Investigate in Logs Explorer.{{/is_alert}}",
-    "tags": ["role:sccm-distribution-point", "sccmrole:sccm-srv", "approle:sccm-dp-srv"],
+    "tags": ["role:sccm-distribution-point", "sccmrole:sccm-svr", "approle:sccm-dp-svr"],
     "options": {
       "thresholds": { "critical": 1 },
       "notify_no_data": false,
@@ -105,7 +105,7 @@
     "type": "log alert",
     "query": "logs(\"source:windows.events channel:Security role:sccm-distribution-point @evt.id:(4625 OR 4771 OR 4776)\").index(\"*\").rollup(\"count\").last(\"5m\") > 0",
     "message": "{{#is_alert}}Security authentication failures detected on distribution points. Investigate in Logs Explorer.{{/is_alert}}",
-    "tags": ["role:sccm-distribution-point", "sccmrole:sccm-srv", "approle:sccm-dp-srv"],
+    "tags": ["role:sccm-distribution-point", "sccmrole:sccm-svr", "approle:sccm-dp-svr"],
     "options": {
       "thresholds": { "critical": 1 },
       "notify_no_data": false,

@@ -8,8 +8,8 @@ hostname: YOUR_SCCM_DISTRIBUTION_POINT_HOSTNAME
 tags:
   - role:sccm-distribution-point
   - datacenter:azure
-  - sccmrole:sccm-srv
-  - approle:sccm-dp-srv
+  - sccmrole:sccm-svr
+  - approle:sccm-dp-svr
 
 # Logging Configuration
 logs_enabled: true

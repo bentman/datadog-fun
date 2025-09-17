@@ -3,6 +3,7 @@
   "description": "Role Service Health and Role Events. Filter by application and domain.",
   "layout_type": "ordered",
   "reflow_type": "fixed",
+  "notify_list": [],
   "template_variables": [
     {
       "name": "applicationid",

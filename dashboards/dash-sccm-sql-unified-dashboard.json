@@ -3,6 +3,7 @@
   "description": "CPU, Memory, Disk, Network, Role Service Health, and Role Events. Filter by application and domain.",
   "layout_type": "ordered",
   "reflow_type": "fixed",
+  "notify_list": [],
   "template_variables": [
     {
       "name": "applicationid",
@@ -372,11 +373,11 @@
       "layout": { "x": 0, "y": 15, "width": 12, "height": 1 }
     },
     {
-      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-site-server", "service_group:sccm-core", "applicationid:$applicationid", "domain:$domain"], "title": "Site Server Services (Core)", "title_size": "16", "title_align": "left", "show_summary": true },
+      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-site-server", "service_group:sccm-core"], "title": "Site Server Services (Core)", "title_size": "16", "title_align": "left", "show_summary": true },
       "layout": { "x": 0, "y": 16, "width": 6, "height": 2 }
     },
     {
-      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-site-server", "service_group:sccm-web-infrastructure", "applicationid:$applicationid", "domain:$domain"], "title": "Site Server Services (Web)", "title_size": "16", "title_align": "left", "show_summary": true },
+      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-site-server", "service_group:sccm-web-infrastructure"], "title": "Site Server Services (Web)", "title_size": "16", "title_align": "left", "show_summary": true },
       "layout": { "x": 6, "y": 16, "width": 6, "height": 2 }
     },
     {
@@ -384,15 +385,15 @@
       "layout": { "x": 0, "y": 18, "width": 12, "height": 1 }
     },
     {
-      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-sql-server", "service_group:sccm-sql-server-core", "applicationid:$applicationid", "domain:$domain"], "title": "SQL DB Services (Core)", "title_size": "16", "title_align": "left", "show_summary": true },
+      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-sql-server", "service_group:sccm-sql-server-core"], "title": "SQL DB Services (Core)", "title_size": "16", "title_align": "left", "show_summary": true },
       "layout": { "x": 0, "y": 19, "width": 6, "height": 2 }
     },
     {
-      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-sql-server", "service_group:sccm-sql-server-support", "applicationid:$applicationid", "domain:$domain"], "title": "SQL DB Services (Support)", "title_size": "16", "title_align": "left", "show_summary": true },
+      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-sql-server", "service_group:sccm-sql-server-support"], "title": "SQL DB Services (Support)", "title_size": "16", "title_align": "left", "show_summary": true },
       "layout": { "x": 6, "y": 19, "width": 6, "height": 2 }
     },
     {
-      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-sql-server", "service_group:sccm-windows-infrastructure", "applicationid:$applicationid", "domain:$domain"], "title": "SQL DB Services (Windows)", "title_size": "16", "title_align": "left", "show_summary": true },
+      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-sql-server", "service_group:sccm-windows-infrastructure"], "title": "SQL DB Services (Windows)", "title_size": "16", "title_align": "left", "show_summary": true },
       "layout": { "x": 0, "y": 21, "width": 12, "height": 2 }
     },
     {
@@ -400,15 +401,15 @@
       "layout": { "x": 0, "y": 23, "width": 12, "height": 1 }
     },
     {
-      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-management-point", "service_group:sccm-web-infrastructure", "applicationid:$applicationid", "domain:$domain"], "title": "MP Services (Web)", "title_size": "16", "title_align": "left", "show_summary": true },
+      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-management-point", "service_group:sccm-web-infrastructure"], "title": "MP Services (Web)", "title_size": "16", "title_align": "left", "show_summary": true },
       "layout": { "x": 0, "y": 24, "width": 6, "height": 2 }
     },
     {
-      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-management-point", "service_group:sccm-windows-infrastructure", "applicationid:$applicationid", "domain:$domain"], "title": "MP Services (Windows)", "title_size": "16", "title_align": "left", "show_summary": true },
+      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-management-point", "service_group:sccm-windows-infrastructure"], "title": "MP Services (Windows)", "title_size": "16", "title_align": "left", "show_summary": true },
       "layout": { "x": 6, "y": 24, "width": 6, "height": 2 }
     },
     {
-      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-management-point", "service_group:sccm-security-ssl", "applicationid:$applicationid", "domain:$domain"], "title": "MP Services (Security/SSL)", "title_size": "16", "title_align": "left", "show_summary": true },
+      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-management-point", "service_group:sccm-security-ssl"], "title": "MP Services (Security/SSL)", "title_size": "16", "title_align": "left", "show_summary": true },
       "layout": { "x": 0, "y": 26, "width": 12, "height": 2 }
     },
     {
@@ -416,19 +417,19 @@
       "layout": { "x": 0, "y": 28, "width": 12, "height": 1 }
     },
     {
-      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-distribution-point", "service_group:sccm-web-infrastructure", "applicationid:$applicationid", "domain:$domain"], "title": "DP Services (Web)", "title_size": "16", "title_align": "left", "show_summary": true },
+      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-distribution-point", "service_group:sccm-web-infrastructure"], "title": "DP Services (Web)", "title_size": "16", "title_align": "left", "show_summary": true },
       "layout": { "x": 0, "y": 29, "width": 6, "height": 2 }
     },
     {
-      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-distribution-point", "service_group:sccm-windows-infrastructure", "applicationid:$applicationid", "domain:$domain"], "title": "DP Services (Windows)", "title_size": "16", "title_align": "left", "show_summary": true },
+      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-distribution-point", "service_group:sccm-windows-infrastructure"], "title": "DP Services (Windows)", "title_size": "16", "title_align": "left", "show_summary": true },
       "layout": { "x": 6, "y": 29, "width": 6, "height": 2 }
     },
     {
-      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-distribution-point", "service_group:sccm-distribution-point", "applicationid:$applicationid", "domain:$domain"], "title": "DP Services (SCCM)", "title_size": "16", "title_align": "left", "show_summary": true },
+      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-distribution-point", "service_group:sccm-distribution-point"], "title": "DP Services (SCCM)", "title_size": "16", "title_align": "left", "show_summary": true },
       "layout": { "x": 0, "y": 31, "width": 6, "height": 2 }
     },
     {
-      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-distribution-point", "service_group:sccm-content-distribution", "applicationid:$applicationid", "domain:$domain"], "title": "DP Services (Content)", "title_size": "16", "title_align": "left", "show_summary": true },
+      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-distribution-point", "service_group:sccm-content-distribution"], "title": "DP Services (Content)", "title_size": "16", "title_align": "left", "show_summary": true },
       "layout": { "x": 6, "y": 31, "width": 6, "height": 2 }
     },
     {
@@ -436,19 +437,19 @@
       "layout": { "x": 0, "y": 33, "width": 12, "height": 1 }
     },
     {
-      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-sql-reporting-server", "service_group:sccm-ssrs-core", "applicationid:$applicationid", "domain:$domain"], "title": "Reporting Services (SSRS Core)", "title_size": "16", "title_align": "left", "show_summary": true },
+      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-sql-reporting-server", "service_group:sccm-ssrs-core"], "title": "Reporting Services (SSRS Core)", "title_size": "16", "title_align": "left", "show_summary": true },
       "layout": { "x": 0, "y": 34, "width": 6, "height": 2 }
     },
     {
-      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-sql-reporting-server", "service_group:sccm-sql-server-local", "applicationid:$applicationid", "domain:$domain"], "title": "Reporting Services (Local SQL)", "title_size": "16", "title_align": "left", "show_summary": true },
+      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-sql-reporting-server", "service_group:sccm-sql-server-local"], "title": "Reporting Services (Local SQL)", "title_size": "16", "title_align": "left", "show_summary": true },
       "layout": { "x": 6, "y": 34, "width": 6, "height": 2 }
     },
     {
-      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-sql-reporting-server", "service_group:sccm-wsus-core", "applicationid:$applicationid", "domain:$domain"], "title": "Reporting Services (WSUS)", "title_size": "16", "title_align": "left", "show_summary": true },
+      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-sql-reporting-server", "service_group:sccm-wsus-core"], "title": "Reporting Services (WSUS)", "title_size": "16", "title_align": "left", "show_summary": true },
       "layout": { "x": 0, "y": 36, "width": 6, "height": 2 }
     },
     {
-      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-sql-reporting-server", "service_group:sccm-web-infrastructure", "applicationid:$applicationid", "domain:$domain"], "title": "Reporting Services (Web)", "title_size": "16", "title_align": "left", "show_summary": true },
+      "definition": { "type": "check_status", "check": "windows_service.state", "grouping": "cluster", "tags": ["role:sccm-sql-reporting-server", "service_group:sccm-web-infrastructure"], "title": "Reporting Services (Web)", "title_size": "16", "title_align": "left", "show_summary": true },
       "layout": { "x": 6, "y": 36, "width": 6, "height": 2 }
     },
     {

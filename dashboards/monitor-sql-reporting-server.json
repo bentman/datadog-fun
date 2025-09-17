@@ -4,7 +4,7 @@
     "type": "service check",
     "query": "check(\"windows_service.state\").over(\"role:sccm-sql-reporting-server\",\"service_group:sccm-ssrs-core\").by(\"service\").last(\"5m\") != \"OK\"",
     "message": "{{#is_alert}}Service {{service.name}} on {{host.name}} is not running (group: ssrs-core).{{/is_alert}}\n{{#is_no_data}}No data received for windows_service.state in the last {{no_data_timeframe}} minutes.{{/is_no_data}}",
-    "tags": ["role:sccm-sql-reporting-server", "sccmrole:sccm-sql", "approle:sccm-reporting-srv"],
+    "tags": ["role:sccm-sql-reporting-server", "sccmrole:sccm-sql", "approle:sccm-reporting-svr"],
     "options": {
       "notify_no_data": true,
       "no_data_timeframe": 10,
@@ -19,7 +19,7 @@
     "type": "service check",
     "query": "check(\"windows_service.state\").over(\"role:sccm-sql-reporting-server\",\"service_group:sccm-sql-server-local\").by(\"service\").last(\"5m\") != \"OK\"",
     "message": "{{#is_alert}}Service {{service.name}} on {{host.name}} is not running (group: sql-server-local).{{/is_alert}}\n{{#is_no_data}}No data received for windows_service.state in the last {{no_data_timeframe}} minutes.{{/is_no_data}}",
-    "tags": ["role:sccm-sql-reporting-server", "sccmrole:sccm-sql", "approle:sccm-reporting-srv"],
+    "tags": ["role:sccm-sql-reporting-server", "sccmrole:sccm-sql", "approle:sccm-reporting-svr"],
     "options": {
       "notify_no_data": true,
       "no_data_timeframe": 10,
@@ -34,7 +34,7 @@
     "type": "service check",
     "query": "check(\"windows_service.state\").over(\"role:sccm-sql-reporting-server\",\"service_group:sccm-wsus-core\").by(\"service\").last(\"5m\") != \"OK\"",
     "message": "{{#is_alert}}Service {{service.name}} on {{host.name}} is not running (group: wsus-core).{{/is_alert}}\n{{#is_no_data}}No data received for windows_service.state in the last {{no_data_timeframe}} minutes.{{/is_no_data}}",
-    "tags": ["role:sccm-sql-reporting-server", "sccmrole:sccm-sql", "approle:sccm-reporting-srv"],
+    "tags": ["role:sccm-sql-reporting-server", "sccmrole:sccm-sql", "approle:sccm-reporting-svr"],
     "options": {
       "notify_no_data": true,
       "no_data_timeframe": 10,
@@ -49,7 +49,7 @@
     "type": "service check",
     "query": "check(\"windows_service.state\").over(\"role:sccm-sql-reporting-server\",\"service_group:sccm-web-infrastructure\").by(\"service\").last(\"5m\") != \"OK\"",
     "message": "{{#is_alert}}Service {{service.name}} on {{host.name}} is not running (group: web-infrastructure).{{/is_alert}}\n{{#is_no_data}}No data received for windows_service.state in the last {{no_data_timeframe}} minutes.{{/is_no_data}}",
-    "tags": ["role:sccm-sql-reporting-server", "sccmrole:sccm-sql", "approle:sccm-reporting-srv"],
+    "tags": ["role:sccm-sql-reporting-server", "sccmrole:sccm-sql", "approle:sccm-reporting-svr"],
     "options": {
       "notify_no_data": true,
       "no_data_timeframe": 10,
@@ -64,7 +64,7 @@
     "type": "service check",
     "query": "check(\"windows_service.state\").over(\"role:sccm-sql-reporting-server\",\"service_group:sccm-windows-infrastructure\").by(\"service\").last(\"5m\") != \"OK\"",
     "message": "{{#is_alert}}Service {{service.name}} on {{host.name}} is not running (group: windows-infrastructure).{{/is_alert}}\n{{#is_no_data}}No data received for windows_service.state in the last {{no_data_timeframe}} minutes.{{/is_no_data}}",
-    "tags": ["role:sccm-sql-reporting-server", "sccmrole:sccm-sql", "approle:sccm-reporting-srv"],
+    "tags": ["role:sccm-sql-reporting-server", "sccmrole:sccm-sql", "approle:sccm-reporting-svr"],
     "options": {
       "notify_no_data": true,
       "no_data_timeframe": 10,
@@ -79,7 +79,7 @@
     "type": "service check",
     "query": "check(\"windows_service.state\").over(\"role:sccm-sql-reporting-server\",\"service_group:sccm-iis-application-pools\").by(\"service\").last(\"5m\") != \"OK\"",
     "message": "{{#is_alert}}Service {{service.name}} on {{host.name}} is not running (group: iis-application-pools).{{/is_alert}}\n{{#is_no_data}}No data received for windows_service.state in the last {{no_data_timeframe}} minutes.{{/is_no_data}}",
-    "tags": ["role:sccm-sql-reporting-server", "sccmrole:sccm-sql", "approle:sccm-reporting-srv"],
+    "tags": ["role:sccm-sql-reporting-server", "sccmrole:sccm-sql", "approle:sccm-reporting-svr"],
     "options": {
       "notify_no_data": true,
       "no_data_timeframe": 10,
@@ -94,7 +94,7 @@
     "type": "log alert",
     "query": "logs(\"source:windows.events channel:System role:sccm-sql-reporting-server @evt.id:(7000 OR 7001 OR 7031 OR 7034 OR 7036 OR 7032 OR 6008)\").index(\"*\").rollup(\"count\").last(\"5m\") > 0",
     "message": "{{#is_alert}}System critical events detected on reporting servers. Investigate in Logs Explorer.{{/is_alert}}",
-    "tags": ["role:sccm-sql-reporting-server", "sccmrole:sccm-sql", "approle:sccm-reporting-srv"],
+    "tags": ["role:sccm-sql-reporting-server", "sccmrole:sccm-sql", "approle:sccm-reporting-svr"],
     "options": {
       "thresholds": { "critical": 1 },
       "notify_no_data": false,
@@ -108,7 +108,7 @@
     "type": "log alert",
     "query": "logs(\"source:windows.events channel:Application role:sccm-sql-reporting-server @evt.id:(121 OR 133 OR 1530 OR 153)\").index(\"*\").rollup(\"count\").last(\"5m\") > 0",
     "message": "{{#is_alert}}SSRS application errors detected. Investigate in Logs Explorer.{{/is_alert}}",
-    "tags": ["role:sccm-sql-reporting-server", "sccmrole:sccm-sql", "approle:sccm-reporting-srv"],
+    "tags": ["role:sccm-sql-reporting-server", "sccmrole:sccm-sql", "approle:sccm-reporting-svr"],
     "options": {
       "thresholds": { "critical": 1 },
       "notify_no_data": false,
@@ -122,7 +122,7 @@
     "type": "log alert",
     "query": "logs(\"source:windows.events channel:Application role:sccm-sql-reporting-server @evt.id:(18456 OR 18452 OR 5858)\").index(\"*\").rollup(\"count\").last(\"5m\") > 0",
     "message": "{{#is_alert}}SQL connection/authentication errors detected on reporting servers. Investigate in Logs Explorer.{{/is_alert}}",
-    "tags": ["role:sccm-sql-reporting-server", "sccmrole:sccm-sql", "approle:sccm-reporting-srv"],
+    "tags": ["role:sccm-sql-reporting-server", "sccmrole:sccm-sql", "approle:sccm-reporting-svr"],
     "options": {
       "thresholds": { "critical": 1 },
       "notify_no_data": false,

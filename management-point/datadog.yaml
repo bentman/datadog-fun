@@ -8,8 +8,8 @@ hostname: YOUR_SCCM_MANAGEMENT_POINT_HOSTNAME
 tags:
   - role:sccm-management-point
   - datacenter:azure
-  - sccmrole:sccm-srv
-  - approle:sccm-mp-srv
+  - sccmrole:sccm-svr
+  - approle:sccm-mp-svr
 
 # Logging Configuration
 logs_enabled: true

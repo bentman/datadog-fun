@@ -4,12 +4,11 @@
 # Basic Agent Configuration
 api_key: YOUR_DATADOG_API_KEY
 site: datadoghq.com
-hostname: YOUR_SCCM_SQL_SERVER_HOSTNAME
+
 tags:
   - role:sccm-sql-server
-  - datacenter:azure
-  - sccmrole:sccm-sql
   - approle:sccm-sqldb-svr
+  - sccmrole:sccm-sql
 
 # Logging Configuration
 logs_enabled: true

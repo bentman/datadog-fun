@@ -7,9 +7,8 @@ site: datadoghq.com
 hostname: YOUR_SCCM_SQL_REPORTING_SERVER_HOSTNAME
 tags:
   - role:sccm-sql-reporting-server
-  - datacenter:azure
-  - sccmrole:sccm-sql
   - approle:sccm-reporting-svr
+  - sccmrole:sccm-sql
 
 # Logging Configuration
 logs_enabled: true
